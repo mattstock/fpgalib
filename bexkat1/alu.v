@@ -1,9 +1,9 @@
 // A simple ALU design
 // Matt Stock 11/16/14
 
-`include "bexkat2.vh"
+`include "bexkat1.vh"
 
-module alu2(
+module alu(
   input clk_i,
   input rst_i,
   input [WIDTH-1:0] in1,

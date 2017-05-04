@@ -1,6 +1,6 @@
-`include "bexkat2.vh"
+`include "bexkat1.vh"
 
-module intcalc2(clock, func, in1, in2, out);
+module intcalc(clock, func, in1, in2, out);
 
 parameter WIDTH=32;
 

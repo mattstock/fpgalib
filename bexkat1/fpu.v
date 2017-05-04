@@ -1,4 +1,4 @@
-`include "bexkat2.vh"
+`include "bexkat1.vh"
 
 module fpu(input clk_i,
 	   input rst_i,

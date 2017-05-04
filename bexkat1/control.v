@@ -1,8 +1,8 @@
 `timescale 1ns / 1ns
-`include "bexkat2.vh"
+`include "bexkat1.vh"
 `include "exceptions.vh"
   
-module control2(input clk_i,
+module control(input clk_i,
   input rst_i,
   input [31:0] ir,
 	output ir_write,
