@@ -1,6 +1,33 @@
 `timescale 1ns / 1ns
 `include "bexkat1.vh"
 
+module bexkat1_avalon(input clk,
+  input reset,
+  output waitrequest_n,
+  output write,
+  output read,
+  output [31:0] address,
+  input [31:0] readdata,
+  output [31:0] writedata,
+  output [3:0] byteenable,
+  output supervisor,
+  output [3:0] exception,
+  input [2:0] inter,
+  output halt,
+  output int_en);
+
+logic cyc_o, we_o;
+
+assign write = (cyc_o && we_o);
+assign read = (cyc_o && !we_o);
+
+bexkat1 cpu0(.clk_i(clk), .rst_i(reset), .adr_o(address),
+  .ack_i(waitrequest_n), .cyc_o(cyc_o), .we_o(we_o), .halt(halt),
+  .inter(inter), .int_en(int_en), .exception(exception), .supervisor(supervisor),
+  .dat_i(readdata), .dat_o(writedata), .sel_o(byteenable));
+
+endmodule
+
 module bexkat1(input 	     clk_i,
 	       input 	     rst_i,
 	       input 	     ack_i,

@@ -1,70 +1,190 @@
 module mandelbrot(
   input clk_i,
   input rst_i,
-  input [160:0] load,
-  input [31:0] xn,
-  input [31:0] yn,
-  output [31:0] xnext,
-  output [31:0] ynext,
-  output [160:0] store,
-  output [31:0] result);
+  input cyc_i,
+  input stb_i,
+  input we_i,
+  output ack_o,
+  input [3:0] sel_i,
+  input [2:0] adr_i,
+  input [31:0] dat_i,
+  output [31:0] dat_o);
 
-/*
- * The idea here is to have a uniform 50 cycle pipelined operation.
- * The big challenge is to then iterate this efficiently and pull to/from
- * memory in the parent.
- */
+  
+localparam [3:0] STATE_IDLE = 4'h0, STATE_MEMOP = 4'h1, STATE_DONE = 4'h2, STATE_PUSH = 4'h3, STATE_POP = 4'h4,
+  STATE_EVAL = 4'h5, STATE_EVAL2 = 4'h6, STATE_INGEST = 4'h7,
+  STATE_COMPARE = 4'h8, STATE_COMPARE2 = 4'h9, STATE_COMPARE3 = 4'ha;
 
-wire [31:0] xsq, ysq, xy, xn1, yn1, xn2, xy2, xmidsub;
-wire [31:0] ry, rx, x0, y0;
-wire [160:0] shift_taps;
+reg [3:0] state, state_next;
+reg [31:0] values[4:0];
+reg [31:0] values_next[4:0];
+reg [31:0] result, result_next;
+reg complete_read, complete_write, processing_write;
+wire pixel_write, processing_read;
+wire m_trigger, pixel_read, result_complete;
+reg [223:0] pixel, pixel_next;
 
-assign xnext = xnbuf[0];
-assign ynext = ynbuf[0];
-assign x0 = shift_taps[63:32];
-assign y0 = shift_taps[31:0];
-reg [31:0] xnbuf [19:0];
-reg [31:0] ynbuf [19:0];
+wire [8:0] complete_used;
+wire [31:0] m_x0, m_y0, m_xn, m_yn, m_loop, m_result, m_x0i, m_y0i;
+wire [31:0] p_x0, p_y0, p_xn, p_yn, p_loop, p_result, p_x0i, p_y0i;
+wire [31:0] c_x0, c_y0, c_loop, c_x0i, c_y0i;
+wire [31:0] pixel_x0, pixel_y0, pixel_xn, pixel_yn, pixel_loop, pixel_x0i, pixel_y0i;
+wire active, pixel_empty, processing_empty;
+
+assign ack_o = (state == STATE_DONE);
+assign active = (cyc_i && stb_i);
+assign dat_o = result;
+assign pixel_write = (state == STATE_EVAL2 || state == STATE_PUSH);
+assign processing_read = (state == STATE_IDLE && !processing_empty);
+assign m_trigger = (state == STATE_INGEST);
+assign pixel_read = (state == STATE_IDLE && !pixel_empty);
+
+reg [4:0] i;
 
 always @(posedge clk_i or posedge rst_i)
 begin
   if (rst_i)
-  begin
-    for (int i=0; i < 20; i = i + 1)
     begin
-      xnbuf[i] <= 32'h0;
-      ynbuf[i] <= 32'h0;
+      state <= STATE_IDLE;
+      for (i=0; i < 5; i = i+1)
+        values[i] <= 32'h0;
+      result <= 32'h0;
+      pixel <= 160'h0;
     end
-  end
   else
-  begin
-    for (int i=0; i < 19; i = i + 1)
     begin
-      xnbuf[i] <= xnbuf[i+1];
-      ynbuf[i] <= ynbuf[i+1];
+      state <= state_next;
+      for (i=0; i < 5; i = i+1)
+        values[i] <= values_next[i];
+      result <= result_next;
+      pixel <= pixel_next;
     end
-    xnbuf[19] <= xn1;
-    ynbuf[19] <= yn1;
-  end
 end
 
-// tick 0
-mand_mult xsq0(.clock(clk_i), .dataa(xn), .datab(xn), .result(xsq)); // xsq <= xn * xn
-mand_mult ysq0(.clock(clk_i), .dataa(yn), .datab(yn), .result(ysq)); // ysq <= yn * yn
-mand_mult xymul0(.clock(clk_i), .dataa(xn), .datab(yn), .result(xy)); // xy <= xn * yn
-// tick 10
-mand_mult xymul1(.clock(clk_i), .dataa(xy), .datab(32'h40000000), .result(xy2)); // xy2 <= xy * 2.0
-mand_sub xmidsub0(.clock(clk_i), .dataa(xsq), .datab(ysq), .result(xmidsub)); // xmidsub <= xsq - ysq
-// tick 20
-mand_add xnext0(.clock(clk_i), .dataa(x0), .datab(xmidsub), .result(xn1)); // 
-mand_add ynext0(.clock(clk_i), .dataa(y0), .datab(xy2), .result(yn1));
-// tick 30
-mand_mult xn1sq0(.clock(clk_i), .dataa(xn1), .datab(xn1), .result(rx));
-mand_mult yn1sq0(.clock(clk_i), .dataa(yn1), .datab(yn1), .result(ry));
-// tick 40
-mand_add ressum0(.clock(clk_i), .dataa(rx), .datab(ry), .result(result));
-// tick 50
+always @*
+begin
+  state_next = state;  
+  for (i=0; i < 5; i = i+1)
+    values_next[i] = values[i];
+  result_next = result;
+  pixel_next = pixel;
+  
+  complete_read = 1'b0;
+  complete_write = 1'b0;
+  
+  case (state)
+    STATE_IDLE:
+      begin
+        if (!processing_empty)
+          state_next = STATE_COMPARE;
+        else
+          if (!pixel_empty)
+            state_next = STATE_INGEST;
+          else
+            if (active)
+              state_next = STATE_MEMOP;
+      end
+    STATE_MEMOP:
+      begin
+        if (adr_i != 3'h7)
+          begin
+            if (we_i)
+              values_next[adr_i[2:0]] = dat_i;
+            else
+              result_next = values[adr_i[2:0]];
+            state_next = STATE_DONE;
+          end
+        else
+          begin
+            if (we_i)
+              begin
+                if (dat_i[0])
+                  begin
+                    pixel_next = { values[0], values[1], values[0], values[1], 32'h1, values[2], values[3] };
+                    state_next = STATE_PUSH;
+                  end
+                else
+                  begin
+                    complete_read = 1'b1;
+                    state_next = STATE_POP;
+                  end
+              end
+            else
+              begin
+                result_next = complete_used;
+                state_next = STATE_DONE;
+              end
+          end
+      end
+    STATE_COMPARE: state_next = STATE_COMPARE2;
+    STATE_COMPARE2: state_next = STATE_COMPARE3;
+    STATE_COMPARE3: state_next = STATE_EVAL;
+    STATE_EVAL:
+      begin
+        if (p_loop == 9'd256 || result_complete)
+          begin
+            complete_write = 1'b1;
+            state_next = STATE_IDLE;
+          end
+        else
+          begin
+            pixel_next = { p_x0, p_y0, p_xn, p_yn, p_loop + 1'b1, p_x0i, p_y0i };
+            state_next = STATE_EVAL2;
+          end
+      end
+    STATE_INGEST: state_next = STATE_IDLE;
+    STATE_EVAL2: state_next = STATE_IDLE;
+    STATE_PUSH: state_next = STATE_DONE;
+    STATE_POP:
+      begin
+        values_next[0] = c_x0;
+        values_next[1] = c_y0;
+        values_next[2] = c_x0i;
+        values_next[3] = c_y0i;
+        values_next[4] = c_loop;
+        state_next = STATE_DONE;
+      end
+    STATE_DONE: state_next = STATE_IDLE;
+    default: state_next = STATE_IDLE;
+  endcase
+end
 
-shift shiftreg0(.clock(clk_i), .aclr(rst_i), .shiftin(load), .shiftout(store), .taps1x(shift_taps));
+mand_fifo_in fifo0(.clock(clk_i), .aclr(rst_i), .data(pixel),
+  .q({pixel_x0, pixel_y0, pixel_xn, pixel_yn, pixel_loop, pixel_x0i, pixel_y0i}),
+  .wrreq(pixel_write), .rdreq(pixel_read), .empty(pixel_empty));
+  
+mandpipe mand0(.clk_i(clk_i), .rst_i(rst_i),
+  .load({m_trigger, pixel_loop, pixel_x0i, pixel_y0i, pixel_x0, pixel_y0}),
+  .xn(pixel_xn), .yn(pixel_yn),
+  .store({processing_write, m_loop, m_x0i, m_y0i, m_x0, m_y0}),
+  .xnext(m_xn), .ynext(m_yn), .result(m_result));
+
+mand_fifo fifo1(.clock(clk_i), .aclr(rst_i), .data({m_x0, m_y0, m_xn, m_yn, m_loop, m_result, m_x0i, m_y0i}),
+  .q({p_x0, p_y0, p_xn, p_yn, p_loop, p_result, p_x0i, p_y0i}),
+  .wrreq(processing_write), .rdreq(processing_read), .empty(processing_empty));
+  
+mand_fifo_out fifo2(.clock(clk_i), .aclr(rst_i),
+  .data({p_x0, p_y0, p_x0i, p_y0i, p_loop}),
+  .q({c_x0, c_y0, c_x0i, c_y0i, c_loop}),
+  .wrreq(complete_write), .rdreq(complete_read), .usedw(complete_used));
+
+mand_comp comp0(.clock(clk_i), .dataa(p_result), .datab(32'h40800000), .agb(result_complete));
+
+endmodule
+
+module mandelbrot_avalon(
+  input clk,
+  input reset,
+  input read,
+  input write,
+  input chipselect,
+  input [3:0] byteenable,
+  output [31:0] readdata,
+  input [31:0] writedata,
+  output waitrequest_n,
+  input [2:0] address);
+
+mandunit m0(.clk_i(clk), .rst_i(reset), .cyc_i(write|read), .adr_i(address), .sel_i(byteenable), .we_i(write & !read), .stb_i(chipselect),
+  .dat_o(readdata), .dat_i(writedata), .ack_o(waitrequest_n));
 
 endmodule
