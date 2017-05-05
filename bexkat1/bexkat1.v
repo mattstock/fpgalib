@@ -1,30 +1,29 @@
 `timescale 1ns / 1ns
-`include "bexkat1.vh"
 
 module bexkat1_avalon(input clk,
   input reset,
-  output waitrequest_n,
-  output write,
-  output read,
-  output [31:0] address,
-  input [31:0] readdata,
-  output [31:0] writedata,
-  output [3:0] byteenable,
-  output supervisor,
-  output [3:0] exception,
-  input [2:0] inter,
-  output halt,
-  output int_en);
+  input avm_waitrequest_n,
+  output avm_write,
+  output avm_read,
+  output [31:0] avm_address,
+  input [31:0] avm_readdata,
+  output [31:0] avm_writedata,
+  output [3:0] avm_byteenable,
+  output coe_supervisor,
+  output [3:0] coe_exception,
+  input [2:0] coe_inter,
+  output coe_halt,
+  output coe_int_en);
 
-logic cyc_o, we_o;
+wire cyc_o, we_o;
 
-assign write = (cyc_o && we_o);
-assign read = (cyc_o && !we_o);
+assign avm_write = (cyc_o && we_o);
+assign avm_read = (cyc_o && !we_o);
 
-bexkat1 cpu0(.clk_i(clk), .rst_i(reset), .adr_o(address),
-  .ack_i(waitrequest_n), .cyc_o(cyc_o), .we_o(we_o), .halt(halt),
-  .inter(inter), .int_en(int_en), .exception(exception), .supervisor(supervisor),
-  .dat_i(readdata), .dat_o(writedata), .sel_o(byteenable));
+bexkat1 cpu0(.clk_i(clk), .rst_i(reset), .adr_o(avm_address),
+  .ack_i(avm_waitrequest_n), .cyc_o(cyc_o), .we_o(we_o), .halt(coe_halt),
+  .inter(coe_inter), .int_en(coe_int_en), .exception(coe_exception), .supervisor(coe_supervisor),
+  .dat_i(avm_readdata), .dat_o(avm_writedata), .sel_o(avm_byteenable));
 
 endmodule
 
@@ -43,6 +42,9 @@ module bexkat1(input 	     clk_i,
 	       output [31:0] dat_o,
 	       output [3:0]  sel_o);
   
+
+`include "bexkat1.vh"
+
 // Control signals
 wire [1:0] reg_write;
 wire [2:0] alu_func, fpu_func;
@@ -55,16 +57,15 @@ wire fp_aeb, fp_alb, int2sel, fpccr_write, superintr;
   
 // Data paths
 wire [31:0] alu_out, reg_data_out1, reg_data_out2;
-wire [31:0] ir_next, vectoff_next, fpu_out, dataout, a_next, b_next, int_out;
-wire [2:0]  ccr_next;
+wire [31:0] ir_next, vectoff_next, fpu_out, dataout, int_out;
 wire alu_carry, alu_negative, alu_overflow, alu_zero; 
 wire fp_nan, fp_overflow, fp_underflow, fp_divzero;
  
 // Special registers
 reg [31:0] mdr, mdr_next, mar, a, b, pc, ir, busin_be, vectoff;
-reg [32:0] pc_next, mar_next;
+reg [32:0] pc_next, mar_next, a_next, b_next;
 reg [31:0] reg_data_in, alu_in2, int_in1, int_in2, intval;
-reg [2:0]  ccr;
+reg [2:0]  ccr, ccr_next;
 reg [3:0]  status, status_next;
 reg [3:0]  fpccr, fpccr_next;
 
@@ -104,10 +105,11 @@ always @(posedge clk_i or posedge rst_i) begin
   end
 end
 
+
 wire [31:0] exceptionval = vectoff + { exception, 2'b00 };
 
 // All of the datapath options
-always_comb
+always @*
 begin
   case (pcsel)
     PC_PC:   pc_next = pc;

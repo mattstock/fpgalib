@@ -184,7 +184,7 @@ module mandelbrot_avalon(
   output waitrequest_n,
   input [2:0] address);
 
-mandunit m0(.clk_i(clk), .rst_i(reset), .cyc_i(write|read), .adr_i(address), .sel_i(byteenable), .we_i(write & !read), .stb_i(chipselect),
+mandelbrot m0(.clk_i(clk), .rst_i(reset), .cyc_i(write|read), .adr_i(address), .sel_i(byteenable), .we_i(write & !read), .stb_i(chipselect),
   .dat_o(readdata), .dat_i(writedata), .ack_o(waitrequest_n));
 
 endmodule
