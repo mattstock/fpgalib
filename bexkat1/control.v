@@ -55,10 +55,10 @@ wire ir_size         = ir[0];
 wire ccr_ltu, ccr_lt, ccr_eq;
 assign { ccr_ltu, ccr_lt, ccr_eq } = ccr;
 
-ControlStates state, state_next;
-logic interrupts_enabled, interrupts_enabled_next;
-logic [3:0] exception_next;
-logic [7:0] delay, delay_next;
+reg [6:0] state, state_next;
+reg interrupts_enabled, interrupts_enabled_next;
+reg [3:0] exception_next;
+reg [7:0] delay, delay_next;
 
 always @(posedge clk_i or posedge rst_i)
 begin
