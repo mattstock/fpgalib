@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ip>
+ <presets version="12.1">
+  <preset
+     name="IS61LPS51236A"
+     kind="altera_generic_tristate_controller"
+     version="All"
+     description="DE2i-150 SSRAM">
+   <parameter name="TCM_BYTEENABLE_W" value="4" />
+   <parameter name="USE_LOCK" value="0" />
+   <parameter name="TCM_DATA_HOLD" value="0" />
+   <parameter name="ACTIVE_LOW_LOCK" value="0" />
+   <parameter name="ACTIVE_LOW_BEGINTRANSFER" value="1" />
+   <parameter name="TCM_DATA_W" value="32" />
+   <parameter name="USE_READDATA" value="1" />
+   <parameter name="USE_BYTEENABLE" value="1" />
+   <parameter name="TCM_ADDRESS_W" value="22" />
+   <parameter name="USE_RESET_OUTPUT" value="0" />
+   <parameter name="ACTIVE_LOW_WAITREQUEST" value="0" />
+   <parameter name="IS_MEMORY_DEVICE" value="1" />
+   <parameter name="ACTIVE_LOW_BYTEENABLE" value="1" />
+   <parameter name="ACTIVE_LOW_WRITEBYTEENABLE" value="0" />
+   <parameter name="ACTIVE_LOW_RESET_OUTPUT" value="0" />
+   <parameter name="USE_WRITEDATA" value="1" />
+   <parameter
+       name="INTERFACE_ASSIGNMENT_KEYS"
+       value="embeddedsw.configuration.isMemoryDevice" />
+   <parameter name="USE_WAITREQUEST" value="0" />
+   <parameter name="CHIPSELECT_THROUGH_READLATENCY" value="1" />
+   <parameter name="USE_BEGINTRANSFER" value="1" />
+   <parameter name="USE_ADDRESS" value="1" />
+   <parameter name="INTERFACE_ASSIGNMENT_VALUES" value="1" />
+   <parameter name="TCM_SETUP_WAIT" value="0" />
+   <parameter name="TCM_SYMBOLS_PER_WORD" value="4" />
+   <parameter name="TCM_TIMING_UNITS" value="1" />
+   <parameter name="USE_READ" value="0" />
+   <parameter name="TCM_READLATENCY" value="4" />
+   <parameter name="ACTIVE_LOW_IRQ" value="0" />
+   <parameter name="USE_WRITEBYTEENABLE" value="0" />
+   <parameter name="USE_CHIPSELECT" value="1" />
+   <parameter name="USE_OUTPUTENABLE" value="1" />
+   <parameter
+       name="MODULE_ASSIGNMENT_VALUES"
+       value="altera_avalon_lan91c111:altera_avalon_cfi_flash,2,4194304,32,2,32,1,1,SIM_DIR" />
+   <parameter name="USE_WRITE" value="1" />
+   <parameter name="TCM_MAX_PENDING_READ_TRANSACTIONS" value="5" />
+   <parameter name="ACTIVE_LOW_READ" value="0" />
+   <parameter name="ACTIVE_LOW_OUTPUTENABLE" value="1" />
+   <parameter
+       name="MODULE_ASSIGNMENT_KEYS"
+       value="embeddedsw.configuration.hwClassnameDriverSupportList,embeddedsw.CMacro.SRAM_MEMORY_SIZE,embeddedsw.CMacro.SRAM_MEMORY_UNITS,embeddedsw.CMacro.SSRAM_DATA_WIDTH,embeddedsw.CMacro.SSRAM_READ_LATENCY,embeddedsw.memoryInfo.MEM_INIT_DATA_WIDTH,embeddedsw.memoryInfo.HAS_BYTE_LANE,embeddedsw.memoryInfo.GENERATE_DAT_SYM,embeddedsw.memoryInfo.DAT_SYM_INSTALL_DIR" />
+   <parameter name="TCM_WRITE_WAIT" value="0" />
+   <parameter name="TCM_TURNAROUND_TIME" value="2" />
+   <parameter name="ACTIVE_LOW_RESETREQUEST" value="0" />
+   <parameter name="TCM_READ_WAIT" value="0" />
+   <parameter name="USE_RESETREQUEST" value="0" />
+   <parameter name="ACTIVE_LOW_CHIPSELECT" value="1" />
+   <parameter name="USE_IRQ" value="0" />
+   <parameter name="ACTIVE_LOW_WRITE" value="1" />
+  </preset>
+ </presets>
+</ip>
