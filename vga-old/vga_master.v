@@ -1,50 +1,7 @@
-module vga_avalon(
-  input csi_clk,
-  input csi_vga_clk,
-  output reg cso_vga_clk,
-  input rsi_reset,
-  input avs_s0_write,
-  input avs_s0_read,
-  input [3:0] avs_s0_byteenable,
-  input [31:0] avs_s0_writedata,
-  output [31:0] avs_s0_readdata,
-  input [9:0] avs_s0_address,
-  output avs_s0_waitrequest_n,
-  output [31:0] avm_m0_address,
-  output reg avm_m0_write,
-  output reg avm_m0_read,
-  output [31:0] avm_m0_writedata,
-  input [31:0] avm_m0_readdata,
-  output [3:0] avm_m0_byteenable,
-  input avm_m0_waitrequest_n,
-  output coe_vs,
-  output coe_hs,
-  output [7:0] coe_r,
-  output [7:0] coe_g,
-  output [7:0] coe_b,
-  output coe_sync_n,
-  output coe_blank_n
-);
-
-reg stb_o, we_o, cyc_o;
-
-always cso_vga_clk = csi_vga_clk;
-always avm_m0_read = stb_o & cyc_o & !we_o;
-always avm_m0_write = stb_o & cyc_o & we_o;
-
-vga_master vga0(.clk_i(csi_clk), .rst_i(rsi_reset), .slave_we_i(avs_s0_write & !avs_s0_read), .slave_dat_i(avs_s0_writedata),
-  .slave_adr_i(avs_s0_address), .slave_dat_o(avs_s0_readdata), .slave_cyc_i(avs_s0_read|avs_s0_write),
-  .slave_stb_i(avs_s0_read|avs_s0_write), .slave_sel_i(avs_s0_byteenable), .slave_ack_o(avs_s0_waitrequest_n),
-  .master_adr_o(avm_m0_address), .master_cyc_o(cyc_o), .master_dat_i(avm_m0_readdata), .master_sel_o(avm_m0_byteenable),
-  .master_ack_i(avm_m0_waitrequest_n), .master_we_o(we_o), .master_stb_o(stb_o), .vga_clock(csi_vga_clk),
-  .vs(coe_vs), .hs(coe_hs), .r(coe_r), .g(coe_g), .b(coe_b), .blank_n(coe_blank_n), .sync_n(coe_sync_n)); 
-
-endmodule
-
 module vga_master(
   input clk_i,
   input rst_i,
-  output [31:0] master_adr_o,
+  output reg [31:0] master_adr_o,
   output master_cyc_o,
   input [31:0] master_dat_i,
   output master_we_o,
@@ -78,25 +35,28 @@ module vga_master(
 
 localparam [2:0] SSTATE_IDLE = 3'h0, SSTATE_PALETTE = 3'h1, SSTATE_PALETTE2 = 3'h2, SSTATE_FONT = 3'h3, SSTATE_DONE = 3'h4;
 
-reg [2:0] sstate, sstate_next;
-reg [31:0] setupreg, setupreg_next, vgabase, vgabase_next, cursorpos, cursorpos_next;
-reg [31:0] slave_dat_o_next;
+logic [2:0] sstate, sstate_next;
+logic [31:0] setupreg, setupreg_next, vgabase, vgabase_next, cursorpos, cursorpos_next;
+logic [31:0] slave_dat_o_next;
 
 wire [7:0] gd_r, gd_g, gd_b, td_r, td_g, td_b;
 wire gd_cyc_o, td_cyc_o;
 wire [31:0] gd_adr_o, td_adr_o;
 wire [15:0] x_raw, y_raw;
+wire graphicsdouble, textmode;
 
+assign graphicsdouble = (setupreg[1:0] == 2'b01);
+assign textmode = (setupreg[1:0] == 2'b10);
 assign master_dat_o = 32'h0;
 assign slave_ack_o = (sstate == SSTATE_DONE);
 assign master_we_o = 1'b0;
 assign master_sel_o = 4'hf;
-assign master_cyc_o = td_cyc_o;
+assign master_cyc_o = (textmode ? td_cyc_o : gd_cyc_o);
 assign master_stb_o = master_cyc_o;
-assign master_adr_o = vgabase + td_adr_o;
-assign r = td_r;
-assign g = td_g;
-assign b = td_b;
+assign master_adr_o = vgabase + (textmode ? td_adr_o : gd_adr_o);
+assign r = (textmode ? td_r : gd_r);
+assign g = (textmode ? td_g : gd_g);
+assign b = (textmode ? td_b : gd_b);
 
 assign sync_n = 1'b0;
 
@@ -118,7 +78,7 @@ begin
   end
 end
 
-always @*
+always_comb
 begin
   sstate_next = sstate;
   setupreg_next = setupreg;
@@ -189,6 +149,10 @@ begin
   endcase
 end
 
+graphicsdrv graphicsdriver0(.clk_i(clk_i), .rst_i(rst_i), .pixeldouble(graphicsdouble), .x(x_raw), .y(y_raw),
+  .r(gd_r), .g(gd_g), .b(gd_b), .cyc_o(gd_cyc_o), .palette_write((sstate == SSTATE_PALETTE) & slave_we_i),
+  .ack_i(master_ack_i), .palette_adr_i(slave_adr_i[7:0]), .palette_dat_i(slave_dat_i[23:0]),
+  .adr_o(gd_adr_o), .dat_i(master_dat_i), .vga_clock(vga_clock));
 textdrv textdriver0(.clk_i(clk_i), .rst_i(rst_i), .x(x_raw), .y(y_raw),
   .r(td_r), .g(td_g), .b(td_b), .cyc_o(td_cyc_o), .cursorpos(cursorpos), .cursormode(setupreg[7:4]),
   .ack_i(master_ack_i), .adr_o(td_adr_o), .dat_i(master_dat_i), .vga_clock(vga_clock));
