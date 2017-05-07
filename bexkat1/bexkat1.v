@@ -11,7 +11,7 @@ module bexkat1_avalon(input clk,
   output [3:0] avm_byteenable,
   output coe_supervisor,
   output [3:0] coe_exception,
-  input [2:0] coe_inter,
+  input [2:0] interrupt_receiver_irq,
   output coe_halt,
   output coe_int_en);
 
@@ -22,7 +22,8 @@ assign avm_read = (cyc_o && !we_o);
 
 bexkat1 cpu0(.clk_i(clk), .rst_i(reset), .adr_o(avm_address),
   .ack_i(avm_waitrequest_n), .cyc_o(cyc_o), .we_o(we_o), .halt(coe_halt),
-  .inter(coe_inter), .int_en(coe_int_en), .exception(coe_exception), .supervisor(coe_supervisor),
+  .inter(interrupt_receiver_irq), .int_en(coe_int_en), 
+  .exception(coe_exception), .supervisor(coe_supervisor),
   .dat_i(avm_readdata), .dat_o(avm_writedata), .sel_o(avm_byteenable));
 
 endmodule
