@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ip>
- <presets version="12.1">
+ <presets version="16.1">
   <preset
      name="IS61LPS51236A"
      kind="altera_generic_tristate_controller"
