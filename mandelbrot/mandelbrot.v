@@ -175,16 +175,15 @@ endmodule
 module mandelbrot_avalon(
   input clk,
   input reset,
-  input read,
-  input write,
-  input chipselect,
-  input [3:0] byteenable,
-  output [31:0] readdata,
-  input [31:0] writedata,
-  output waitrequest_n,
-  input [2:0] address);
+  input avs_read,
+  input avs_write,
+  input [3:0] avs_byteenable,
+  output [31:0] avs_readdata,
+  input [31:0] avs_writedata,
+  output avs_waitrequest_n,
+  input [2:0] avs_address);
 
-mandelbrot m0(.clk_i(clk), .rst_i(reset), .cyc_i(write|read), .adr_i(address), .sel_i(byteenable), .we_i(write & !read), .stb_i(chipselect),
-  .dat_o(readdata), .dat_i(writedata), .ack_o(waitrequest_n));
+  mandelbrot m0(.clk_i(clk), .rst_i(reset), .cyc_i(avs_write|avs_read), .adr_i(avs_address), .sel_i(avs_byteenable), .we_i(avs_write & !avs_read), .stb_i(avs_write|avs_read),
+    .dat_o(avs_readdata), .dat_i(avs_writedata), .ack_o(avs_waitrequest_n));
 
 endmodule
