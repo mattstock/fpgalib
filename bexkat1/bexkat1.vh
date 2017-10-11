@@ -5,6 +5,8 @@
 `ifndef _BEXKAT2_VH
  `define _BEXKAT2_VH
 
+ `define _BEXKAT2_FPU 0
+
 // Opcode types (in sync with the ISA in binutils)
 localparam T_INH = 4'h0, T_PUSH = 4'h1, T_POP = 4'h2, T_CMP = 4'h3, 
   T_MOV = 4'h4, T_FP = 4'h5, T_ALU = 4'h6, T_INT = 4'h7, 
