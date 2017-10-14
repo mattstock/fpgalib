@@ -2,10 +2,11 @@
  * within the CPU, and a list of all of the state memonics.
  */
 
-`ifndef _BEXKAT2_VH
- `define _BEXKAT2_VH
+`ifndef _BEXKAT1_VH
+ `define _BEXKAT1_VH
 
- `define _BEXKAT2_FPU 0
+// Uncomment to enable FPU support
+// `define BEXKAT1_FPU 1
 
 // Opcode types (in sync with the ISA in binutils)
 localparam T_INH = 4'h0, T_PUSH = 4'h1, T_POP = 4'h2, T_CMP = 4'h3, 

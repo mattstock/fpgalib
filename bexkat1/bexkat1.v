@@ -154,7 +154,9 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	  MDR_A:   mdr_next = a;
 	  MDR_PC:  mdr_next = pc;
 	  MDR_INT: mdr_next = int_out;
+`ifdef BEXKAT1_FPU
 	  MDR_FPU: mdr_next = fpu_out;
+`endif
 	  MDR_ALU: mdr_next = alu_out;
 	  MDR_CCR: mdr_next = { 20'h0, status, 5'h0, ccr};
 	  MDR_STATUS: mdr_next = { 28'h0, status };
@@ -179,7 +181,11 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	case (ccrsel)
 	  CCR_CCR: ccr_next = ccr;
 	  CCR_ALU: ccr_next = { alu_carry, alu_negative ^ alu_overflow, alu_zero };
+`ifdef BEXKAT1_FPU
 	  CCR_FPU: ccr_next = { fp_alb, fp_alb, fp_aeb };
+`else
+	  CCR_FPU: ccr_next = ccr;
+`endif
 	  CCR_MDR: ccr_next = mdr[2:0];
 	endcase // case (ccrsel)
 `ifdef BEXKAT1_FPU
