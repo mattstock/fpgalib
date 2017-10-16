@@ -224,7 +224,8 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	    .func(alu_func), .out(alu_out), .c_out(alu_carry),
 	    .n_out(alu_negative),
 	    .v_out(alu_overflow), .z_out(alu_zero));
-   intcalc int0(.clock(clk_i), .func(int_func), .in1(a), .in2(int_in2),
+   intcalc int0(.clk_i(clk_i), .func(int_func), .sin1(a), .sin2(int_in2),
+		.uin1(a), .uin2(int_in2),
 		.out(int_out));
    registerfile intreg(.clk_i(clk_i), .rst_i(rst_i), .supervisor(supervisor),
 		       .read1(reg_read_addr1),
