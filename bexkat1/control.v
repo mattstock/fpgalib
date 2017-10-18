@@ -2,31 +2,33 @@
 `include "bexkat1.vh"
 `include "exceptions.vh"
 
+import bexkat1Def::*;
+
 module control(input clk_i,
 	       input 		  rst_i,
 	       input [31:0] 	  ir,
 	       output logic 	  ir_write,
 	       input [2:0] 	  ccr,
-	       output logic [1:0] ccrsel,
-	       output logic [2:0] alu_func,
-	       output logic [1:0] alu2sel,
-	       output logic [2:0] regsel,
+	       output ccr_t ccrsel,
+	       output alu_t alu_func,
+	       output alu_in_t alu2sel,
+	       output reg_t regsel,
 	       output logic [3:0] reg_read_addr1,
 	       output logic [3:0] reg_read_addr2,
 	       output logic [3:0] reg_write_addr,
 	       output logic [1:0] reg_write,
 	       output logic 	  a_write,
 	       output logic 	  b_write,
-	       output logic [3:0] mdrsel,
-	       output logic [1:0] marsel,
-	       output logic [1:0] statussel,
-	       output logic 	  int2sel,
-	       output logic [3:0] int_func,
+	       output mdr_t mdrsel,
+	       output mar_t marsel,
+	       output status_t statussel,
+	       output int2_t 	  int2sel,
+	       output intfunc_t int_func,
 `ifdef BEXKAT1_FPU
-	       output logic [2:0] fpu_func,
+	       output fpufunc_t fpu_func,
 	       output logic 	  fpccr_write,
 `endif
-	       output logic [2:0] pcsel,
+	       output pc_t pcsel,
 	       output logic 	  addrsel,
 	       output logic [3:0] byteenable,
 	       output logic 	  bus_cyc,
@@ -463,7 +465,7 @@ module control(input clk_i,
 	end
 	S_INTU: begin
 	  int2sel = INT2_B;
-	  int_func = ir_op;
+	  int_func = intfunc_t'(ir_op);
 	  mdrsel = MDR_INT;
 	  state_next = S_MDR2RA;
 	end
@@ -500,11 +502,11 @@ module control(input clk_i,
 	  state_next = (ir_op[3] ? S_ALU3 : S_ALU2);
 	end
 	S_ALU2: begin
-	  alu_func = ir_op[2:0];
+	  alu_func = alu_t'(ir_op[2:0]);
 	  state_next = S_ALU4;
 	end
 	S_ALU3: begin
-	  alu_func = ir_op[2:0];
+	  alu_func = alu_t'(ir_op[2:0]);
 	  alu2sel = ALU_SVAL;
 	  state_next = S_ALU4;
 	end
@@ -521,14 +523,14 @@ module control(input clk_i,
 	  state_next = (ir_op[3] ? S_INT3 : S_INT2);
 	end
 	S_INT2: begin
-	  int_func = { 1'b0, ir_op[2:0] };
+	  int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
 	  mdrsel = MDR_INT;
 	  if (delay == 8'h00)
             state_next = S_MDR2RA;
 	end
 	S_INT3: begin
 	  int2sel = INT2_SVAL;
-	  int_func = { 1'b0, ir_op[2:0] };
+	  int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
 	  mdrsel = MDR_INT;
 	  if (delay == 8'h00)
             state_next = S_MDR2RA;

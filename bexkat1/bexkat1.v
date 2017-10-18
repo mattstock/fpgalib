@@ -1,4 +1,7 @@
 `timescale 1ns / 1ns
+`include "bexkat1.vh"   
+
+import bexkat1Def::*;
 
 module bexkat1_avalon(input clk,
 		      input 	    reset,
@@ -45,28 +48,34 @@ module bexkat1(input 	     clk_i,
 	       output [3:0]  sel_o);
    
    
-`include "bexkat1.vh"
-   
    // Control signals
    wire [1:0] 		     reg_write;
-   wire [2:0] 		     alu_func;
-   wire 		     addrsel, ir_write, vectoff_write,
+   alu_t 		     alu_func;
+   /* verilator lint_off UNOPTFLAT */
+   wire 		     addrsel;
+   wire 		     ir_write, vectoff_write,
 			     a_write, b_write;
    wire [3:0] 		     reg_read_addr1, reg_read_addr2, reg_write_addr;
-   wire [1:0] 		     marsel, ccrsel, spsel, sspsel,
-			     alu2sel, statussel;
+   mar_t 		     marsel;
+   ccr_t                     ccrsel;
+   wire [1:0] 		     spsel, sspsel;
+   alu_in_t                  alu2sel;
+   status_t                  statussel;
 `ifdef BEXKAT1_FPU
-   wire [1:0] 		     fpccrsel;
+   ccr_t 		     fpccrsel;
    wire 		     fp_aeb, fp_alb, fpccr_write;
-   wire [2:0] 		     fpu_func;
+   fpufunc_t 		     fpu_func;
    wire [31:0] 		     fpu_out;
    wire 		     fp_nan, fp_overflow, fp_underflow, fp_divzero;
-   reg [3:0] 		     fpccr, fpccr_next;
+   logic ccr_t 		     fpccr, fpccr_next;
 `endif
    
-   wire [2:0] 		     pcsel, regsel;
-   wire [3:0] 		     mdrsel, int_func;
-   wire 		     int2sel, superintr;
+   pc_t 		     pcsel;
+   reg_t                     regsel;
+   mdr_t 		     mdrsel;
+   intfunc_t                 int_func;
+   int2_t 		     int2sel;
+   wire                      superintr;
   
 // Data paths
    wire [31:0] 		     alu_out, reg_data_out1, reg_data_out2;
@@ -116,30 +125,30 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	 ccr <= ccr_next;
 	 vectoff <= vectoff_next;
 	 status <= status_next;
-	 a <= a_next;
-	 b <= b_next;
+	 a <= a_next[31:0];
+	 b <= b_next[31:0];
       end
    end
    
-   wire [31:0] exceptionval = vectoff + { exception, 2'b00 };
+   wire [31:0] exceptionval = vectoff + { 26'b0, exception, 2'b00 };
    
    // All of the datapath options
    always @*
      begin
 	case (pcsel)
-	  PC_PC:   pc_next = pc;
-	  PC_NEXT: pc_next = pc + 'h4;
+	  PC_PC:   pc_next = { 1'b0, pc };
+	  PC_NEXT: pc_next = { 1'b0, ( pc + 'h4 ) };
 	  PC_MAR:  pc_next = { 1'b0, mar };
 	  PC_REL:  pc_next = { 1'b0, pc } + { ir_sval[29:0], 2'b00 };
 	  PC_ALU:  pc_next = { 1'b0, alu_out }; // reg offset
-	  PC_EXC: pc_next = { 1'b0, exceptionval };
-	  default: pc_next = pc;
+	  PC_EXC:  pc_next = { 1'b0, exceptionval };
+	  default: pc_next = { 1'b0, pc };
 	endcase // case (pcsel)
 	case (marsel)
-	  MAR_MAR: mar_next = mar;
-	  MAR_BUS: mar_next = dat_i;
-	  MAR_ALU: mar_next = alu_out;
-	  MAR_A:   mar_next = a;
+	  MAR_MAR: mar_next = { 1'b0, mar };
+	  MAR_BUS: mar_next = { 1'b0, dat_i };
+	  MAR_ALU: mar_next = { 1'b0, alu_out };
+	  MAR_A:   mar_next = { 1'b0, a };
 	endcase
 	case (statussel)
 	  STATUS_STATUS: status_next = status;
@@ -176,8 +185,8 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	  ALU_1:    alu_in2 = 1;
 	endcase
 	int_in2 = (int2sel == INT2_SVAL ? ir_sval : b);
-	a_next = (a_write ? reg_data_out1 : a);
-	b_next = (b_write ? reg_data_out2 : b);
+	a_next = { 1'b0, (a_write ? reg_data_out1 : a) };
+	b_next = { 1'b0, (b_write ? reg_data_out2 : b) };
 	case (ccrsel)
 	  CCR_CCR: ccr_next = ccr;
 	  CCR_ALU: ccr_next = { alu_carry, alu_negative ^ alu_overflow, alu_zero };

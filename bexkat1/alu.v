@@ -2,6 +2,7 @@
 // Matt Stock 11/16/14
 
 `include "bexkat1.vh"
+import bexkat1Def::alu_t;
 
 module alu
   #(WIDTH=32)
@@ -9,7 +10,7 @@ module alu
    input 		    rst_i,
    input [WIDTH-1:0] 	    in1,
    input [WIDTH-1:0] 	    in2,
-   input [2:0] 		    func,
+   input alu_t 		    func,
    output logic [WIDTH-1:0] out,
    output logic 	    c_out,
    output 		    z_out,
@@ -37,22 +38,22 @@ module alu
     begin
       out_next = out;
       case (func)
-	ALU_AND: begin
+	bexkat1Def::ALU_AND: begin
 	  out_next = in1 & in2;
 	  v_out = 1'b0;
 	  c_out = 1'b0;
 	end  
-	ALU_OR: begin
+	bexkat1Def::ALU_OR: begin
 	  out_next = in1 | in2;
 	  v_out = 1'b0;
 	  c_out = 1'b0;
 	end
-	ALU_XOR: begin
+	bexkat1Def::ALU_XOR: begin
 	  out_next = in1 ^ in2;
 	  v_out = 1'b0;
 	  c_out = 1'b0;
 	end
-	ALU_ADD: begin
+	bexkat1Def::ALU_ADD: begin
 	  out_next = in1 + in2;
 	  v_out = (in1[WIDTH-1] & in2[WIDTH-1] & ~out[WIDTH-1]) |
 		  (~in1[WIDTH-1] & ~in2[WIDTH-1] & out[WIDTH-1]);
@@ -60,7 +61,7 @@ module alu
 		  (in2[WIDTH-1] & out[WIDTH-1]) | 
 		  (out[WIDTH-1] & in1[WIDTH-1]);
 	end  
-	ALU_SUB: begin
+	bexkat1Def::ALU_SUB: begin
 	  out_next = in1 - in2;
 	  v_out = (in1[WIDTH-1] & ~in2[WIDTH-1] & ~out[WIDTH-1]) |
 		  (~in1[WIDTH-1] & in2[WIDTH-1] & out[WIDTH-1]);
@@ -68,16 +69,16 @@ module alu
 		  in2[WIDTH-1] & out[WIDTH-1] |
 		  out[WIDTH-1] & ~in1[WIDTH-1];
 	end  
-	ALU_LSHIFT: begin
+	bexkat1Def::ALU_LSHIFT: begin
 	  {c_out, out_next} = {1'b0, in1} << in2;
 	  v_out = n_out ^ c_out;
 	end
-	ALU_RSHIFTA: begin
+	bexkat1Def::ALU_RSHIFTA: begin
 	  out_next = $signed(in1) >>> in2;
 	  c_out = 1'b0;
 	  v_out = n_out;
 	end
-	ALU_RSHIFTL: begin
+	bexkat1Def::ALU_RSHIFTL: begin
 	  out_next = in1 >> in2;
 	  c_out = 1'b0;
 	  v_out = n_out;

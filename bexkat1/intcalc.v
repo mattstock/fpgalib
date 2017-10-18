@@ -1,14 +1,15 @@
 `include "bexkat1.vh"
+import bexkat1Def::intfunc_t;
 
 module intcalc
   #(WIDTH=32)
    (input clk_i,
-    input [3:0] 	     func,
+    input intfunc_t          func,
     input [WIDTH-1:0] 	     uin1,
     input [WIDTH-1:0] 	     uin2,
     input signed [WIDTH-1:0] sin1,
     input signed [WIDTH-1:0] sin2,
-    output logic [WIDTH-1:0]   out);
+    output logic [WIDTH-1:0] out);
    
    logic signed [WIDTH-1:0]    divq, divr;
    logic [WIDTH-1:0] 	       divuq, divur;
@@ -25,18 +26,18 @@ module intcalc
    always_comb
      begin
 	case (func)
-	  INT_MUL :  out = mul_out[WIDTH-1:0];
-	  INT_DIV :  out = divq;
-	  INT_MOD :  out = divr;
-	  INT_MULU:  out = mulu_out[WIDTH-1:0];
-	  INT_DIVU:  out = divuq;
-	  INT_MODU:  out = divur;
-	  INT_MULX:  out = mul_out[2*WIDTH-1:WIDTH];
-	  INT_MULUX: out = mulu_out[2*WIDTH-1:WIDTH];
-	  INT_EXT:   out = { {16{sin2[15]}}, sin2[15:0] };
-	  INT_EXTB:  out = { {24{sin2[7]}}, sin2[7:0] };
-	  INT_COM:   out = ~uin2;
-	  INT_NEG:   out = -uin2;
+	  bexkat1Def::INT_MUL :  out = mul_out[WIDTH-1:0];
+	  bexkat1Def::INT_DIV :  out = divq;
+	  bexkat1Def::INT_MOD :  out = divr;
+	  bexkat1Def::INT_MULU:  out = mulu_out[WIDTH-1:0];
+	  bexkat1Def::INT_DIVU:  out = divuq;
+	  bexkat1Def::INT_MODU:  out = divur;
+	  bexkat1Def::INT_MULX:  out = mul_out[2*WIDTH-1:WIDTH];
+	  bexkat1Def::INT_MULUX: out = mulu_out[2*WIDTH-1:WIDTH];
+	  bexkat1Def::INT_EXT:   out = { {16{sin2[15]}}, sin2[15:0] };
+	  bexkat1Def::INT_EXTB:  out = { {24{sin2[7]}}, sin2[7:0] };
+	  bexkat1Def::INT_COM:   out = ~uin2;
+	  bexkat1Def::INT_NEG:   out = -uin2;
 	  default:   out = 'h0;
 	endcase
      end
