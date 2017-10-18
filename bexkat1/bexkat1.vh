@@ -3,7 +3,10 @@
  */
 `ifndef _BEXKAT1_VH
 `define _BEXKAT1_VH
+
+// verilator lint_off DECLFILENAME
 package bexkat1Def;
+//  verilator lint_on DECLFILENAME
 
 // Uncomment to enable FPU support
 // `define BEXKAT1_FPU 1

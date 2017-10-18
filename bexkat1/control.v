@@ -42,188 +42,190 @@ module control(input clk_i,
 	       output logic 	  superintr,
 	       input [2:0] 	  inter,
 	       input [1:0] 	  bus_align);
-
-  logic [6:0] 			state, state_next;
-  logic				interrupts_enabled, interrupts_enabled_next;
-
-  assign halt = (state == S_HALT);
-  assign int_en = interrupts_enabled;
-  assign superintr = (state == S_EXC5 || state == S_EXC7);
-  
-  // IR helpers
-  wire [3:0] 			ir_type  = ir[31:28];
-  wire [3:0] 			ir_op    = ir[27:24];
-  wire [3:0] 			ir_ra    = ir[23:20];
-  wire [3:0] 			ir_rb    = ir[19:16];
-  wire [3:0] 			ir_rc    = ir[15:12];
-  wire [31:0] 			ir_uval  = { 17'h0000, ir[15:1] };
-  wire				ir_size         = ir[0];
-  
-  logic 			ccr_ltu, ccr_lt, ccr_eq;
-  assign { ccr_ltu, ccr_lt, ccr_eq } = ccr;
-  
-  logic [3:0] 			exception_next;
-  logic [7:0] 			delay, delay_next;
-  
-  always @(posedge clk_i or posedge rst_i)
-    begin
-      if (rst_i) begin
-	state <= S_RESET;
-	interrupts_enabled <= 1'b0;
-	exception <= 4'h0;
-	delay <= 8'h00;
-      end else begin
-	state <= state_next;
-	interrupts_enabled <= interrupts_enabled_next;
-	exception <= exception_next;
-	delay <= (delay == 8'h00 ? delay_next : delay - 8'h1);
-      end
-    end
-  
-  always_comb
-    begin
-      state_next = state;
-      interrupts_enabled_next = interrupts_enabled;
-      exception_next = exception;
-      ir_write = 1'b0;
-      alu_func = ALU_ADD;
-      ccrsel = CCR_CCR;
-      alu2sel = ALU_B;
-      regsel = REG_ALU;
-      reg_read_addr1 = ir_ra;
-      reg_read_addr2 = ir_rb;
-      reg_write_addr = ir_ra;
-      a_write = 1'h0;
-      b_write = 1'h0;
-      reg_write = REG_WRITE_NONE;
-      mdrsel = MDR_MDR;
-      marsel = MAR_MAR;
-      statussel = STATUS_STATUS;
-      int2sel = INT2_B;
+   
+   logic [6:0] 			  state, state_next;
+   logic 			  interrupts_enabled, interrupts_enabled_next;
+   
+   assign halt = (state == S_HALT);
+   assign int_en = interrupts_enabled;
+   assign superintr = (state == S_EXC5 || state == S_EXC7);
+   
+   // IR helpers
+   wire [3:0] 			  ir_type  = ir[31:28];
+   wire [3:0] 			  ir_op    = ir[27:24];
+   wire [3:0] 			  ir_ra    = ir[23:20];
+   wire [3:0] 			  ir_rb    = ir[19:16];
+   wire [3:0] 			  ir_rc    = ir[15:12];
+   /* verilator lint_off UNUSED */
+   wire [8:0] 			  ir_nop   = ir[11:3];
+   wire [1:0] 			  ir_uval  = ir[2:1];
+   wire 			  ir_size         = ir[0];
+   
+   logic 			  ccr_ltu, ccr_lt, ccr_eq;
+   assign { ccr_ltu, ccr_lt, ccr_eq } = ccr;
+   
+   logic [3:0] 			  exception_next;
+   logic [7:0] 			  delay, delay_next;
+   
+   always @(posedge clk_i or posedge rst_i)
+     begin
+	if (rst_i) begin
+	   state <= S_RESET;
+	   interrupts_enabled <= 1'b0;
+	   exception <= 4'h0;
+	   delay <= 8'h00;
+	end else begin
+	   state <= state_next;
+	   interrupts_enabled <= interrupts_enabled_next;
+	   exception <= exception_next;
+	   delay <= (delay == 8'h00 ? delay_next : delay - 8'h1);
+	end
+     end
+   
+   always_comb
+     begin
+	state_next = state;
+	interrupts_enabled_next = interrupts_enabled;
+	exception_next = exception;
+	ir_write = 1'b0;
+	alu_func = ALU_ADD;
+	ccrsel = CCR_CCR;
+	alu2sel = ALU_B;
+	regsel = REG_ALU;
+	reg_read_addr1 = ir_ra;
+	reg_read_addr2 = ir_rb;
+	reg_write_addr = ir_ra;
+	a_write = 1'h0;
+	b_write = 1'h0;
+	reg_write = REG_WRITE_NONE;
+	mdrsel = MDR_MDR;
+	marsel = MAR_MAR;
+	statussel = STATUS_STATUS;
+	int2sel = INT2_B;
 `ifdef BEXKAT1_FPU
-      fpccr_write = 1'b0;
-      fpu_func = FPU_CVTIS;
+	fpccr_write = 1'b0;
+	fpu_func = FPU_CVTIS;
 `endif
-      addrsel = ADDR_PC;
-      pcsel = PC_PC;
-      bus_cyc = 1'b0;
-      bus_write = 1'b0;
-      byteenable = 4'b1111;
-      vectoff_write = 1'b0;
-      int_func = INT_NEG;
-      delay_next = 8'h00;
-      
-      case (state)
-	S_RESET: begin
-	  exception_next = 4'h0;
-	  interrupts_enabled_next = 1'b0;
-	  state_next = S_EXC;
-	end
-	S_EXC: begin
-	  // for everyone except reset, we need to push the PC and SP, and 
-	  // CCR/status onto the stack
-	  if (exception == 4'h0)
-            state_next = S_EXC9;
-	  else begin
-            a_write = 1'b1; // A <= SP
-            reg_read_addr1 = REG_SP;
-            mdrsel = MDR_PC;
-            state_next = S_EXC2;
+	addrsel = ADDR_PC;
+	pcsel = PC_PC;
+	bus_cyc = 1'b0;
+	bus_write = 1'b0;
+	byteenable = 4'b1111;
+	vectoff_write = 1'b0;
+	int_func = INT_NEG;
+	delay_next = 8'h00;
+	
+	case (state)
+	  S_RESET: begin
+	     exception_next = 4'h0;
+	     interrupts_enabled_next = 1'b0;
+	     state_next = S_EXC;
 	  end
-	end // case: S_EXC
-	S_EXC2: begin
-	  alu2sel = ALU_4;
-	  alu_func = ALU_SUB;
-	  state_next = S_EXC3;
-	end
-	S_EXC3: begin
-	  marsel = MAR_ALU;
-	  reg_write_addr = REG_SP;
-	  reg_write = REG_WRITE_DW;
-	  state_next = S_EXC4;
-	end
-	S_EXC4: begin
-	  addrsel = ADDR_MAR;
-	  bus_cyc = 1'b1;
-	  bus_write = 1'b1;       
-	  if (bus_ack)
-            state_next = S_EXC5;
-	end
-	S_EXC5: begin // forced to use SSP
-	  a_write = 1'b1; // A <= SP
-	  reg_read_addr1 = REG_SP;
-	  mdrsel = MDR_CCR;
-	  state_next = S_EXC6;
-	end
-	S_EXC6: begin
-	  alu2sel = ALU_4;
-	  alu_func = ALU_SUB;
-	  state_next = S_EXC7;
-	end
-	S_EXC7: begin // forced to use SSP
-	  marsel = MAR_ALU;
-	  reg_write_addr = REG_SP;
-	  reg_write = REG_WRITE_DW;
-	  state_next = S_EXC8;
-	end
-	S_EXC8: begin
-	  addrsel = ADDR_MAR;
-	  bus_cyc = 1'b1;
-	  bus_write = 1'b1;       
-	  if (bus_ack)
-            state_next = S_EXC9;
-	end
-	S_EXC9: begin
-	  pcsel = PC_EXC; // load exception_next handler address into PC
-	  statussel = STATUS_SUPER; // change the register since we just saved it
-	  state_next = S_EXC10;
-	end
-	S_EXC10: begin
-	  bus_cyc = 1'b1;
-	  marsel = MAR_BUS;
-	  if (bus_ack)
-            state_next = S_EXC11;
-	end
-	S_EXC11: begin
-	  pcsel = PC_MAR;
-	  state_next = S_FETCH;
-	end
-	S_FETCH: begin
-	  bus_cyc = 1'b1;
-	  ir_write = 1'b1; // latch bus into ir
-	  if (bus_ack) begin
-            pcsel = PC_NEXT;
-            state_next = S_EVAL;
-	  end else if (|inter && interrupts_enabled) begin
-            state_next = S_EXC;
-            interrupts_enabled_next = 1'b0;
-            exception_next = { 1'b0, inter};
+	  S_EXC: begin
+	     // for everyone except reset, we need to push the PC and SP, and 
+	     // CCR/status onto the stack
+	     if (exception == 4'h0)
+               state_next = S_EXC9;
+	     else begin
+		a_write = 1'b1; // A <= SP
+		reg_read_addr1 = REG_SP;
+		mdrsel = MDR_PC;
+		state_next = S_EXC2;
+	     end
+	  end // case: S_EXC
+	  S_EXC2: begin
+	     alu2sel = ALU_4;
+	     alu_func = ALU_SUB;
+	     state_next = S_EXC3;
 	  end
-	end
-	S_EVAL: begin
-	  // preload the registers for the ops that will need it
-	  a_write = 1'b1; // A <= rA
-	  b_write = 1'b1; // B <= rB
-	  if (ir_size)
-            state_next = S_ARG;
-	  else
-            case (ir_type)
-              T_INH: state_next = S_INH;
-              T_PUSH: state_next = (ir_op == 4'h1 ? S_RELADDR : S_PUSH);
-              T_POP: state_next = S_POP;
-              T_CMP: state_next = (ir_op == 4'h0 ? S_CMP : S_CMPS);
-              T_MOV: state_next = S_MOV;
-              T_INTU: state_next = S_INTU;
-              T_INT: state_next = S_INT;
-              T_FPU: state_next = S_FPU;
-              T_FP: state_next = S_FP;
-              T_ALU: state_next = S_ALU;
-              T_LDI: state_next = S_LDIU;
-              T_LOAD: state_next = S_LOAD;
-              T_STORE: state_next = S_STORE;
-              T_BRANCH: state_next = S_BRANCH;
-              T_JUMP: state_next = S_JUMP;
-              default: begin
+	  S_EXC3: begin
+	     marsel = MAR_ALU;
+	     reg_write_addr = REG_SP;
+	     reg_write = REG_WRITE_DW;
+	     state_next = S_EXC4;
+	  end
+	  S_EXC4: begin
+	     addrsel = ADDR_MAR;
+	     bus_cyc = 1'b1;
+	     bus_write = 1'b1;       
+	     if (bus_ack)
+               state_next = S_EXC5;
+	  end
+	  S_EXC5: begin // forced to use SSP
+	     a_write = 1'b1; // A <= SP
+	     reg_read_addr1 = REG_SP;
+	     mdrsel = MDR_CCR;
+	     state_next = S_EXC6;
+	  end
+	  S_EXC6: begin
+	     alu2sel = ALU_4;
+	     alu_func = ALU_SUB;
+	     state_next = S_EXC7;
+	  end
+	  S_EXC7: begin // forced to use SSP
+	     marsel = MAR_ALU;
+	     reg_write_addr = REG_SP;
+	     reg_write = REG_WRITE_DW;
+	     state_next = S_EXC8;
+	  end
+	  S_EXC8: begin
+	     addrsel = ADDR_MAR;
+	     bus_cyc = 1'b1;
+	     bus_write = 1'b1;       
+	     if (bus_ack)
+               state_next = S_EXC9;
+	  end
+	  S_EXC9: begin
+	     pcsel = PC_EXC; // load exception_next handler address into PC
+	     statussel = STATUS_SUPER; // change the register since we just saved it
+	     state_next = S_EXC10;
+	  end
+	  S_EXC10: begin
+	     bus_cyc = 1'b1;
+	     marsel = MAR_BUS;
+	     if (bus_ack)
+               state_next = S_EXC11;
+	  end
+	  S_EXC11: begin
+	     pcsel = PC_MAR;
+	     state_next = S_FETCH;
+	  end
+	  S_FETCH: begin
+	     bus_cyc = 1'b1;
+	     ir_write = 1'b1; // latch bus into ir
+	     if (bus_ack) begin
+		pcsel = PC_NEXT;
+		state_next = S_EVAL;
+	     end else if (|inter && interrupts_enabled) begin
+		state_next = S_EXC;
+		interrupts_enabled_next = 1'b0;
+		exception_next = { 1'b0, inter};
+	     end
+	  end
+	  S_EVAL: begin
+	     // preload the registers for the ops that will need it
+	     a_write = 1'b1; // A <= rA
+	     b_write = 1'b1; // B <= rB
+	     if (ir_size)
+               state_next = S_ARG;
+	     else
+               case (ir_type)
+		 T_INH: state_next = S_INH;
+		 T_PUSH: state_next = (ir_op == 4'h1 ? S_RELADDR : S_PUSH);
+		 T_POP: state_next = S_POP;
+		 T_CMP: state_next = (ir_op == 4'h0 ? S_CMP : S_CMPS);
+		 T_MOV: state_next = S_MOV;
+		 T_INTU: state_next = S_INTU;
+		 T_INT: state_next = S_INT;
+		 T_FPU: state_next = S_FPU;
+		 T_FP: state_next = S_FP;
+		 T_ALU: state_next = S_ALU;
+		 T_LDI: state_next = S_LDIU;
+		 T_LOAD: state_next = S_LOAD;
+		 T_STORE: state_next = S_STORE;
+		 T_BRANCH: state_next = S_BRANCH;
+		 T_JUMP: state_next = S_JUMP;
+		 default: begin
 		exception_next = EXC_ILLOP;
 		state_next = S_EXC;
               end

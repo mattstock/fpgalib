@@ -3,8 +3,7 @@ import bexkat1Def::intfunc_t;
 
 module intcalc
   #(WIDTH=32)
-   (input clk_i,
-    input intfunc_t          func,
+   (input intfunc_t          func,
     input [WIDTH-1:0] 	     uin1,
     input [WIDTH-1:0] 	     uin2,
     input signed [WIDTH-1:0] sin1,

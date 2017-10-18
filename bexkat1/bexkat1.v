@@ -3,6 +3,7 @@
 
 import bexkat1Def::*;
 
+`ifdef AVALON
 module bexkat1_avalon(input clk,
 		      input 	    reset,
 		      input 	    avm_waitrequest_n,
@@ -31,6 +32,7 @@ module bexkat1_avalon(input clk,
 		.sel_o(avm_byteenable));
    
 endmodule
+`endif //  `ifdef AVALON
 
 module bexkat1(input 	     clk_i,
 	       input 	     rst_i,
@@ -51,14 +53,14 @@ module bexkat1(input 	     clk_i,
    // Control signals
    wire [1:0] 		     reg_write;
    alu_t 		     alu_func;
-   /* verilator lint_off UNOPTFLAT */
+   // verilator lint_off UNOPTFLAT
    wire 		     addrsel;
+   // verilator lint_on UNOPTFLAT
    wire 		     ir_write, vectoff_write,
 			     a_write, b_write;
    wire [3:0] 		     reg_read_addr1, reg_read_addr2, reg_write_addr;
    mar_t 		     marsel;
    ccr_t                     ccrsel;
-   wire [1:0] 		     spsel, sspsel;
    alu_in_t                  alu2sel;
    status_t                  statussel;
 `ifdef BEXKAT1_FPU
@@ -79,14 +81,14 @@ module bexkat1(input 	     clk_i,
   
 // Data paths
    wire [31:0] 		     alu_out, reg_data_out1, reg_data_out2;
-   wire [31:0] 		     ir_next, vectoff_next, dataout, int_out;
+   wire [31:0] 		     ir_next, vectoff_next, int_out;
    wire 		     alu_carry, alu_negative, alu_overflow, alu_zero; 
    
 // Special registers
    reg [31:0] 		     mdr, mdr_next, mar, a, b, pc, ir,
 			     busin_be, vectoff;
-   reg [32:0] 		     pc_next, mar_next, a_next, b_next;
-   reg [31:0] 		     reg_data_in, alu_in2, int_in1, int_in2, intval;
+   reg [31:0] 		     pc_next, mar_next, a_next, b_next;
+   reg [31:0] 		     reg_data_in, alu_in2, int_in2;
    reg [2:0] 		     ccr, ccr_next;
    reg [3:0] 		     status, status_next;
 
@@ -115,18 +117,18 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	 a <= 'h0;
 	 b <= 'h0;
       end else begin
-	 pc <= pc_next[31:0];
+	 pc <= pc_next;
 	 ir <= ir_next;
 	 mdr <= mdr_next;
-	 mar <= mar_next[31:0];
+	 mar <= mar_next;
 `ifdef BEXKAT1_FPU
 	 fpccr <= fpccr_next;
 `endif
 	 ccr <= ccr_next;
 	 vectoff <= vectoff_next;
 	 status <= status_next;
-	 a <= a_next[31:0];
-	 b <= b_next[31:0];
+	 a <= a_next;
+	 b <= b_next;
       end
    end
    
@@ -136,19 +138,19 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
    always @*
      begin
 	case (pcsel)
-	  PC_PC:   pc_next = { 1'b0, pc };
-	  PC_NEXT: pc_next = { 1'b0, ( pc + 'h4 ) };
-	  PC_MAR:  pc_next = { 1'b0, mar };
-	  PC_REL:  pc_next = { 1'b0, pc } + { ir_sval[29:0], 2'b00 };
-	  PC_ALU:  pc_next = { 1'b0, alu_out }; // reg offset
-	  PC_EXC:  pc_next = { 1'b0, exceptionval };
-	  default: pc_next = { 1'b0, pc };
+	  PC_PC:   pc_next = pc;
+	  PC_NEXT: pc_next = pc + 'h4;
+	  PC_MAR:  pc_next = mar;
+	  PC_REL:  pc_next = pc + { ir_sval[29:0], 2'b00 };
+	  PC_ALU:  pc_next = alu_out; // reg offset
+	  PC_EXC:  pc_next = exceptionval;
+	  default: pc_next = pc;
 	endcase // case (pcsel)
 	case (marsel)
-	  MAR_MAR: mar_next = { 1'b0, mar };
-	  MAR_BUS: mar_next = { 1'b0, dat_i };
-	  MAR_ALU: mar_next = { 1'b0, alu_out };
-	  MAR_A:   mar_next = { 1'b0, a };
+	  MAR_MAR: mar_next = mar;
+	  MAR_BUS: mar_next = dat_i;
+	  MAR_ALU: mar_next = alu_out;
+	  MAR_A:   mar_next = a;
 	endcase
 	case (statussel)
 	  STATUS_STATUS: status_next = status;
@@ -185,8 +187,8 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	  ALU_1:    alu_in2 = 1;
 	endcase
 	int_in2 = (int2sel == INT2_SVAL ? ir_sval : b);
-	a_next = { 1'b0, (a_write ? reg_data_out1 : a) };
-	b_next = { 1'b0, (b_write ? reg_data_out2 : b) };
+	a_next = (a_write ? reg_data_out1 : a);
+	b_next = (b_write ? reg_data_out2 : b);
 	case (ccrsel)
 	  CCR_CCR: ccr_next = ccr;
 	  CCR_ALU: ccr_next = { alu_carry, alu_negative ^ alu_overflow, alu_zero };
@@ -233,7 +235,7 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
 	    .func(alu_func), .out(alu_out), .c_out(alu_carry),
 	    .n_out(alu_negative),
 	    .v_out(alu_overflow), .z_out(alu_zero));
-   intcalc int0(.clk_i(clk_i), .func(int_func), .sin1(a), .sin2(int_in2),
+   intcalc int0(.func(int_func), .sin1(a), .sin2(int_in2),
 		.uin1(a), .uin2(int_in2),
 		.out(int_out));
    registerfile intreg(.clk_i(clk_i), .rst_i(rst_i), .supervisor(supervisor),
