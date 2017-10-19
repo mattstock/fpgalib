@@ -1,6 +1,6 @@
 `include "bexkat1.vh"
 
-import bexkat1Def::fpufunc_t;
+import bexkat1Def::*;
 
 module fpu(input clk_i,
 	   input 	     rst_i,
@@ -27,32 +27,32 @@ module fpu(input clk_i,
       underflow = 1'b0;
       divzero = 1'b0;
       case (func)
-	bexkat1Def::FPU_CVTIS: out = cvtis_out;
-	bexkat1Def::FPU_CVTSI: out = cvtsi_out; 
-	bexkat1Def::FPU_SQRT: begin
+	FPU_CVTIS: out = cvtis_out;
+	FPU_CVTSI: out = cvtsi_out; 
+	FPU_SQRT: begin
 	   out = sqrt_out;
 	   overflow = sqrt_ov;
 	end
-	bexkat1Def::FPU_NEG: out = in2 ^ 32'h80000000;
-	bexkat1Def::FPU_ADD: begin
+	FPU_NEG: out = in2 ^ 32'h80000000;
+	FPU_ADD: begin
 	   out = addsub_out;
 	   overflow = addsub_ov;
 	   underflow = addsub_un;
 	   nan = addsub_nan;
 	end
-	bexkat1Def::FPU_SUB: begin
+	FPU_SUB: begin
 	   out = addsub_out;
 	   overflow = addsub_ov;
 	   underflow = addsub_un;
 	   nan = addsub_nan;
 	end
-	bexkat1Def::FPU_MUL: begin
+	FPU_MUL: begin
 	   out = mult_out;
 	   overflow = mult_ov;
 	   underflow = mult_un;
 	   nan = mult_nan;
 	end
-	bexkat1Def::FPU_DIV: begin
+	FPU_DIV: begin
 	   out = div_out;
 	   overflow = div_ov;
 	   underflow = div_un;

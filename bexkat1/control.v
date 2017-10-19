@@ -9,26 +9,26 @@ module control(input clk_i,
 	       input [31:0] 	  ir,
 	       output logic 	  ir_write,
 	       input [2:0] 	  ccr,
-	       output ccr_t ccrsel,
-	       output alu_t alu_func,
-	       output alu_in_t alu2sel,
-	       output reg_t regsel,
+	       output ccr_t       ccrsel,
+	       output alufunc_t   alu_func,
+	       output alu_in_t    alu2sel,
+	       output reg_in_t    regsel,
 	       output logic [3:0] reg_read_addr1,
 	       output logic [3:0] reg_read_addr2,
 	       output logic [3:0] reg_write_addr,
 	       output logic [1:0] reg_write,
 	       output logic 	  a_write,
 	       output logic 	  b_write,
-	       output mdr_t mdrsel,
-	       output mar_t marsel,
-	       output status_t statussel,
+	       output mdr_in_t    mdrsel,
+	       output mar_t       marsel,
+	       output status_t    statussel,
 	       output int2_t 	  int2sel,
-	       output intfunc_t int_func,
+	       output intfunc_t   int_func,
 `ifdef BEXKAT1_FPU
-	       output fpufunc_t fpu_func,
+	       output fpufunc_t   fpu_func,
 	       output logic 	  fpccr_write,
 `endif
-	       output pc_t pcsel,
+	       output pc_t        pcsel,
 	       output logic 	  addrsel,
 	       output logic [3:0] byteenable,
 	       output logic 	  bus_cyc,
@@ -58,6 +58,7 @@ module control(input clk_i,
    wire [3:0] 			  ir_rc    = ir[15:12];
    /* verilator lint_off UNUSED */
    wire [8:0] 			  ir_nop   = ir[11:3];
+   /* verilator lint_on UNUSED */
    wire [1:0] 			  ir_uval  = ir[2:1];
    wire 			  ir_size         = ir[0];
    
@@ -504,11 +505,11 @@ module control(input clk_i,
 	  state_next = (ir_op[3] ? S_ALU3 : S_ALU2);
 	end
 	S_ALU2: begin
-	  alu_func = alu_t'(ir_op[2:0]);
+	  alu_func = alufunc_t'(ir_op[2:0]);
 	  state_next = S_ALU4;
 	end
 	S_ALU3: begin
-	  alu_func = alu_t'(ir_op[2:0]);
+	  alu_func = alufunc_t'(ir_op[2:0]);
 	  alu2sel = ALU_SVAL;
 	  state_next = S_ALU4;
 	end

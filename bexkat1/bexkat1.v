@@ -52,7 +52,7 @@ module bexkat1(input 	     clk_i,
    
    // Control signals
    wire [1:0] 		     reg_write;
-   alu_t 		     alu_func;
+   alufunc_t 		     alu_func;
    // verilator lint_off UNOPTFLAT
    wire 		     addrsel;
    // verilator lint_on UNOPTFLAT
@@ -73,8 +73,8 @@ module bexkat1(input 	     clk_i,
 `endif
    
    pc_t 		     pcsel;
-   reg_t                     regsel;
-   mdr_t 		     mdrsel;
+   reg_in_t                  regsel;
+   mdr_in_t 		     mdrsel;
    intfunc_t                 int_func;
    int2_t 		     int2sel;
    wire                      superintr;
@@ -135,7 +135,7 @@ assign supervisor = (superintr ? 1'b1 : status[3]); // allows us to force superv
    wire [31:0] exceptionval = vectoff + { 26'b0, exception, 2'b00 };
    
    // All of the datapath options
-   always @*
+   always_comb
      begin
 	case (pcsel)
 	  PC_PC:   pc_next = pc;

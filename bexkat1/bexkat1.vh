@@ -11,6 +11,8 @@ package bexkat1Def;
 // Uncomment to enable FPU support
 // `define BEXKAT1_FPU 1
 
+   const bit [3:0] REG_SP = 4'hf;
+
    // Opcode types (in sync with the ISA in binutils)
    typedef enum bit [3:0] { T_INH, T_PUSH, T_POP, T_CMP, T_MOV,
 			    T_FP, T_ALU, T_INT, T_LDI,
@@ -20,10 +22,10 @@ package bexkat1Def;
    // MDR input select
    typedef enum bit [3:0] { MDR_MDR, MDR_BUS, MDR_B, MDR_A, MDR_PC, 
 			    MDR_INT, MDR_FPU, MDR_ALU, MDR_CCR,
-			    MDR_STATUS} mdr_t;
+			    MDR_STATUS} mdr_in_t;
    
    // register input select
-   typedef enum bit [2:0] { REG_ALU, REG_MDR, REG_UVAL, REG_B } reg_t;
+   typedef enum bit [2:0] { REG_ALU, REG_MDR, REG_UVAL, REG_B } reg_in_t;
    
    // ALU in2 select
    typedef enum bit [1:0] { ALU_B, ALU_SVAL, ALU_4, ALU_1 } alu_in_t;
@@ -48,8 +50,6 @@ package bexkat1Def;
    typedef enum bit [1:0] { REG_WRITE_NONE, REG_WRITE_8,
 			    REG_WRITE_16, REG_WRITE_DW } reg_write_t;
 
-   bit [3:0] REG_SP =  4'hf;
-
    // INT functions
    typedef enum bit [3:0] { INT_MUL, INT_DIV, INT_MOD, INT_MULU,
 			    INT_DIVU, INT_MODU, INT_MULX, INT_MULUX,
@@ -64,7 +64,7 @@ package bexkat1Def;
 
    // ALU functions
    typedef enum bit [2:0] { ALU_AND, ALU_OR, ALU_ADD, ALU_SUB, ALU_LSHIFT,
-			    ALU_RSHIFTA, ALU_RSHIFTL, ALU_XOR } alu_t;
+			    ALU_RSHIFTA, ALU_RSHIFTL, ALU_XOR } alufunc_t;
 
    // states for control
    typedef enum bit [6:0] {
