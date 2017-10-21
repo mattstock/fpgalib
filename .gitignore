@@ -28,7 +28,6 @@ testbench/
 *_inst.vhd
 *_generation_script*
 *.done
-*.txt
 *.qarlog
 *.rpt
 *.summary

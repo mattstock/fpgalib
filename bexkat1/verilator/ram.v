@@ -1,25 +1,22 @@
-module progmem(input 		   clk_i,
-	       input 		   rst_i,
-	       input 		   cyc_i, 
-	       input [3:0] 	   sel_i,
-	       input 		   we_i,
-	       input [15:0] 	   adr_i,
-	       input [31:0] 	   dat_i,
-	       output 		   ack_o,
-	       output logic [31:0] dat_o);
+module ram(input 		   clk_i,
+	   input 	       rst_i,
+	   input 	       cyc_i,
+	   input 	       stb_i,
+	   input [3:0] 	       sel_i,
+	   input 	       we_i,
+	   input [14:0]        adr_i,
+	   input [31:0]        dat_i,
+	   output 	       ack_o,
+	   output logic [31:0] dat_o);
 
-  logic [15:0] 	       addr, addr_next;
-  logic [31:0] 	       mem[0:32768], mem_next[0:32768];
-  logic 	       state, state_next;
+  logic [14:0] 		       addr, addr_next;
+  logic [31:0] 		       mem[0:32767], mem_next[0:32767];
+  logic 		       state, state_next;
   
   localparam S_IDLE = 1'h0, S_DONE = 1'h1;
   
   always dat_o = mem[adr_i];
   always ack_o = (state == S_DONE);
-
-  initial begin
-    $readmemh("memory.txt",mem);
-  end
 
   always_ff @(posedge clk_i or posedge rst_i)
     begin
@@ -40,7 +37,7 @@ module progmem(input 		   clk_i,
       mem_next = mem;
       case (state)
 	S_IDLE: begin
-	  if (cyc_i) begin
+	  if (cyc_i & stb_i) begin
 	    if (we_i) begin
 	      mem_next[adr_i][7:0] = (sel_i[0] ? dat_i[7:0] : mem[adr_i][7:0]);
 	      mem_next[adr_i][15:8] = (sel_i[1] ? dat_i[15:8] : mem[adr_i][15:8]);
@@ -56,6 +53,6 @@ module progmem(input 		   clk_i,
       endcase // case (state)
     end
   
-endmodule // progmem
+endmodule // rom
 
    
