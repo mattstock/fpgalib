@@ -10,7 +10,8 @@ vluint64_t main_time = 0;
 int main(int argc, char **argv, char **env) {
   Verilated::commandArgs(argc, argv);
   Vbexkat1* top = new Vbexkat1;
-
+  int cyc_old = 0;
+  
   top->rst_i = 1;
   top->clk_i = 0;
   
@@ -24,7 +25,10 @@ int main(int argc, char **argv, char **env) {
           top->rst_i = 0;
 
 	top->eval();
-	printf("tick: %ld  cyc: %d  adr_o: %08x\n", main_time, top->cyc_o, top->adr_o);
+
+	
+
+	cyc_old = top->cyc_o;
         main_time++;
   }
   top->final();
