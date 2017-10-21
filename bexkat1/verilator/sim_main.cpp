@@ -28,8 +28,10 @@ int main(int argc, char **argv, char **env) {
     
     top->eval();
     
-    printf("tick: %d, clk: %d, cyc: %d, addr: %08x\n", tick, top->clk_i,
-	   top->cpu_cyc, top->cpu_addr);
+    printf("tick: %d, clk: %d, cyc: %d, addr: %08x\n, state: %08x",
+	   tick, top->clk_i,
+	   top->cpu_cyc, top->cpu_addr,
+	   top->top__DOT__cpu0__DOT__con0__DOT__state);
     printf("  rom1: %08x, rom1_ack: %d\n", top->r1dat, top->r1ack);
 
     main_time++;

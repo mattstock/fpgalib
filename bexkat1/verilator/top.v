@@ -15,11 +15,12 @@ module top(input clk_i,
   always r1dat = rom1_out;
   always r1ack = rom1_ack;
  
-  wire 			cyc, ram0_ack, rom0_ack, rom1_ack, we;
+  wire 			cyc, ram0_ack, rom0_ack, rom1_ack, io0_ack, we;
   wire [3:0] 		sel;
-  wire [31:0] 		adr, cpu_out, ram0_out, rom0_out, rom1_out;
+  wire [31:0] 		adr, cpu_out, ram0_out, rom0_out, rom1_out,
+			io0_out, datout;
   wire [2:0] 		inter; 		
-  wire 			ram0_stb, rom0_stb, rom1_stb, io0_stb;
+  wire 			ram0_stb, rom0_stb, rom1_stb, io0_stb, ack;
   
   always_comb
     begin
@@ -27,19 +28,37 @@ module top(input clk_i,
       rom0_stb = 1'b0;
       rom1_stb = 1'b0;
       io0_stb = 1'b0;
+      ack = rom0_ack;
+      datout = ram0_out;
       case (adr[31:28])
-	4'hf: rom1_stb = 1'b1;
-	4'h7: rom0_stb = 1'b1;
-	4'h2: io0_stb = 1'b1;
-	4'h0: ram0_stb = 1'b1;
+	4'hf: begin
+	  rom1_stb = 1'b1;
+	  ack = rom1_ack;
+	  datout = rom1_out;
+	end
+	4'h7: begin
+	  rom0_stb = 1'b1;
+	  ack = rom0_ack;
+	  datout = rom0_out;
+	end
+	4'h2: begin
+	  io0_stb = 1'b1;
+	  ack = io0_ack;
+	  datout = io0_out;
+	end
+	4'h0: begin
+	  ram0_stb = 1'b1;
+	  ack = ram0_ack;
+	  datout = ram0_out;
+	end
 	default: ram0_stb = 1'b0;
       endcase // case (adr[31:28])
     end // always_comb
   
   bexkat1 cpu0(.clk_i(clk_i), .rst_i(rst_i), .cyc_o(cyc), .sel_o(sel),
-	       .ack_i(rom0_ack), .adr_o(adr), .we_o(we), .halt(halt),
+	       .ack_i(ack), .adr_o(adr), .we_o(we), .halt(halt),
 	       .inter(inter), .int_en(int_en), .exception(exception),
-	       .supervisor(supervisor), .dat_i(rom0_out), .dat_o(cpu_out));
+	       .supervisor(supervisor), .dat_i(datout), .dat_o(cpu_out));
 	       
   ram ram0(.clk_i(clk_i), .rst_i(rst_i), .cyc_i(cyc), .stb_i(ram0_stb),
 	   .sel_i(sel), .we_i(we), .adr_i(adr[16:2]), .dat_i(cpu_out),
