@@ -24,9 +24,22 @@ int main(int argc, char **argv, char **env) {
     // Drop reset
     if (tick > 10)
       top->rst_i = 0;
-    
+      
     top->eval();
 
+ #if 0
+    if (top->clk_i)
+      printf("%d: a:%08x w:%d ir:%08x r0:%d r1:%d io:%d mdr:%08x msg:%08x\n",
+	     tick,
+	     top->top__DOT__adr,
+	     top->top__DOT__we,
+	     top->top__DOT__cpu0__DOT__ir,
+	     top->top__DOT__rom0_stb,
+	     top->top__DOT__rom1_stb,
+	     top->top__DOT__io0_stb,
+	     top->top__DOT__cpu0__DOT__mdr,
+	     top->top__DOT__io0__DOT__msg);
+#endif
     if (top->clk_i) {
       if (top->msg_out & 0x80000000) {
 	printf("%c", top->msg_out & 0xff);

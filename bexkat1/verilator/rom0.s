@@ -6,4 +6,6 @@ main:
 	std.l %0, msg_base
 	ldi %0, 0x80000063
 	std.l %0, msg_base
+	ldi %0, 0x8000000a
+	std.l %0, msg_base
 	bra main

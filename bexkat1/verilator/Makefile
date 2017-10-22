@@ -8,7 +8,7 @@ TEMP := $(shell mktemp)
 
 .PHONY: all clean gcctests kernel install
 
-all: tests.bin $(APPS) kernel
+all: rom0.hex $(APPS) kernel
 
 verilator: top.v
 	verilator -I.. -cc top.v -exe sim_main.cpp
@@ -23,8 +23,11 @@ clean:
 %.mif: %
 	$(OBJCOPY) -O mif $< $@
 
+%.hex: %.o
+	$(OBJCOPY) -O verilog $< $@
+
 %.bin: %.o
 	$(OBJCOPY) -O binary $< $@
 
-tests.o: tests.s
+rom0.o: rom0.s
 	$(AS) -o $@ $^
