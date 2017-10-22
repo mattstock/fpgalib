@@ -17,7 +17,7 @@ module rom0(input 		   clk_i,
   always ack_o = (state == S_DONE);
 
   initial begin
-    $readmemh("../rom0.txt",mem);
+    $readmemb("../rom0.bin",mem, 0,9);
   end
 
   always_ff @(posedge clk_i or posedge rst_i)

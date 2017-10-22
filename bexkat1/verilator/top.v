@@ -1,19 +1,12 @@
 module top(input clk_i,
 	   input 	 rst_i,
-	   output [7:0]  status,
+	   output [31:0] msg_out,
+	   input [31:0]  msg_in,
 	   output 	 halt,
 	   output 	 int_en,
-	   output [31:0] cpu_addr,
-	   output [31:0] r1dat,
-	   output 	 r1ack,
-	   output 	 cpu_cyc,
 	   output [3:0]  exception,
 	   output 	 supervisor);
 
-  always cpu_addr = adr;
-  always cpu_cyc = cyc;
-  always r1dat = rom1_out;
-  always r1ack = rom1_ack;
  
   wire 			cyc, ram0_ack, rom0_ack, rom1_ack, io0_ack, we;
   wire [3:0] 		sel;
@@ -67,5 +60,9 @@ module top(input clk_i,
 	    .sel_i(sel), .adr_i(adr[16:2]), .dat_o(rom0_out), .ack_o(rom0_ack));
   rom1 rom1(.clk_i(clk_i), .rst_i(rst_i), .cyc_i(cyc), .stb_i(rom1_stb),
 	    .sel_i(sel), .adr_i(adr[4:2]), .dat_o(rom1_out), .ack_o(rom1_ack));
+
+  io io0(.clk_i(clk_i), .rst_i(rst_i), .cyc_i(cyc), .stb_i(io0_stb),
+	 .sel_i(sel), .we_i(we), .adr_i(adr[4:2]), .dat_i(cpu_out),
+	 .dat_o(io0_out), .ack_o(io0_ack), .msg_in(msg_in), .msg_out(msg_out));
   
 endmodule // top
