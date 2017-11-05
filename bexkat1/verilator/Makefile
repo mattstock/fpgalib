@@ -6,9 +6,12 @@ RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
 
-.PHONY: all clean gcctests kernel install
+.PHONY: all clean
 
-all: rom0.hex $(APPS) kernel
+all: obj_dir/Vifetch_test.cpp rom0.hex
+
+obj_dir/Vifetch_test.cpp: ../ifetch.v ifetch_test.cpp
+	verilator -I.. -cc ifetch.v -exe ifetch_test.cpp
 
 verilator: top.v
 	verilator -I.. -cc top.v -exe sim_main.cpp
@@ -16,6 +19,7 @@ verilator: top.v
 
 clean:
 	rm -f *.o *.hex *.bin *.mif *.gkd *.expand
+	rm -rf obj_dir
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $^
