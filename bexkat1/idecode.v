@@ -4,35 +4,59 @@
 
 import bexkat1Def::*;
 
-module idecode(input        clk_i,
-	       input 	    rst_i,
-	       input [63:0] ir);
+module idecode(input               clk_i,
+	       input 		   rst_i,
+	       input [63:0] 	   ir_i,
+	       input [31:0] 	   pc_i,
+	       input [1:0] 	   reg_write,
+	       input [3:0] 	   reg_write_addr,
+	       input [31:0] 	   reg_data_in,
+	       output [63:0] 	   ir_o,
+	       output logic [31:0] pc_o,
+	       output logic [31:0] reg_data_out1,
+	       output logic [31:0] reg_data_out2);
+   
+   wire [3:0] 			   ir_type = ir_i[31:28];
+   wire [3:0]			   ir_op = ir_i[27:24];
+   wire [3:0]			   ir_ra = ir_i[23:20];
+   wire [3:0]			   ir_rb = ir_i[19:16];
+   wire [3:0] 			   ir_rc = ir_i[15:12];
 
-  wire 			    ir_extaddr = ir[63:32];
-  wire 			    ir_extval = ir[63:32];
-  wire 			    ir_type = ir[31:28];
-  wire 			    ir_op = ir[27:24];
-  wire 			    ir_ra = ir[23:20];
-  wire 			    ir_rb = ir[19:16];
-  wire 			    ir_rc = ir[15:12];
-  /* verilator lint_off UNUSED */
-  wire [8:0] 		    ir_nop = ir[11:3];
-  /* verilator lint_on UNUSED */
-  wire [1:0] 		    ir_uval = ir[2:1];
-  wire 			    ir_size = ir[0];
-  
-  always_ff @(posedge clk_i or posedge rst_i)
-    begin
-      if (rst_i)
-	begin
+   logic [3:0] 			   reg_read1;
+   logic [3:0] 			   reg_read2;
+
+   always_ff @(posedge clk_i or posedge rst_i)
+     begin
+	if (rst_i)
+	  begin
+	     pc_o <= 32'h0;
+	     ir_o <= 64'h0;
+	  end
+	else
+	  begin
+	     pc_o <= pc_i;
+	     ir_o <= ir_i;
+	  end // else: !if(rst_i)
+     end // always_ff @
+   
+   always_comb
+     begin
+	reg_read1 = ir_rb;
+	reg_read2 = ir_rc;
+	if (ir_type == T_CMP) begin
+	   reg_read1 = ir_ra;
+	   reg_read2 = ir_rb;
 	end
-      else
-	begin
-	end // else: !if(rst_i)
-    end // always_ff @
-
-  always_comb
-    begin
-    end
-  
+     end
+   
+   registerfile reg0(.clk_i(clk_i), .rst_i(rst_i),
+		     .supervisor(1'b1),
+		     .read1(reg_read1),
+		     .read2(reg_read2),
+		     .write_addr(reg_write_addr),
+		     .write_data(reg_data_in),
+		     .write_en(reg_write),
+		     .data1(reg_data_out1),
+		     .data2(reg_data_out2));
+   
 endmodule // idecode

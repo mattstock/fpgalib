@@ -5,70 +5,97 @@ import bexkat1Def::*;
 
 module bexkat1p(input 	      clk_i,
 		input 	      rst_i,
-		input 	      ack_i,
-		output [31:0] adr_o,
-		output logic  cyc_o,
-		output logic  we_o,
+		input 	      ins_ack_i,
+		output [31:0] ins_adr_o,
+		output logic  ins_cyc_o,
+		output logic  ins_we_o,
+		input [31:0]  ins_dat_i,
 		output 	      halt,
 		input [2:0]   inter,
 		output 	      int_en,
 		output [3:0]  exception,
 		output 	      supervisor,
-		input [31:0]  dat_i,
-		output [31:0] dat_o,
-		output [3:0]  sel_o);
+		input 	      dat_ack_i,
+		output [31:0] dat_adr_o,
+		output logic  dat_cyc_o,
+		output logic  dat_we_o,
+		input [31:0]  dat_dat_i,
+		output [31:0] dat_dat_o,
+		output [3:0]  dat_sel_o);
 
-  logic [63:0] 		      ir[3:0];
-  logic [31:0] 		      pc;
-  logic 		      fetch_cyc;
-  logic 		      fetch_ack;
-  logic [31:0] 		      pc_new;
-  logic [3:0] 		      reg_write_addr;
-  logic [31:0] 		      reg_data_in;
-  logic [31:0] 		      reg_data_out1;
-  logic [31:0] 		      reg_data_out2;
-  logic 		      reg_write;
-  logic 		      alu_func_t alu_func;
-
-  // we'll need to mux these later, but for now the bus is just for
-  // instructions.
-  
-  assign adr_o = pc;
-  assign sel_o = 4'hf;
-  assign cyc_o = fetch_cyc;
-  assign fetch_ack = ack_i;
-  assign pc_new = 32'h0;
-  assign exception = 4'h0;
-  assign halt = 1'h0;
-  assign supervisor = 1'h0;
-
-  // since we only have part of the path defined
-  assign reg_write = 1'h0;
-  assign reg_data_in 32'h0;
-  assign reg_write_addr = 4'h0;
-
-  ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i), .ir(ir[0]), .pc(pc),
-		.bus_cyc(fetch_cyc), .bus_ack(fetch_ack),
-		.bus_in(dat_i), .pc_in(pc_new));
-  
-  idecode decode0(.clk_i(clk_i), .rst_i(rst_i), .ir_i(ir[0]),
-		  .ir_o(ir[1]),
-		  .reg_data_in(reg_data_in),
-		  .reg_write_addr(reg_write_addr),
-		  .reg_write(reg_write),
-		  .reg_data_out1(reg_data_out1),
-		  .reg_data_out2(reg_data_out2),
-		  .alu_func(alu_func));
-
-  execute exe0(.clk_i(clk_i), .rst_i(rst_i),
-	       .reg_data_out(reg_data_in),
-	       .reg_write_addr(reg_write_addr),
-	       .ir_i(ir[1]),
-	       .ir_o(ir[2]));
-  mem mem0(.clk_i(clk_i), .rst_i(rst_i),
-	   .ir_i(ir[2]),
-	   .ir_o(ir[3]));
-  wb wb0(.clk_i(clk_i), .rst_i(rst_i),
-	 .ir_i(ir[3]));
-  
+   // pipeline var
+   logic [63:0] 	      ir[3:0];
+   logic [31:0] 	      pc[4:0];
+   logic [31:0] 	      result[2:0];
+   logic [1:0] 		      reg_write[1:0];
+   logic 		      fetch_cyc;
+   logic 		      fetch_ack;
+   logic [3:0] 		      reg_write_addr;
+   logic [31:0] 	      reg_data_in;
+   logic [31:0] 	      reg_data_out1;
+   logic [31:0] 	      reg_data_out2;
+   
+   // we'll need to mux these later, but for now the bus is just for
+   // instructions.
+   
+   assign ins_adr_o = pc[0];
+   assign exception = 4'h0;
+   assign halt = 1'h0;
+   assign supervisor = 1'h0;
+   
+   // since we only have part of the path defined
+   
+   ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i),
+		 .ir(ir[0]),
+		 .pc(pc[0]),
+		 .bus_cyc(ins_cyc_o),
+		 .bus_ack(ins_ack_i),
+		 .bus_in(ins_dat_i),
+		 .pc_set(1'b1),
+		 .pc_in(pc[4]));
+   
+   idecode decode0(.clk_i(clk_i), .rst_i(rst_i),
+		   .ir_i(ir[0]),
+		   .ir_o(ir[1]),
+		   .pc_i(pc[0]),
+		   .pc_o(pc[1]),
+		   .reg_data_in(result[2]),
+		   .reg_write_addr(reg_write_addr),
+		   .reg_write(reg_write[1]),
+		   .reg_data_out1(reg_data_out1),
+		   .reg_data_out2(reg_data_out2));
+   
+   execute exe0(.clk_i(clk_i), .rst_i(rst_i),
+		.reg_data1(reg_data_out1),
+		.reg_data2(reg_data_out2),
+		.result(result[0]),
+		.reg_write(reg_write[0]),
+		.pc_i(pc[1]),
+		.pc_o(pc[2]),
+		.ir_i(ir[1]),
+		.ir_o(ir[2]));
+   mem mem0(.clk_i(clk_i), .rst_i(rst_i),
+	    .ir_i(ir[2]),
+	    .pc_i(pc[2]),
+	    .reg_write_i(reg_write[0]),
+	    .result_i(result[0]),
+	    .reg_write_o(reg_write[1]),
+	    .pc_o(pc[3]),
+	    .result_o(result[1]),
+	    .ir_o(ir[3]),
+	    .bus_cyc(dat_cyc_o),
+	    .bus_ack(dat_ack_i),
+	    .bus_in(dat_dat_i),
+	    .bus_out(dat_dat_o),
+	    .bus_sel(dat_sel_o));
+   wb wb0(.clk_i(clk_i), .rst_i(rst_i),
+	  .ir_i(ir[3]),
+	  .pc_i(pc[3]),
+	  .result_i(result[1]),
+	  .reg_write_i(reg_write[1]),
+	  .result_o(result[2]),
+	  .pc_o(pc[4]),
+	  .reg_write_addr(reg_write_addr),
+	  .reg_write_o(reg_write[2]));
+   
 endmodule // bexkat1p
