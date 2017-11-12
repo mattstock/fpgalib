@@ -1,5 +1,3 @@
-	.set msg_base,  0x20000000
-	
 .globl main
 main:
 	ldi %0, 0x80000062
