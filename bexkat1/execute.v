@@ -13,6 +13,7 @@ module execute(input               clk_i,
 	       output logic [31:0] result,
 	       output logic [31:0] reg_data1_o,
 	       output logic [1:0]  reg_write,
+	       output logic [2:0]  ccr_o,
 	       output [63:0] 	   ir_o,
 	       output [31:0] 	   pc_o);
 
@@ -26,14 +27,13 @@ module execute(input               clk_i,
    wire 			   ir_size = ir_i[0];
    
    wire [2:0] 			   alu_func;
-   wire 			   ccr_ltu = ccr[2];
-   wire 			   ccr_lt = ccr[1];
-   wire 			   ccr_eq = ccr[0];
 
-   logic [31:0] 			   alu_in1, alu_in2, alu_out;
-   logic [2:0] 				   ccr, ccr_next;
-   logic 				   alu_c, alu_n, alu_v, alu_z;
-   logic [31:0] 			   pc_next, reg_data1_next;
+   logic [31:0] 		   alu_in1, alu_in2, alu_out;
+   logic [2:0] 			   ccr_next;
+   /* verilator lint_off UNOPTFLAT */
+   logic 			   alu_c, alu_n, alu_v, alu_z;
+   /* verilator lint_on UNOPTFLAT */
+   logic [31:0] 		   pc_next, reg_data1_next;
 
    always_ff @(posedge clk_i or posedge rst_i)
      begin
@@ -42,27 +42,66 @@ module execute(input               clk_i,
 	     ir_o <= 64'h0;
 	     pc_o <= 32'h0;
 	     reg_data1_o <= 32'h0;
-	     ccr <= 3'h0;
+	     ccr_o <= 3'h0;
 	  end
 	else
 	  begin
 	     ir_o <= ir_i;
 	     pc_o <= pc_next;
 	     reg_data1_o <= reg_data1_next;
-	     ccr <= ccr_next;
+	     ccr_o <= ccr_next;
 	  end // else: !if(rst_i)
      end // always_ff @
+
+   always_comb
+     begin
+	pc_next = pc_i;
+	reg_data1_next = reg_data1_i;
+	alu_in1 = reg_data1_i;
+	alu_in2 = reg_data2;
+	alu_func = alufunc_t'(ir_op[2:0]);
+	case (ir_type)
+	  T_LOAD:
+	    begin
+	       alu_func = ALU_ADD;
+	       if (ir_size)
+		 result = ir_extaddr;
+	       else
+		 alu_in2 = {ir_sval[29:0], 2'b00};
+	    end
+	  T_STORE:
+	    begin
+	       alu_func = ALU_ADD;
+	       if (ir_size)
+		 result = ir_extaddr;
+	       else
+		 alu_in2 = {ir_sval[29:0], 2'b00};
+	    end
+	  T_BRANCH:
+	    begin
+	       alu_in1 = pc_i;
+	       alu_in2 = {ir_sval[29:0], 2'b00};
+	       alu_func = ALU_ADD;
+	    end
+	  T_JUMP:
+	    begin
+	       alu_func = ALU_ADD;
+	       if (ir_size)
+		 result = ir_extaddr;
+	       else
+		 alu_in2 = {ir_sval[29:0], 2'b00};
+	    end
+	  T_CMP: alu_func = ALU_SUB;
+	  T_ALU: if (ir_op[3]) alu_in2 = ir_sval;
+	  default: begin end
+	endcase // case (ir_type)
+     end // always_comb
    
    always_comb
      begin
 	reg_write = 2'h0;
 	result = alu_out;
-	pc_next = pc_i;
-	reg_data1_next = reg_data1_i;
-	alu_func = alufunc_t'(ir_op[2:0]);
-	alu_in1 = reg_data1_i;
-	alu_in2 = reg_data2;
-	ccr_next = ccr;
+	ccr_next = ccr_o;
 	result = alu_out;
 	case (ir_type)
 	  T_LDI:
@@ -70,35 +109,7 @@ module execute(input               clk_i,
 	      result = ir_extval;
 	    else
 	      result = ir_uval;
-	  T_LOAD:
-	    if (ir_size)
-	      result = ir_extaddr;
-	    else
-	      begin
-		 alu_func = ALU_ADD;
-		 alu_in2 = {ir_sval[29:0], 2'b00};
-	      end
-	  T_STORE:
-	    if (ir_size)
-	      result = ir_extaddr;
-	    else
-	      begin
-		 alu_func = ALU_ADD;
-		 alu_in2 = {ir_sval[29:0], 2'b00};
-	      end
-	  T_JUMP:
-	    if (ir_size)
-	      result = ir_extaddr;
-	    else
-	      begin
-		 alu_func = ALU_ADD;
-		 alu_in2 = {ir_sval[29:0], 2'b00};
-	      end
-	  T_CMP:
-	    begin
-	       alu_func = ALU_SUB;
-	       ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
-	    end
+	  T_CMP: ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
 	  T_MOV:
 	    begin
 	       result = reg_data1_i;
@@ -106,29 +117,9 @@ module execute(input               clk_i,
 	    end
 	  T_ALU:
 	    begin
-	       if (ir_op[3]) alu_in2 = ir_sval;
 	       reg_write = 2'h3;
 	    end
-	  T_BRANCH:
-	    begin
-	       alu_func = ALU_ADD;
-	       alu_in1 = pc_i;
-	       alu_in2 = {ir_sval[29:0], 2'b00};
-	       case (ir_op)
-		 4'h0: pc_next = alu_out; // bra
-		 4'h1: if (ccr_eq) pc_next = alu_out;  // beq
-		 4'h2: if (~ccr_eq) pc_next = alu_out; // bne
-		 4'h3: if (~(ccr_ltu | ccr_eq)) pc_next = alu_out; // bgtu
-		 4'h4: if (~(ccr_lt | ccr_eq)) pc_next = alu_out; // bgt
-		 4'h5: if (~ccr_lt) pc_next = alu_out; // bge
-		 4'h6: if (ccr_lt | ccr_eq) pc_next = alu_out; // ble
-		 4'h7: if (ccr_lt) pc_next = alu_out; // blt
-		 4'h8: if (~ccr_ltu) pc_next = alu_out; // bgeu
-		 4'h9: if (ccr_ltu) pc_next = alu_out; // bltu
-		 4'ha: if (ccr_ltu | ccr_eq) pc_next = alu_out; // bleu
-		 default: begin end
-	       endcase // case (ir_op)
-	    end // case: T_BRANCH
+	  default: begin end
 	endcase // case (ir_type)
      end
 

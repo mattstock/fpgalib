@@ -28,7 +28,8 @@ module bexkat1p(input 	      clk_i,
    logic [63:0] 	      ir[3:0];
    logic [31:0] 	      pc[4:0];
    logic [31:0] 	      result[2:0];
-   logic [1:0] 		      reg_write[1:0];
+   logic [1:0] 		      reg_write[2:0];
+   logic [2:0] 		      ccr[1:0];
    logic 		      fetch_cyc;
    logic 		      fetch_ack;
    logic [3:0] 		      reg_write_addr;
@@ -65,7 +66,7 @@ module bexkat1p(input 	      clk_i,
 		   .reg_data_in(result[2]),
 		   .reg_write_addr(reg_write_addr),
 		   .reg_write(reg_write[1]),
-		   .reg_data_out1(reg_data_out1),
+		   .reg_data_out1(reg_data_out1[0]),
 		   .reg_data_out2(reg_data_out2));
    
    execute exe0(.clk_i(clk_i), .rst_i(rst_i),
@@ -77,17 +78,20 @@ module bexkat1p(input 	      clk_i,
 		.pc_i(pc[1]),
 		.pc_o(pc[2]),
 		.ir_i(ir[1]),
-		.ir_o(ir[2]));
+		.ir_o(ir[2]),
+		.ccr_o(ccr[0]));
    mem mem0(.clk_i(clk_i), .rst_i(rst_i),
 	    .ir_i(ir[2]),
 	    .pc_i(pc[2]),
 	    .reg_write_i(reg_write[0]),
 	    .result_i(result[0]),
+	    .ccr_i(ccr[0]),
 	    .reg_write_o(reg_write[1]),
 	    .reg_data1_i(reg_data_out1[1]),
 	    .pc_o(pc[3]),
 	    .result_o(result[1]),
 	    .ir_o(ir[3]),
+	    .ccr_o(ccr[1]),
 	    .bus_adr(dat_adr_o),
 	    .bus_cyc(dat_cyc_o),
 	    .bus_ack(dat_ack_i),
@@ -98,6 +102,7 @@ module bexkat1p(input 	      clk_i,
    wb wb0(.clk_i(clk_i), .rst_i(rst_i),
 	  .ir_i(ir[3]),
 	  .pc_i(pc[3]),
+	  .ccr_i(ccr[1]),
 	  .result_i(result[1]),
 	  .reg_write_i(reg_write[1]),
 	  .result_o(result[2]),

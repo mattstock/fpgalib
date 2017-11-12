@@ -11,10 +11,12 @@ module mem(input               clk_i,
 	   input [1:0] 	       reg_write_i,
 	   input [31:0]        result_i,
 	   input [31:0]        reg_data1_i,
+	   input [2:0] 	       ccr_i,
 	   output logic [31:0] result_o,
 	   output logic [1:0]  reg_write_o,
 	   output logic [63:0] ir_o,
 	   output logic [31:0] pc_o,
+	   output logic [2:0]  ccr_o,
 	   output logic [31:0] bus_adr,
 	   output logic        bus_we,
 	   output logic        bus_cyc,
@@ -35,6 +37,7 @@ module mem(input               clk_i,
    logic [31:0] 	       pc_next, result_next;
    logic [1:0] 		       reg_write_next;
    logic [63:0] 	       ir_next;
+   logic [2:0] 		       ccr_next;
    
    assign bus_cyc = (state == S_LOAD || state == S_STORE);
    assign bus_we = (state == S_STORE);
@@ -48,6 +51,7 @@ module mem(input               clk_i,
 	     state <= S_IDLE;
 	     ir_o <= 64'h0;
 	     pc_o <= 32'h0;
+	     ccr_o <= 3'h0;
 	     reg_write_o <= 2'h0;
 	     result_o <= 32'h0;
 	  end
@@ -56,6 +60,7 @@ module mem(input               clk_i,
 	     state <= state_next;
 	     ir_o <= ir_next;
 	     pc_o <= pc_next;
+	     ccr_o <= ccr_next;
 	     reg_write_o <= reg_write_next;
 	     result_o <= result_next;
 	  end // else: !if(rst_i)
@@ -78,6 +83,7 @@ module mem(input               clk_i,
 	state_next = state;
 	ir_next = ir_i;
 	pc_next = pc_i;
+	ccr_next = ccr_i;
 	result_next = result_i;
 	reg_write_next = reg_write_i;
 	
