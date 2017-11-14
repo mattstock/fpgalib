@@ -14,6 +14,7 @@ module wb(input               clk_i,
 	  output logic [31:0] result_o,
 	  output logic [1:0]  reg_write_o,
 	  output logic [31:0] pc_o,
+	  output logic 	      pc_set,
 	  output logic [3:0]  reg_write_addr);
 
    wire [3:0] 		      ir_type  = ir_i[31:28];
@@ -51,26 +52,75 @@ module wb(input               clk_i,
 	pc_next = pc_i;
 	result_next = result_i;
 	reg_write_next = reg_write_i;
-
+	pc_set = 1'b0;
+	
 	case (ir_type)
 	  T_BRANCH:
 	    begin
 	       case (ir_op)
-		 4'h0: pc_next = result_i; // bra
-		 4'h1: if (ccr_eq) pc_next = result_i;  // beq
-		 4'h2: if (~ccr_eq) pc_next = result_i; // bne
-		 4'h3: if (~(ccr_ltu | ccr_eq)) pc_next = result_i; // bgtu
-		 4'h4: if (~(ccr_lt | ccr_eq)) pc_next = result_i; // bgt
-		 4'h5: if (~ccr_lt) pc_next = result_i; // bge
-		 4'h6: if (ccr_lt | ccr_eq) pc_next = result_i; // ble
-		 4'h7: if (ccr_lt) pc_next = result_i; // blt
-		 4'h8: if (~ccr_ltu) pc_next = result_i; // bgeu
-		 4'h9: if (ccr_ltu) pc_next = result_i; // bltu
-		 4'ha: if (ccr_ltu | ccr_eq) pc_next = result_i; // bleu
+		 4'h0: 
+		   begin
+		      pc_next = result_i; // bra
+		      pc_set = 1'b1;
+		   end
+		 4'h1: if (ccr_eq)
+		   begin
+		      pc_next = result_i;  // beq
+		      pc_set = 1'b1;
+		   end
+		 4'h2: if (~ccr_eq)
+		   begin
+		      pc_next = result_i; // bne
+		      pc_set = 1'b1;
+		   end
+		 4'h3: if (~(ccr_ltu | ccr_eq))
+		   begin
+		      pc_next = result_i; // bgtu
+		      pc_set = 1'b1;
+		   end
+		 4'h4: if (~(ccr_lt | ccr_eq))
+		   begin
+		      pc_next = result_i; // bgt
+		      pc_set = 1'b1;
+		   end
+		 4'h5: if (~ccr_lt) 
+		   begin
+		      pc_next = result_i; // bge
+		      pc_set = 1'b1;
+		   end
+		 4'h6: if (ccr_lt | ccr_eq)
+		   begin
+		      pc_next = result_i; // ble
+		      pc_set = 1'b1;
+		   end
+		 4'h7: if (ccr_lt)
+		   begin
+		      pc_next = result_i; // blt
+		      pc_set = 1'b1;
+		   end
+		 4'h8: if (~ccr_ltu)
+		   begin
+		      pc_next = result_i; // bgeu
+		      pc_set = 1'b1;
+		   end
+		 4'h9: if (ccr_ltu)
+		   begin
+		      pc_next = result_i; // bltu
+		      pc_set = 1'b1;
+		   end
+		 4'ha: if (ccr_ltu | ccr_eq)
+		   begin
+		      pc_next = result_i; // bleu
+		      pc_set = 1'b1;
+		   end
 		 default: begin end
 	       endcase // case (ir_op)
 	    end // case: T_BRANCH
-	  T_JUMP: pc_next = result_i;
+	  T_JUMP:
+	    begin
+	       pc_next = result_i;
+	       pc_set = 1'b1;
+	    end
 	  default: begin end
 	endcase // case (ir_type)
      end

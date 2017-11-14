@@ -1,12 +1,18 @@
-module top(input  clk_i,
-	   input  rst_i,
-	   output halt);
+module top(input         clk_i,
+	   input 	 rst_i,
+	   output [31:0] dat_adr,
+	   output [31:0] ins_adr,
+	   output [31:0] ins_dat,
+	   output [31:0] dat_cpu_out,
+	   output [31:0] dat_cpu_in,
+	   output 	 ins_cyc,
+	   output 	 dat_cyc,
+	   output 	 ins_ack,
+	   output 	 dat_ack,
+	   output 	 dat_we,
+	   output [3:0]  dat_sel,
+	   output 	 halt);
    
-   wire 	  ins_cyc, dat_cyc, ins_ack, dat_ack, dat_we;
-   wire [3:0] 	  dat_sel;
-   wire [31:0] 	  dat_adr, ins_adr;
-   wire [31:0] 	  ins_dat, dat_cpu_out, dat_cpu_in;
-
    /* verilator lint_off PINMISSING */
    bexkat1p cpu0(.clk_i(clk_i), .rst_i(rst_i),
 		 .ins_cyc_o(ins_cyc), .ins_ack_i(ins_ack),

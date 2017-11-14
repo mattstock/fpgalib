@@ -36,6 +36,7 @@ module bexkat1p(input 	      clk_i,
    logic [31:0] 	      reg_data_in;
    logic [31:0] 	      reg_data_out1[1:0];
    logic [31:0] 	      reg_data_out2;
+   logic 		      pc_set;
    
    // we'll need to mux these later, but for now the bus is just for
    // instructions.
@@ -55,7 +56,7 @@ module bexkat1p(input 	      clk_i,
 		 .bus_cyc(ins_cyc_o),
 		 .bus_ack(ins_ack_i),
 		 .bus_in(ins_dat_i),
-		 .pc_set(1'b1),
+		 .pc_set(pc_set),
 		 .pc_in(pc[4]));
    
    idecode decode0(.clk_i(clk_i), .rst_i(rst_i),
@@ -107,6 +108,7 @@ module bexkat1p(input 	      clk_i,
 	  .reg_write_i(reg_write[1]),
 	  .result_o(result[2]),
 	  .pc_o(pc[4]),
+	  .pc_set(pc_set),
 	  .reg_write_addr(reg_write_addr),
 	  .reg_write_o(reg_write[2]));
    
