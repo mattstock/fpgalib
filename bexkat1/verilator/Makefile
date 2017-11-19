@@ -8,13 +8,15 @@ TEMP := $(shell mktemp)
 
 .PHONY: all clean
 
-all: obj_dir/Vbexkat1p_top.cpp ram0.hex
+all: obj_dir/Vbexkat1p_top.cpp obj_dir/Vifetch_top.cpp ram0.hex
 
-obj_dir/Vifetch_test.cpp: ../ifetch.v ifetch_test.cpp
-	verilator -I.. -cc ifetch.v -exe ifetch_test.cpp
+obj_dir/Vifetch_top.cpp: ../ifetch.v ifetch_top.v ifetch_test.cpp ram2.v
+	verilator -I.. -cc ifetch_top.v -exe ifetch_test.cpp
+	cd obj_dir; make -f Vifetch_top.mk
 
-obj_dir/Vbexkat1p_top.cpp: bexkat1p_top.v bexkat1p_test.cpp
+obj_dir/Vbexkat1p_top.cpp: ../bexkat1p.v bexkat1p_top.v bexkat1p_test.cpp ram2.v
 	verilator -I.. -cc bexkat1p_top.v -exe bexkat1p_test.cpp
+	cd obj_dir; make -f Vbexkat1p_top.mk
 
 verilator: top.v
 	verilator -I.. -cc top.v -exe sim_main.cpp
