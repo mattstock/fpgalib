@@ -28,6 +28,10 @@ module idecode(input               clk_i,
   logic [3:0] 			   reg_read2;
   logic [31:0] 			   pc_next;
   logic [63:0] 			   ir_next;
+  logic [31:0] 			   reg_data_out1_next;
+  logic [31:0] 			   reg_data_out2_next;
+  logic [31:0] 			   regfile_out1;
+  logic [31:0] 			   regfile_out2;
   
   assign stall_o = stall_i;
   
@@ -37,11 +41,15 @@ module idecode(input               clk_i,
 	begin
 	  pc_o <= 32'h0;
 	  ir_o <= 64'h0;
+	  reg_data_out1 <= 32'h0;
+	  reg_data_out2 <= 32'h0;
 	end
       else
 	begin
 	  pc_o <= pc_next;
 	  ir_o <= ir_next;
+	  reg_data_out1 <= reg_data_out1_next;
+	  reg_data_out2 <= reg_data_out2_next;
 	end // else: !if(rst_i)
     end // always_ff @
   
@@ -51,11 +59,15 @@ module idecode(input               clk_i,
 	begin
 	  ir_next = ir_o;
 	  pc_next = pc_o;
+	  reg_data_out1_next = reg_data_out1;
+	  reg_data_out2_next = reg_data_out2;
 	end
       else
 	begin
 	  ir_next = ir_i;
 	  pc_next = pc_i;
+	  reg_data_out1_next = regfile_out1;
+	  reg_data_out2_next = regfile_out2;
 	end
       reg_read1 = ir_rb;
       reg_read2 = ir_rc;
@@ -72,7 +84,7 @@ module idecode(input               clk_i,
 		    .write_addr(reg_write_addr),
 		    .write_data(reg_data_in),
 		    .write_en(reg_write),
-		    .data1(reg_data_out1),
-		    .data2(reg_data_out2));
+		    .data1(regfile_out1),
+		    .data2(regfile_out2));
   
 endmodule // idecode

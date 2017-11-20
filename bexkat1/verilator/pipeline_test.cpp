@@ -26,7 +26,8 @@ int main(int argc, char **argv, char **env) {
       top->rst_i = 0;
 
     if (top->clk_i) {
-      printf("--- %03d ---\n", cycle);
+      printf("-------------------- %03d --------------------\n", cycle);
+      printf("--- PIPELINE STATE ---\n");
       printf("     % 16s % 16s % 16s % 16s % 16s\n",
 	     "ifetch",
 	     "idecode",
@@ -60,7 +61,7 @@ int main(int argc, char **argv, char **env) {
       printf("rc:  % 16s % 16x\n",
 	     "",
 	     top->ir_rc);
-      printf("rd1:  % 16s % 16x % 16x\n",
+      printf("rd1: % 16s % 16x % 16x\n",
 	     "",
 	     top->id_reg_data_out1,
 	     top->exe_reg_data_out1);
@@ -84,10 +85,17 @@ int main(int argc, char **argv, char **env) {
       printf("wad: % 16s % 16s % 16s % 16s % 16x\n",
 	     "","","","",
 	     top->wb_reg_write_addr);
-      printf("0: %08x 1: %08x 2: %08x\n",
-	     top->top__DOT__decode0__DOT__reg0__DOT__regfile[0],
-	     top->top__DOT__decode0__DOT__reg0__DOT__regfile[1],
-	     top->top__DOT__decode0__DOT__reg0__DOT__regfile[2]);
+      printf("--- REGISTER STATE ---\n");
+      for (int i=0; i < 8; i++)
+	printf("% 3d: %08x",
+	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+      printf("\n");
+      for (int i=8; i < 16; i++)
+	printf("% 3d: %08x",
+	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+      printf("\n");
+      printf("ssp: %08x\n", top->top__DOT__decode0__DOT__reg0__DOT__ssp);
+      //      printf("--- BUS STATE ---\n");
       cycle++;
     }
 
