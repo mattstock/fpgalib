@@ -8,7 +8,11 @@ TEMP := $(shell mktemp)
 
 .PHONY: all clean
 
-all: obj_dir/Vbexkat1p_top.cpp obj_dir/Vifetch_top.cpp obj_dir/Videcode_top.cpp ram0.hex
+all: obj_dir/Vpipeline_top.cpp obj_dir/Vexecute_top.cpp obj_dir/Vifetch_top.cpp obj_dir/Videcode_top.cpp ram0.hex
+
+obj_dir/Vpipeline_top.cpp: ../wb.v ../mem.v ../execute.v ../idecode.v ../ifetch.v pipeline_top.v pipeline_test.cpp ram2.v
+	verilator -I.. -cc pipeline_top.v -exe pipeline_test.cpp
+	cd obj_dir; make -f Vpipeline_top.mk
 
 obj_dir/Vifetch_top.cpp: ../ifetch.v ifetch_top.v ifetch_test.cpp ram2.v
 	verilator -I.. -cc ifetch_top.v -exe ifetch_test.cpp
@@ -17,6 +21,10 @@ obj_dir/Vifetch_top.cpp: ../ifetch.v ifetch_top.v ifetch_test.cpp ram2.v
 obj_dir/Videcode_top.cpp: ../idecode.v ../ifetch.v idecode_top.v idecode_test.cpp ram2.v
 	verilator -I.. -cc idecode_top.v -exe idecode_test.cpp
 	cd obj_dir; make -f Videcode_top.mk
+
+obj_dir/Vexecute_top.cpp: ../execute.v ../idecode.v ../ifetch.v execute_top.v execute_test.cpp ram2.v
+	verilator -I.. -cc execute_top.v -exe execute_test.cpp
+	cd obj_dir; make -f Vexecute_top.mk
 
 obj_dir/Vbexkat1p_top.cpp: ../bexkat1p.v bexkat1p_top.v bexkat1p_test.cpp ram2.v ../ifetch.v
 	verilator -I.. -cc bexkat1p_top.v -exe bexkat1p_test.cpp
