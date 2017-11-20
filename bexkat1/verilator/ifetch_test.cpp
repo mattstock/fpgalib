@@ -17,7 +17,8 @@ int main(int argc, char **argv, char **env) {
   top->clk_i = 0;
   top->pc_i = 0;
   top->pc_set = 0;
-
+  top->stall_i = 0;
+  
   while (!Verilated::gotFinish()) {
     // Run the clock
     top->clk_i = ~top->clk_i;
@@ -27,14 +28,15 @@ int main(int argc, char **argv, char **env) {
       top->rst_i = 0;
 
     if (top->clk_i) {
-      printf("%03d: %d, %08x, %d, %d, %08x, %016lx\n",
+      printf("%03d: %d, %08x, %d, %d, %08x, %016lx, %d\n",
 	     cycle,
 	     top->top__DOT__fetch0__DOT__state,
 	     top->pc_o,
 	     top->bus_cyc_o,
 	     top->bus_ack_i,
 	     top->bus_dat_i,
-	     top->ir_o);
+	     top->ir_o,
+	     top->stall_o);
       cycle++;
     }
 

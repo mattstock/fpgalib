@@ -11,6 +11,7 @@ module top(input         clk_i,
 	   output 	 dat_ack,
 	   output 	 dat_we,
 	   output [3:0]  dat_sel,
+	   output [3:0]	 reg_write_addr,
 	   output 	 halt);
    
    /* verilator lint_off PINMISSING */
@@ -21,7 +22,8 @@ module top(input         clk_i,
 		 .dat_cyc_o(dat_cyc), .dat_ack_i(dat_ack),
 		 .dat_adr_o(dat_adr), .dat_we_o(dat_we),
 		 .dat_sel_o(dat_sel),
-		 .dat_dat_i(dat_cpu_in), .dat_dat_o(dat_cpu_out));
+		 .dat_dat_i(dat_cpu_in), .dat_dat_o(dat_cpu_out),
+		 .reg_write_addr(reg_write_addr));
    /* verilator lint_on PINMISSING */
    
    ram2 #(.AWIDTH(15)) ram0(.clk_i(clk_i), .rst_i(rst_i),
