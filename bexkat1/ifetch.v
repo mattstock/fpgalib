@@ -52,7 +52,7 @@ module ifetch(input               clk_i,
 	case (state)
 	  S_BUSWAIT:
 	    begin
-	      ir_next[31:0] = bus_in;
+	      ir_next = { 32'h0, bus_in };
 	      if (bus_ack)
 		if (bus_in[0])
 		  begin

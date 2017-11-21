@@ -85,6 +85,9 @@ int main(int argc, char **argv, char **env) {
       printf("wad: % 16s % 16s % 16s % 16s % 16x\n",
 	     "","","","",
 	     top->wb_reg_write_addr);
+      printf("pcs: % 16s % 16s % 16s % 16s % 16d\n",
+	     "","","","",
+	     top->pc_set);
       printf("--- REGISTER STATE ---\n");
       for (int i=0; i < 8; i++)
 	printf("% 3d: %08x",

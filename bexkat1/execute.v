@@ -37,6 +37,8 @@ module execute(input               clk_i,
   /* verilator lint_on UNOPTFLAT */
   logic [31:0] 			   pc_next, reg_data1_next;
   logic [63:0] 			   ir_next;
+  logic [31:0] 			   result_next;
+  logic [1:0] 			   reg_write_next;
   
   assign stall_o = stall_i;
   
@@ -48,6 +50,8 @@ module execute(input               clk_i,
 	  pc_o <= 32'h0;
 	  reg_data1_o <= 32'h0;
 	  ccr_o <= 3'h0;
+	  result <= 32'h0;
+	  reg_write <= 2'h0;
 	end
       else
 	begin
@@ -55,91 +59,112 @@ module execute(input               clk_i,
 	  pc_o <= pc_next;
 	  reg_data1_o <= reg_data1_next;
 	  ccr_o <= ccr_next;
+	  result <= result_next;
+	  reg_write <= reg_write_next;
 	end // else: !if(rst_i)
     end // always_ff @
+
+  always_comb
+    begin
+      ccr_next = ccr_o;
+      if (ir_type == T_CMP && !stall_i)
+	ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
+    end
+
+  always_comb
+    begin
+      if (stall_i)
+	result_next = result;
+      else
+	begin
+	  case (ir_type)
+	    T_LOAD:
+	      if (ir_size)
+		result_next = ir_extaddr;
+	    T_LDI:
+	      if (ir_size)
+		result_next = ir_extval;
+	      else
+		result_next = ir_uval;
+	    T_STORE:
+	      if (ir_size)
+		result_next = ir_extaddr;
+	    T_JUMP:
+	      if (ir_size)
+		result_next = ir_extaddr;
+	    T_MOV:
+	      result_next = reg_data1_i;
+	    default:
+	      result_next = alu_out;
+	  endcase // case (ir_type)
+	end
+    end
   
   always_comb
     begin
+      alu_in1 = reg_data1_i;
+      alu_in2 = reg_data2;
+      alu_func = alufunc_t'(ir_op[2:0]);
+      
       if (stall_i)
 	begin
 	  pc_next = pc_o;
 	  ir_next = ir_o;
 	  reg_data1_next = reg_data1_o;
+	  reg_write_next = reg_write;
 	end
       else
 	begin
 	  pc_next = pc_i;
 	  ir_next = ir_i;
 	  reg_data1_next = reg_data1_i;
+	  reg_write_next = 2'h0;
+	  case (ir_type)
+	    T_CMP:
+	      begin
+		alu_func = ALU_SUB;
+	      end
+	    T_LOAD:
+	      begin
+		alu_func = ALU_ADD;
+		if (!ir_size)
+		  alu_in2 = {ir_sval[29:0], 2'b00};
+	      end
+	    T_LDI:
+	      begin
+		reg_write_next = 2'h3;
+	      end
+	    T_STORE:
+	      begin
+		alu_func = ALU_ADD;
+		if (!ir_size)
+		  alu_in2 = {ir_sval[29:0], 2'b00};
+	      end
+	    T_BRANCH:
+	      begin
+		alu_in1 = pc_i;
+		alu_in2 = {ir_sval[29:0], 2'b00};
+		alu_func = ALU_ADD;
+	      end
+	    T_JUMP:
+	      begin
+		alu_func = ALU_ADD;
+		if (!ir_size)
+		  alu_in2 = {ir_sval[29:0], 2'b00};
+	      end
+	    T_MOV:
+	      begin
+		reg_write_next = ir_op[1:0];
+	      end
+	    T_ALU: 
+	      begin
+		if (ir_op[3]) alu_in2 = ir_sval;
+		reg_write_next = 2'h3;
+	      end
+	    default: begin end
+	  endcase // case (ir_type)
 	end // else: !if(stall_i)
-      alu_in1 = reg_data1_i;
-      alu_in2 = reg_data2;
-      alu_func = alufunc_t'(ir_op[2:0]);
-      case (ir_type)
-	T_LOAD:
-	  begin
-	    alu_func = ALU_ADD;
-	    if (ir_size)
-	      result = ir_extaddr;
-	    else
-	      alu_in2 = {ir_sval[29:0], 2'b00};
-	  end
-	T_STORE:
-	  begin
-	    alu_func = ALU_ADD;
-	    if (ir_size)
-	      result = ir_extaddr;
-	    else
-	      alu_in2 = {ir_sval[29:0], 2'b00};
-	  end
-	T_BRANCH:
-	  begin
-	    alu_in1 = pc_i;
-	    alu_in2 = {ir_sval[29:0], 2'b00};
-	    alu_func = ALU_ADD;
-	  end
-	T_JUMP:
-	  begin
-	    alu_func = ALU_ADD;
-	    if (ir_size)
-	      result = ir_extaddr;
-	    else
-	      alu_in2 = {ir_sval[29:0], 2'b00};
-	  end
-	T_CMP: alu_func = ALU_SUB;
-	T_ALU: if (ir_op[3]) alu_in2 = ir_sval;
-	default: begin end
-      endcase // case (ir_type)
     end // always_comb
-  
-  always_comb
-    begin
-      reg_write = 2'h0;
-      result = alu_out;
-      ccr_next = ccr_o;
-      result = alu_out;
-      case (ir_type)
-	T_LDI:
-	  begin
-	    reg_write = 2'h3;
-	    if (ir_size)
-	      result = ir_extval;
-	    else
-	      result = ir_uval;
-	  end
-	T_CMP: ccr_next = (stall_i ? ccr_o : { alu_c, alu_n ^ alu_v, alu_z });
-	T_MOV:
-	  begin
-	    result = reg_data1_i;
-	    reg_write = ir_op[1:0];
-	  end
-	T_ALU:
-	  begin
-	    reg_write = 2'h3;
-	  end
-	default: begin end
-      endcase // case (ir_type)
-    end
   
   alu_comb alu0(.in1(alu_in1),
 		.in2(alu_in2),
