@@ -16,6 +16,8 @@ module top(input         clk_i,
 	   output 	 exe_stall,
 	   output 	 mem_stall,
 	   output 	 wb_stall,
+	   output [31:0] exe_data1,
+	   output [31:0] exe_data2,
 	   output [31:0] id_reg_data_out1,
 	   output [31:0] exe_reg_data_out1,
 	   output [31:0] exe_result,
@@ -23,12 +25,12 @@ module top(input         clk_i,
 	   output [31:0] wb_result,
 	   output [31:0] id_reg_data_out2,
 	   output [3:0]  wb_reg_write_addr,
+	   output [1:0]  id_reg_write,
 	   output [1:0]  exe_reg_write,
 	   output [1:0]  mem_reg_write,
 	   output [1:0]  wb_reg_write,
-	   output [3:0]  ir_ra,
-	   output [3:0]  ir_rb,
-	   output [3:0]  ir_rc,
+	   output [1:0]  hazard1,
+	   output [1:0]  hazard2,
 	   output [2:0]  exe_ccr,
 	   output [2:0]  mem_ccr);
 
@@ -43,10 +45,6 @@ module top(input         clk_i,
   logic 		 dat_we_o;
   logic [3:0] 		 dat_sel_o;
   logic [31:0] 		 dat_dat_o;
-
-  wire [3:0] 		 ir_ra = if_ir[23:20];
-  wire [3:0] 		 ir_rb = if_ir[19:16];
-  wire [3:0] 		 ir_rc = if_ir[15:12];
   
   ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i),
 		.ir(if_ir),
@@ -68,16 +66,33 @@ module top(input         clk_i,
 		  .pc_o(id_pc),
 		  .reg_data_in(wb_result),
 		  .reg_write_addr(wb_reg_write_addr),
-		  .reg_write(wb_reg_write),
+		  .reg_write_i(wb_reg_write),
+		  .reg_write_o(id_reg_write),
 		  .reg_data_out1(id_reg_data_out1),
 		  .reg_data_out2(id_reg_data_out2));
 
+  
+  always_comb
+    begin
+      case (hazard1)
+	2'h1: exe_data1 = mem_result;
+	2'h2: exe_data1 = exe_result;
+	default: exe_data1 = id_reg_data_out1;
+      endcase // case (hazard1)
+      case (hazard2)
+	2'h1: exe_data2 = mem_result;
+	2'h2: exe_data2 = exe_result;
+	default: exe_data2 = id_reg_data_out2;
+      endcase // case (hazard2)
+    end // always_comb
+  
   execute exe0(.clk_i(clk_i), .rst_i(rst_i),
-	       .reg_data1_i(id_reg_data_out1),
+	       .reg_data1_i(exe_data1),
 	       .reg_data1_o(exe_reg_data_out1),
-	       .reg_data2(id_reg_data_out2),
+	       .reg_data2(exe_data2),
 	       .result(exe_result),
-	       .reg_write(exe_reg_write),
+	       .reg_write_i(id_reg_write),
+	       .reg_write_o(exe_reg_write),
 	       .stall_i(id_stall),
 	       .stall_o(exe_stall),
 	       .pc_i(id_pc),
@@ -86,6 +101,16 @@ module top(input         clk_i,
 	       .ir_o(exe_ir),
 	       .ccr_o(exe_ccr));
 
+  forwarder fwd0(.clk_i(clk_i), .rst_i(rst_i),
+		 .id_ir(id_ir),
+		 .id_reg_write(id_reg_write),
+		 .exe_ir(exe_ir),
+		 .exe_reg_write(exe_reg_write),
+		 .mem_ir(mem_ir),
+		 .mem_reg_write(mem_reg_write),
+		 .hazard1(hazard1),
+		 .hazard2(hazard2));
+		
   mem mem0(.clk_i(clk_i), .rst_i(rst_i),
 	   .reg_data1_i(exe_reg_data_out1),
 	   .reg_write_i(exe_reg_write),

@@ -12,7 +12,8 @@ module execute(input               clk_i,
 	       input [31:0] 	   reg_data2,
 	       output logic [31:0] result,
 	       output logic [31:0] reg_data1_o,
-	       output logic [1:0]  reg_write,
+	       input [1:0] 	   reg_write_i,
+	       output logic [1:0]  reg_write_o,
 	       output logic [2:0]  ccr_o,
 	       input 		   stall_i,
 	       output 		   stall_o,
@@ -51,7 +52,7 @@ module execute(input               clk_i,
 	  reg_data1_o <= 32'h0;
 	  ccr_o <= 3'h0;
 	  result <= 32'h0;
-	  reg_write <= 2'h0;
+	  reg_write_o <= 2'h0;
 	end
       else
 	begin
@@ -60,7 +61,7 @@ module execute(input               clk_i,
 	  reg_data1_o <= reg_data1_next;
 	  ccr_o <= ccr_next;
 	  result <= result_next;
-	  reg_write <= reg_write_next;
+	  reg_write_o <= reg_write_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
@@ -102,68 +103,59 @@ module execute(input               clk_i,
   
   always_comb
     begin
-      alu_in1 = reg_data1_i;
-      alu_in2 = reg_data2;
-      alu_func = alufunc_t'(ir_op[2:0]);
-      
       if (stall_i)
 	begin
 	  pc_next = pc_o;
 	  ir_next = ir_o;
 	  reg_data1_next = reg_data1_o;
-	  reg_write_next = reg_write;
+	  reg_write_next = reg_write_o;
 	end
       else
 	begin
 	  pc_next = pc_i;
 	  ir_next = ir_i;
 	  reg_data1_next = reg_data1_i;
-	  reg_write_next = 2'h0;
-	  case (ir_type)
-	    T_CMP:
-	      begin
-		alu_func = ALU_SUB;
-	      end
-	    T_LOAD:
-	      begin
-		alu_func = ALU_ADD;
-		if (!ir_size)
-		  alu_in2 = {ir_sval[29:0], 2'b00};
-	      end
-	    T_LDI:
-	      begin
-		reg_write_next = 2'h3;
-	      end
-	    T_STORE:
-	      begin
-		alu_func = ALU_ADD;
-		if (!ir_size)
-		  alu_in2 = {ir_sval[29:0], 2'b00};
-	      end
-	    T_BRANCH:
-	      begin
-		alu_in1 = pc_i;
-		alu_in2 = {ir_sval[29:0], 2'b00};
-		alu_func = ALU_ADD;
-	      end
-	    T_JUMP:
-	      begin
-		alu_func = ALU_ADD;
-		if (!ir_size)
-		  alu_in2 = {ir_sval[29:0], 2'b00};
-	      end
-	    T_MOV:
-	      begin
-		reg_write_next = ir_op[1:0];
-	      end
-	    T_ALU: 
-	      begin
-		if (ir_op[3]) alu_in2 = ir_sval;
-		reg_write_next = 2'h3;
-	      end
-	    default: begin end
-	  endcase // case (ir_type)
+	  reg_write_next = reg_write_i;
 	end // else: !if(stall_i)
+    end // always_comb
+
+  always_comb
+    begin
+      alu_in1 = reg_data1_i;
+      alu_in2 = reg_data2;
+      alu_func = alufunc_t'(ir_op[2:0]);
+      case (ir_type)
+	T_CMP:
+	  alu_func = ALU_SUB;
+	T_LOAD:
+	  begin
+	    alu_func = ALU_ADD;
+	    if (!ir_size)
+	      alu_in2 = {ir_sval[29:0], 2'b00};
+	  end
+	T_STORE:
+	  begin
+	    alu_func = ALU_ADD;
+	    if (!ir_size)
+	      alu_in2 = {ir_sval[29:0], 2'b00};
+	  end
+	T_BRANCH:
+	  begin
+	    alu_in1 = pc_i;
+	    alu_in2 = {ir_sval[29:0], 2'b00};
+	    alu_func = ALU_ADD;
+	  end
+	T_JUMP:
+	  begin
+	    alu_func = ALU_ADD;
+	    if (!ir_size)
+	      alu_in2 = {ir_sval[29:0], 2'b00};
+	  end
+	T_ALU: 
+	    if (ir_op[3]) 
+	      alu_in2 = ir_sval;
+	default: begin end
+      endcase // case (ir_type)
     end // always_comb
   
   alu_comb alu0(.in1(alu_in1),

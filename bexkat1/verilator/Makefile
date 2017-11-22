@@ -5,12 +5,12 @@ LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
-
+CPUDEPS = ../bexkat1p.v ../alu_comb.v ../registerfile.v ../wb.v ../mem.v ../execute.v ../idecode.v ../ifetch.v 
 .PHONY: all clean
 
-all: obj_dir/Vpipeline_top.cpp obj_dir/Vexecute_top.cpp obj_dir/Vifetch_top.cpp obj_dir/Videcode_top.cpp ram0.hex
+all: obj_dir/Vpipeline_top.cpp ram0.hex
 
-obj_dir/Vpipeline_top.cpp: ../wb.v ../mem.v ../execute.v ../idecode.v ../ifetch.v pipeline_top.v pipeline_test.cpp ram2.v
+obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.v pipeline_test.cpp ram2.v
 	verilator -I.. -cc pipeline_top.v -exe pipeline_test.cpp
 	cd obj_dir; make -f Vpipeline_top.mk
 
