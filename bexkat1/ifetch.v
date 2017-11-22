@@ -25,7 +25,7 @@ module ifetch(input               clk_i,
   
   assign bus_cyc = (state == S_BUSWAIT || state == S_BUSWAIT2);
   assign stall_o = (state == S_BUSWAIT2);
-  
+
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)

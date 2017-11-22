@@ -19,7 +19,6 @@ int main(int argc, char **argv, char **env) {
 
   top->rst_i = 1;
   top->clk_i = 0;
-  top->stall_i = 0;
   
   while (!Verilated::gotFinish()) {
     // Run the clock
@@ -116,8 +115,8 @@ int main(int argc, char **argv, char **env) {
       printf("\n");
       printf("ssp: %08x\n", top->top__DOT__decode0__DOT__reg0__DOT__ssp);
       printf("--- HAZARD STATE ---\n");
-      printf("h1: %02x h2: %02x\n",
-	     top->hazard1, top->hazard2);
+      printf("h1: %02x h2: %02x hs: % 2d\n",
+	     top->hazard1, top->hazard2, top->hazard_stall);
       //      printf("--- BUS STATE ---\n");
       cycle++;
     }
