@@ -31,18 +31,14 @@ module mem(input               clk_i,
   wire [3:0] 		       ir_op    = ir_i[27:24];
   wire 			       ir_size = ir_i[0];
   
-  typedef enum 		       bit [1:0] { S_IDLE, 
-					   S_LOAD,
-					   S_STORE } state_t;
-  state_t 		       state, state_next;
-  
   logic [31:0] 		       pc_next, result_next;
   logic [1:0] 		       reg_write_next;
   logic [63:0] 		       ir_next;
   logic [2:0] 		       ccr_next;
   
-  assign bus_cyc = (state == S_LOAD || state == S_STORE);
-  assign bus_we = (state == S_STORE);
+  assign bus_cyc = (ir_type == T_LOAD ||
+		    ir_type == T_STORE);
+  assign bus_we = (ir_type == T_STORE);
   assign bus_adr = result_i;
   assign bus_out = reg_data1_i;
   assign stall_o = stall_i;
@@ -51,7 +47,6 @@ module mem(input               clk_i,
     begin
       if (rst_i)
 	begin
-	  state <= S_IDLE;
 	  ir_o <= 64'h0;
 	  pc_o <= 32'h0;
 	  ccr_o <= 3'h0;
@@ -60,7 +55,6 @@ module mem(input               clk_i,
 	end
       else
 	begin
-	  state <= state_next;
 	  ir_o <= ir_next;
 	  pc_o <= pc_next;
 	  ccr_o <= ccr_next;
@@ -83,7 +77,6 @@ module mem(input               clk_i,
   
   always_comb
     begin
-      state_next = state;
       if (stall_i)
 	begin
 	  ir_next = ir_o;
@@ -100,25 +93,8 @@ module mem(input               clk_i,
 	  result_next = result_i;
 	  reg_write_next = reg_write_i;
 	  
-	  case (state)
-	    S_IDLE:
-	      begin
-		if (ir_type == T_LOAD)
-		  state_next = S_LOAD;
-		if (ir_type == T_STORE)
-		  state_next = S_STORE;
-	      end
-	    S_LOAD:
-	      begin
-		result_next = bus_in;
-		if (bus_ack)
-		  state_next = S_IDLE;
-	      end
-	    S_STORE:
-	      if (bus_ack)
-		state_next = S_IDLE;
-	    default: state_next = S_IDLE;
-	  endcase // case (state)
+	  if (ir_type == T_LOAD)
+	    result_next = bus_in;
 	end // else: !if(stall_i)
     end // always_comb
   

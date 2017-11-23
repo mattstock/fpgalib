@@ -82,6 +82,8 @@ module execute(input               clk_i,
 	    T_LOAD:
 	      if (ir_size)
 		result_next = ir_extaddr;
+	      else
+		result_next = alu_out;
 	    T_LDI:
 	      if (ir_size)
 		result_next = ir_extval;
@@ -90,9 +92,13 @@ module execute(input               clk_i,
 	    T_STORE:
 	      if (ir_size)
 		result_next = ir_extaddr;
+	      else
+		result_next = alu_out;
 	    T_JUMP:
 	      if (ir_size)
 		result_next = ir_extaddr;
+	      else
+		result_next = alu_out;
 	    T_MOV:
 	      result_next = reg_data1_i;
 	    default:

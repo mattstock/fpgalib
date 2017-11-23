@@ -35,7 +35,7 @@ verilator: top.v
 
 
 clean:
-	rm -f *.o *.hex *.bin *.mif *.gkd *.expand
+	rm -f *.o *.hex *.bin *.mif *.gkd *.expand ram0
 	rm -rf obj_dir
 
 %.o: %.c
@@ -44,11 +44,13 @@ clean:
 %.mif: %
 	$(OBJCOPY) -O mif $< $@
 
-%.hex: %.o
+%.hex: %
 	$(OBJCOPY) -O verilog $< $@
 
 %.bin: %.o
 	$(OBJCOPY) -O binary $< $@
 
-rom0.o: rom0.s
+ram0: ram0.o
+	$(LD) -nostartfiles $< -o $@
+ram0.o: ram0.s
 	$(AS) -o $@ $^

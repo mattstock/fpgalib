@@ -104,7 +104,11 @@ int main(int argc, char **argv, char **env) {
       printf("pcs: % 16s % 16s % 16s % 16s % 16d\n",
 	     "","","","",
 	     top->pc_set);
-      printf("--- REGISTER STATE ---\n");
+      printf("--- INTERNAL STATE ---\n");
+      printf("alu1: %08x alu2: %08x out: %08x\n",
+	     top->top__DOT__exe0__DOT__alu_in1,
+	     top->top__DOT__exe0__DOT__alu_in2,
+	     top->top__DOT__exe0__DOT__alu_out);
       for (int i=0; i < 8; i++)
 	printf("% 3d: %08x",
 	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
@@ -114,10 +118,13 @@ int main(int argc, char **argv, char **env) {
 	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       printf("\n");
       printf("ssp: %08x\n", top->top__DOT__decode0__DOT__reg0__DOT__ssp);
-      printf("--- HAZARD STATE ---\n");
       printf("h1: %02x h2: %02x hs: % 2d\n",
 	     top->hazard1, top->hazard2, top->hazard_stall);
-      //      printf("--- BUS STATE ---\n");
+      printf("Ins: adr: %08x cyc: %d ack: %d dat_i: %08x\n",
+	     top->if_pc,top->ins_cyc_o, top->ins_ack_i, top->ins_dat_i);
+      printf("Dat: adr: %08x cyc: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x\n",
+	     top->dat_adr_o, top->dat_cyc_o, top->dat_ack_i, top->dat_dat_i,
+	     top->dat_dat_o, top->dat_we_o, top->dat_sel_o);
       cycle++;
     }
 

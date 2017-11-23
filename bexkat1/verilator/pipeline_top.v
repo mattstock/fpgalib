@@ -32,19 +32,17 @@ module top(input         clk_i,
 	   output [1:0]  hazard1,
 	   output [1:0]  hazard2,
 	   output [2:0]  exe_ccr,
-	   output [2:0]  mem_ccr);
-
-  logic 		 ins_cyc_o;
-  logic 		 ins_ack_i;
-  logic [31:0] 		 ins_dat_i;
-  logic 		 dat_ack_o;
-  logic [31:0] 		 dat_adr_o;
-  logic 		 dat_cyc_o;
-  logic 		 dat_ack_i;
-  logic [31:0] 		 dat_dat_i;
-  logic 		 dat_we_o;
-  logic [3:0] 		 dat_sel_o;
-  logic [31:0] 		 dat_dat_o;
+	   output [2:0]  mem_ccr,
+	   output 	 ins_cyc_o,
+	   output 	 ins_ack_i,
+	   output [31:0] ins_dat_i,
+	   output [31:0] dat_adr_o,
+	   output 	 dat_cyc_o,
+	   output 	 dat_ack_i,
+	   output [31:0] dat_dat_i,
+	   output 	 dat_we_o,
+	   output [3:0]  dat_sel_o,
+	   output [31:0] dat_dat_o);
   
   ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i),
 		.ir(if_ir),
@@ -101,17 +99,17 @@ module top(input         clk_i,
 	       .ir_o(exe_ir),
 	       .ccr_o(exe_ccr));
 
-  forwarder fwd0(.clk_i(clk_i), .rst_i(rst_i),
-		 .if_ir(if_ir),
-		 .id_ir(id_ir),
-		 .id_reg_write(id_reg_write),
-		 .exe_ir(exe_ir),
-		 .exe_reg_write(exe_reg_write),
-		 .mem_ir(mem_ir),
-		 .mem_reg_write(mem_reg_write),
-		 .stall(hazard_stall),
-		 .hazard1(hazard1),
-		 .hazard2(hazard2));
+  hazard hazard0(.clk_i(clk_i), .rst_i(rst_i),
+	      .if_ir(if_ir),
+	      .id_ir(id_ir),
+	      .id_reg_write(id_reg_write),
+	      .exe_ir(exe_ir),
+	      .exe_reg_write(exe_reg_write),
+	      .mem_ir(mem_ir),
+	      .mem_reg_write(mem_reg_write),
+	      .stall(hazard_stall),
+	      .hazard1(hazard1),
+	      .hazard2(hazard2));
 		
   mem mem0(.clk_i(clk_i), .rst_i(rst_i),
 	   .reg_data1_i(exe_reg_data_out1),
@@ -152,8 +150,8 @@ module top(input         clk_i,
   ram2 #(.AWIDTH(15)) ram0(.clk_i(clk_i), .rst_i(rst_i),
 			   .cyc0_i(dat_cyc_o), .stb0_i(1'b1),
 			   .sel0_i(dat_sel_o), .we0_i(dat_we_o),
-			   .adr0_i(dat_adr_o[16:2]), .dat0_i(dat_dat_i),
-			   .dat0_o(dat_dat_o), .ack0_o(dat_ack_o),
+			   .adr0_i(dat_adr_o[16:2]), .dat0_i(dat_dat_o),
+			   .dat0_o(dat_dat_i), .ack0_o(dat_ack_i),
 			   .cyc1_i(ins_cyc_o), .stb1_i(1'b1),
 			   .adr1_i(if_pc[16:2]), .ack1_o(ins_ack_i),
 			   .dat1_o(ins_dat_i));

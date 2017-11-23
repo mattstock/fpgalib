@@ -34,26 +34,30 @@ module forwarder(input              clk_i,
   wire [3:0] 			    mem_rb = mem_ir[19:16];
   wire [3:0] 			    mem_rc = mem_ir[15:12];
 
-  assign stall = (id_type == T_LOAD && 
+  assign stall = (id_type == T_LOAD && if_ir != 64'h0 &&
 		  (id_ra == if_rb || id_ra == if_rc));
   
   always_comb
     begin
       hazard1 = 2'h0;
       if (|mem_reg_write &&
+	  id_ir != 64'h0 &&
 	  mem_ra == id_rb)
 	hazard1 = 2'h1;
       else
 	if (|exe_reg_write &&
+	    id_ir != 64'h0 &&
 	    exe_ra == id_rb)
 	  hazard1 = 2'h2;
 
       hazard2 = 2'h0;
       if (|mem_reg_write &&
+	  id_ir != 64'h0 &&
 	  mem_ra == id_rc)
 	hazard2 = 2'h1;
       else
 	if (|exe_reg_write &&
+	    id_ir != 64'h0 &&
 	    exe_ra == id_rc)
 	  hazard2 = 2'h2;
     end

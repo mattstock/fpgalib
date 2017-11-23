@@ -24,7 +24,6 @@ module ram2
   
   always idx0 = { adr0_i, 2'b0 };
   always idx1 = { adr1_i, 2'b0 };
-  always dat0_o = { mem[idx0], mem[idx0+1], mem[idx0+2], mem[idx0+3] };
   always dat1_o = { mem[idx1], mem[idx1+1], mem[idx1+2], mem[idx1+3] };
   always ack0_o = (cyc0_i & stb0_i);
   always ack1_o = (cyc1_i & stb1_i);
@@ -38,6 +37,20 @@ module ram2
     begin
 	mem <= mem_next;
     end
+  
+  always_comb
+    begin
+      case (sel0_i)
+	4'b1111: dat0_o = { mem[idx0], mem[idx0+1], mem[idx0+2], mem[idx0+3] };
+	4'b0011: dat0_o = { 16'h0, mem[idx0+2], mem[idx0+3] };
+	4'b1100: dat0_o = { 16'h0, mem[idx0], mem[idx0+1] };
+	4'b0001: dat0_o = { 24'h0, mem[idx0+3] };
+	4'b0010: dat0_o = { 24'h0, mem[idx0+2] };
+	4'b0100: dat0_o = { 24'h0, mem[idx0+1] };
+	4'b1000: dat0_o = { 24'h0, mem[idx0] };
+	default: dat0_o = 32'hdeadbeef;
+      endcase // case (sel_i)
+    end // always_comb
   
   always_comb
     begin
