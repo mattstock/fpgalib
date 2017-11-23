@@ -4,18 +4,18 @@
 
 import bexkat1Def::*;
 
-module forwarder(input              clk_i,
-		 input 		    rst_i,
-		 input [63:0] 	    if_ir,
-		 input [63:0] 	    id_ir,
-		 input [1:0] 	    id_reg_write,
-		 input [63:0] 	    exe_ir,
-		 input [1:0] 	    exe_reg_write,
-		 input [63:0] 	    mem_ir,
-		 input [1:0] 	    mem_reg_write,
-		 output logic 	    stall,
-		 output logic [1:0] hazard1,
-		 output logic [1:0] hazard2);
+module hazard(input              clk_i,
+	      input 		 rst_i,
+	      input [63:0] 	 if_ir,
+	      input [63:0] 	 id_ir,
+	      input [1:0] 	 id_reg_write,
+	      input [63:0] 	 exe_ir,
+	      input [1:0] 	 exe_reg_write,
+	      input [63:0] 	 mem_ir,
+	      input [1:0] 	 mem_reg_write,
+	      output logic 	 stall,
+	      output logic [1:0] hazard1,
+	      output logic [1:0] hazard2);
 
   wire [3:0] 			    if_type = if_ir[31:28];
   wire [3:0] 			    if_ra = if_ir[23:20];
