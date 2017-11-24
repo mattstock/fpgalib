@@ -68,19 +68,20 @@ module top(input         clk_i,
 		  .reg_write_o(id_reg_write),
 		  .reg_data_out1(id_reg_data_out1),
 		  .reg_data_out2(id_reg_data_out2));
-
   
   always_comb
     begin
       case (hazard1)
+	2'h0: exe_data1 = id_reg_data_out1;
 	2'h1: exe_data1 = mem_result;
 	2'h2: exe_data1 = exe_result;
-	default: exe_data1 = id_reg_data_out1;
+	2'h3: exe_data1 = wb_result;
       endcase // case (hazard1)
       case (hazard2)
+	2'h0: exe_data2 = id_reg_data_out2;
 	2'h1: exe_data2 = mem_result;
 	2'h2: exe_data2 = exe_result;
-	default: exe_data2 = id_reg_data_out2;
+	2'h3: exe_data2 = wb_result;
       endcase // case (hazard2)
     end // always_comb
   
@@ -98,18 +99,20 @@ module top(input         clk_i,
 	       .ir_i(id_ir),
 	       .ir_o(exe_ir),
 	       .ccr_o(exe_ccr));
-
+  
   hazard hazard0(.clk_i(clk_i), .rst_i(rst_i),
-	      .if_ir(if_ir),
-	      .id_ir(id_ir),
-	      .id_reg_write(id_reg_write),
-	      .exe_ir(exe_ir),
-	      .exe_reg_write(exe_reg_write),
-	      .mem_ir(mem_ir),
-	      .mem_reg_write(mem_reg_write),
-	      .stall(hazard_stall),
-	      .hazard1(hazard1),
-	      .hazard2(hazard2));
+		 .if_ir(if_ir),
+		 .id_ir(id_ir),
+		 .id_reg_write(id_reg_write),
+		 .exe_ir(exe_ir),
+		 .exe_reg_write(exe_reg_write),
+		 .mem_ir(mem_ir),
+		 .mem_reg_write(mem_reg_write),
+		 .wb_reg_write_addr(wb_reg_write_addr),
+		 .wb_reg_write(wb_reg_write),
+		 .stall(hazard_stall),
+		 .hazard1(hazard1),
+		 .hazard2(hazard2));
 		
   mem mem0(.clk_i(clk_i), .rst_i(rst_i),
 	   .reg_data1_i(exe_reg_data_out1),
