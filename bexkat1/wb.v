@@ -13,6 +13,8 @@ module wb(input               clk_i,
 	  input [31:0] 	      result_i,
 	  input 	      stall_i,
 	  output 	      stall_o,
+	  input 	      halt_i,
+	  output 	      halt_o,
 	  output logic [31:0] result_o,
 	  output logic [1:0]  reg_write_o,
 	  output logic [31:0] pc_o,
@@ -32,6 +34,7 @@ module wb(input               clk_i,
   logic [1:0] 		      reg_write_next;
   logic 		      pc_set_next;
   logic [3:0] 		      reg_write_addr_next;
+  logic 		      halt_next;
   
   assign stall_o = stall_i;
   
@@ -44,6 +47,7 @@ module wb(input               clk_i,
 	  result_o <= 32'h0;
 	  reg_write_addr <= 4'h0;
 	  pc_set <= 1'b0;
+	  halt_o <= 1'h0;
 	end
       else
 	begin
@@ -52,6 +56,7 @@ module wb(input               clk_i,
 	  result_o <= result_next;
 	  reg_write_addr <= reg_write_addr_next;
 	  pc_set <= pc_set_next;
+	  halt_o <= halt_next;
 	end // else: !if(rst_i)
     end // always_ff @
   
@@ -64,6 +69,7 @@ module wb(input               clk_i,
 	  reg_write_next = reg_write_o;
 	  reg_write_addr_next = reg_write_addr;
 	  pc_set_next = pc_set;
+	  halt_next = halt_o;
 	end
       else
 	begin
@@ -72,6 +78,7 @@ module wb(input               clk_i,
 	  reg_write_next = reg_write_i;
 	  reg_write_addr_next = ir_ra;
 	  pc_set_next = 1'b0;
+	  halt_next = halt_i;
 	  
 	  case (ir_type)
 	    T_BRANCH:

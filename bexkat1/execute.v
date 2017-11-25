@@ -17,6 +17,7 @@ module execute(input               clk_i,
 	       output logic [2:0]  ccr_o,
 	       input 		   stall_i,
 	       output 		   stall_o,
+	       output logic 	   halt_o, 
 	       output [63:0] 	   ir_o,
 	       output [31:0] 	   pc_o);
 
@@ -40,6 +41,7 @@ module execute(input               clk_i,
   logic [63:0] 			   ir_next;
   logic [31:0] 			   result_next;
   logic [1:0] 			   reg_write_next;
+  logic 			   halt_next;
   
   assign stall_o = stall_i;
   
@@ -53,6 +55,7 @@ module execute(input               clk_i,
 	  ccr_o <= 3'h0;
 	  result <= 32'h0;
 	  reg_write_o <= 2'h0;
+	  halt_o <= 1'h0;
 	end
       else
 	begin
@@ -62,6 +65,7 @@ module execute(input               clk_i,
 	  ccr_o <= ccr_next;
 	  result <= result_next;
 	  reg_write_o <= reg_write_next;
+	  halt_o <= halt_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
@@ -74,11 +78,16 @@ module execute(input               clk_i,
 
   always_comb
     begin
+      halt_next = halt_o;
       if (stall_i)
 	result_next = result;
       else
 	begin
 	  case (ir_type)
+	    T_INH:
+		if (ir_op == 4'h4)
+		  halt_next = 1'h1;
+		
 	    T_LOAD:
 	      if (ir_size)
 		result_next = ir_extaddr;

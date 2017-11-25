@@ -28,6 +28,8 @@ int main(int argc, char **argv, char **env) {
     if (tick == 2)
       top->rst_i = 0;
 
+    top->eval();
+
     if (top->clk_i) {
       printf("-------------------- %03d --------------------\n", cycle);
       printf("--- PIPELINE STATE ---\n");
@@ -128,8 +130,11 @@ int main(int argc, char **argv, char **env) {
       cycle++;
     }
 
-    top->eval();
-
+    if (top->wb_halt) {
+      printf("HALT\n");
+      break;
+    }
+    
     tick++;
   }
   top->final();

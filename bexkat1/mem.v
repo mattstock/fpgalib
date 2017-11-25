@@ -12,6 +12,8 @@ module mem(input               clk_i,
 	   input [31:0]        result_i,
 	   input [31:0]        reg_data1_i,
 	   input [2:0] 	       ccr_i,
+	   input 	       halt_i,
+	   output 	       halt_o,
 	   input 	       stall_i,
 	   output 	       stall_o,
 	   output logic [31:0] result_o,
@@ -35,6 +37,7 @@ module mem(input               clk_i,
   logic [1:0] 		       reg_write_next;
   logic [63:0] 		       ir_next;
   logic [2:0] 		       ccr_next;
+  logic 		       halt_next;
   
   assign bus_cyc = (ir_type == T_LOAD ||
 		    ir_type == T_STORE);
@@ -52,6 +55,7 @@ module mem(input               clk_i,
 	  ccr_o <= 3'h0;
 	  reg_write_o <= 2'h0;
 	  result_o <= 32'h0;
+	  halt_o <= 1'h0;
 	end
       else
 	begin
@@ -60,6 +64,7 @@ module mem(input               clk_i,
 	  ccr_o <= ccr_next;
 	  reg_write_o <= reg_write_next;
 	  result_o <= result_next;
+	  halt_o <= halt_next;
 	end // else: !if(rst_i)
     end // always_ff @
   
@@ -79,6 +84,7 @@ module mem(input               clk_i,
     begin
       if (stall_i)
 	begin
+	  halt_next = halt_o;
 	  ir_next = ir_o;
 	  pc_next = pc_o;
 	  ccr_next = ccr_o;
@@ -87,6 +93,7 @@ module mem(input               clk_i,
 	end
       else
 	begin
+	  halt_next = halt_i;
 	  ir_next = ir_i;
 	  pc_next = pc_i;
 	  ccr_next = ccr_i;
