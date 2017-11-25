@@ -58,16 +58,14 @@ module ram2
       if (cyc0_i & stb0_i & we0_i)
 	begin
 	  if (sel0_i[0])
-	    mem_next[idx0] = dat0_i[7:0];
+	    mem_next[idx0] = dat0_i[31:24];
 	  if (sel0_i[1])
-	    mem_next[idx0+1] = dat0_i[15:8];
+	    mem_next[idx0+1] = dat0_i[23:16];
 	  if (sel0_i[2])
-	    mem_next[idx0+2] = dat0_i[23:16];
+	    mem_next[idx0+2] = dat0_i[15:8];
 	  if (sel0_i[3])
-	    mem_next[idx0+3] = dat0_i[31:24];
+	    mem_next[idx0+3] = dat0_i[7:0];
 	end // if (cyc0_i & stb0_i & we0_i)
     end // always_comb
   
 endmodule // ram2
-
-   
