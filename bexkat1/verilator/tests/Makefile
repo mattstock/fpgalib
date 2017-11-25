@@ -4,7 +4,7 @@ AS = bexkat1-elf-as
 LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load memops regrel branch jump sub
+TESTS = load memops regrel alu branch jump sub
 
 .PHONY: all clean tests
 
