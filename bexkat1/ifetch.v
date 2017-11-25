@@ -13,7 +13,6 @@ module ifetch(input               clk_i,
 	      input [31:0] 	  bus_in,
 	      input 		  pc_set,
 	      input 		  stall_i,
-	      output 		  stall_o,
 	      input [31:0] 	  pc_in);
   
   logic [63:0] 			  ir_next, ir_real;
@@ -24,7 +23,6 @@ module ifetch(input               clk_i,
   state_t 			  state, state_next;
   
   assign bus_cyc = (state == S_BUSWAIT || state == S_BUSWAIT2);
-  assign stall_o = 1'b0;
   
   always_ff @(posedge clk_i or posedge rst_i)
     begin
@@ -64,13 +62,18 @@ module ifetch(input               clk_i,
 		end
 	      else
 		begin
-		  ir_next = { 32'h0, bus_in };
 		  if (pc_set)
-		    pc_next = pc_in; // from another stage
+		    begin
+		      ir_next = 64'h0;
+		      pc_next = pc_in; // from another stage
+		    end
 		  else
-		    pc_next = pc + 'h4;
+		    begin
+		      ir_next = { 32'h0, bus_in };
+		      pc_next = pc + 'h4;
+		    end
 		end // else: !if(bus_in[0])
-	  end
+	  end // case: S_BUSWAIT
 	S_BUSWAIT2:
 	  begin
 	    ir_next = { bus_in, low };
@@ -82,7 +85,7 @@ module ifetch(input               clk_i,
 		else
 		  pc_next = pc + 'h4;
 	      end
-	  end
+	  end // case: S_BUSWAIT2
       endcase // case (state)
     end
   

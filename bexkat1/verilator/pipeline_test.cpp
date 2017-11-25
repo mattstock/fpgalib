@@ -51,12 +51,6 @@ int main(int argc, char **argv, char **env) {
 	     top->id_ir,
 	     top->exe_ir,
 	     top->mem_ir);
-      printf("st:  % 16d % 16d % 16d % 16d % 16d\n",
-	     top->if_stall,
-	     top->id_stall,
-	     top->exe_stall,
-	     top->mem_stall,
-	     top->wb_stall);
       printf("ra:  % 16x % 16x % 16x % 16x\n",
 	     INS_RA(top->if_ir),
 	     INS_RA(top->id_ir),
@@ -103,9 +97,11 @@ int main(int argc, char **argv, char **env) {
       printf("wad: % 16s % 16s % 16s % 16s % 16x\n",
 	     "","","","",
 	     top->wb_reg_write_addr);
-      printf("pcs: % 16s % 16s % 16s % 16s % 16d\n",
-	     "","","","",
-	     top->pc_set);
+      printf("pcs: % 16s % 16s % 16d % 16d % 16d\n",
+	     "", "",
+	     top->exe_pc_set,
+	     top->mem_pc_set,
+	     top->wb_pc_set);
       printf("--- INTERNAL STATE ---\n");
       printf("alu1: %08x alu2: %08x out: %08x\n",
 	     top->top__DOT__exe0__DOT__alu_in1,

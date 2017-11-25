@@ -4,7 +4,7 @@ AS = bexkat1-elf-as
 LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load memops
+TESTS = load memops sub
 
 .PHONY: all clean tests
 

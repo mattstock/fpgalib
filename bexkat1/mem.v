@@ -14,8 +14,8 @@ module mem(input               clk_i,
 	   input [2:0] 	       ccr_i,
 	   input 	       halt_i,
 	   output 	       halt_o,
-	   input 	       stall_i,
-	   output 	       stall_o,
+	   input 	       pc_set_i,
+	   output logic        pc_set_o,
 	   output logic [31:0] result_o,
 	   output logic [1:0]  reg_write_o,
 	   output logic [63:0] ir_o,
@@ -38,13 +38,13 @@ module mem(input               clk_i,
   logic [63:0] 		       ir_next;
   logic [2:0] 		       ccr_next;
   logic 		       halt_next;
+  logic 		       pc_set_next;
   
   assign bus_cyc = (ir_type == T_LOAD ||
 		    ir_type == T_STORE);
   assign bus_we = (ir_type == T_STORE);
   assign bus_adr = result_i;
   assign bus_out = reg_data1_i;
-  assign stall_o = stall_i;
   
   always_ff @(posedge clk_i or posedge rst_i)
     begin
@@ -56,6 +56,7 @@ module mem(input               clk_i,
 	  reg_write_o <= 2'h0;
 	  result_o <= 32'h0;
 	  halt_o <= 1'h0;
+	  pc_set_o <= 1'h0;
 	end
       else
 	begin
@@ -65,6 +66,7 @@ module mem(input               clk_i,
 	  reg_write_o <= reg_write_next;
 	  result_o <= result_next;
 	  halt_o <= halt_next;
+	  pc_set_o <= pc_set_next;
 	end // else: !if(rst_i)
     end // always_ff @
   
@@ -82,27 +84,16 @@ module mem(input               clk_i,
   
   always_comb
     begin
-      if (stall_i)
-	begin
-	  halt_next = halt_o;
-	  ir_next = ir_o;
-	  pc_next = pc_o;
-	  ccr_next = ccr_o;
-	  result_next = result_o;
-	  reg_write_next = reg_write_o;
-	end
-      else
-	begin
-	  halt_next = halt_i;
-	  ir_next = ir_i;
-	  pc_next = pc_i;
-	  ccr_next = ccr_i;
-	  result_next = result_i;
-	  reg_write_next = reg_write_i;
-	  
-	  if (ir_type == T_LOAD)
-	    result_next = bus_in;
-	end // else: !if(stall_i)
+      halt_next = halt_i;
+      ir_next = ir_i;
+      pc_next = pc_i;
+      pc_set_next = pc_set_i;
+      ccr_next = ccr_i;
+      result_next = result_i;
+      reg_write_next = reg_write_i;
+      
+      if (ir_type == T_LOAD)
+	result_next = bus_in;
     end // always_comb
   
 endmodule // ifetch
