@@ -66,8 +66,8 @@ module hazard(input              clk_i,
       case (id_type)
 	T_CMP:
 	  begin
-	    hazard1 = hazard(id_rb);
-	    hazard2 = 2'h0;
+	    hazard1 = hazard(id_ra);
+	    hazard2 = hazard(id_rb);
 	  end
 	T_MOV:
 	  begin

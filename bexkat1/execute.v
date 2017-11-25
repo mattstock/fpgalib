@@ -29,10 +29,9 @@ module execute(input               clk_i,
   wire [31:0] 			   ir_uval  = {17'h0, ir_i[15:1]};
   wire 				   ir_size = ir_i[0];
 
-  wire 				   ccr_ltu = alu_c;
-  wire 				   ccr_lt = alu_n ^ alu_v;
-  wire 				   ccr_eq = alu_z;
-  
+  wire 				   ccr_ltu = ccr_o[2];
+  wire 				   ccr_lt = ccr_o[1];
+  wire 				   ccr_eq = ccr_o[0];
   
   wire [2:0] 			   alu_func;
   
@@ -78,7 +77,7 @@ module execute(input               clk_i,
     begin
       ccr_next = ccr_o;
       if (ir_type == T_CMP)
-	ccr_next = { ccr_ltu, ccr_lt, ccr_eq };
+	ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
     end
 
   always_comb
