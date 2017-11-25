@@ -82,12 +82,12 @@ module hazard(input              clk_i,
 	T_STORE:
 	  begin
 	    hazard1 = hazard(id_ra);
-	    hazard2 = 2'h0;
+	    hazard2 = (id_size ? 2'h0 : hazard(id_rb));
 	  end
 	T_LOAD:
 	  begin
-	    hazard1 = (id_size ? 2'h0 : hazard(id_rb));
-	    hazard2 = 2'h0;
+	    hazard1 = 2'h0;
+	    hazard2 = (id_size ? 2'h0 : hazard(id_rb));
 	  end
 	default:
 	  begin

@@ -33,9 +33,6 @@ module idecode(input               clk_i,
   logic [31:0] 			   regfile_out2;
   logic [1:0] 			   reg_write_next;
   
-  assign reg_read1 = (ir_type == T_CMP ? ir_ra : ir_rb);
-  assign reg_read2 = (ir_type == T_CMP ? ir_rb : ir_rc);  
-  
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
@@ -55,6 +52,30 @@ module idecode(input               clk_i,
 	  reg_write_o <= reg_write_next;
 	end // else: !if(rst_i)
     end // always_ff @
+
+  always_comb
+    case (ir_type)
+      T_CMP:
+	begin
+	  reg_read1 = ir_ra;
+	  reg_read2 = ir_rb;
+	end
+      T_STORE:
+	begin
+	  reg_read1 = ir_ra;
+	  reg_read2 = ir_rb;
+	end
+      T_LOAD:
+	begin
+	  reg_read1 = ir_ra;
+	  reg_read2 = ir_rb;
+	end
+      default:
+	begin
+	  reg_read1 = ir_rb;
+	  reg_read2 = ir_rc;
+	end
+    endcase // case (ir_type)
   
   always_comb
     begin

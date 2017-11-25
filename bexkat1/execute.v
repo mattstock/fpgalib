@@ -83,6 +83,13 @@ module execute(input               clk_i,
 
   always_comb
     begin
+      ir_next = ir_i;
+      reg_data1_next = reg_data1_i;
+      reg_write_next = reg_write_i;
+    end
+  
+  always_comb
+    begin
       halt_next = halt_o;
       case (ir_type)
 	T_INH:
@@ -93,16 +100,16 @@ module execute(input               clk_i,
 	    result_next = ir_extaddr;
 	  else
 	    result_next = alu_out;
-	T_LDI:
-	  if (ir_size)
-	    result_next = ir_extval;
-	  else
-	    result_next = ir_uval;
 	T_STORE:
 	  if (ir_size)
 	    result_next = ir_extaddr;
 	  else
 	    result_next = alu_out;
+	T_LDI:
+	  if (ir_size)
+	    result_next = ir_extval;
+	  else
+	    result_next = ir_uval;
 	T_MOV:
 	  result_next = reg_data1_i;
 	default:
@@ -114,9 +121,6 @@ module execute(input               clk_i,
     begin
       pc_next = pc_i;
       pc_set_next = 1'h0;
-      ir_next = ir_i;
-      reg_data1_next = reg_data1_i;
-      reg_write_next = reg_write_i;
       
       case (ir_type)
 	T_BRANCH:
@@ -201,13 +205,13 @@ module execute(input               clk_i,
 	  begin
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
-	      alu_in2 = {ir_sval[29:0], 2'b00};
+	      alu_in1 = {ir_sval[29:0], 2'b00};
 	  end
 	T_STORE:
 	  begin
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
-	      alu_in2 = {ir_sval[29:0], 2'b00};
+	      alu_in1 = {ir_sval[29:0], 2'b00};
 	  end
 	T_BRANCH:
 	  begin
