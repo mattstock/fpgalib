@@ -6,9 +6,12 @@ RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
 CPUDEPS = ../bexkat1p.v ../alu_comb.v ../registerfile.v ../wb.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v
-.PHONY: all clean
+.PHONY: all clean tests
 
-all: obj_dir/Vpipeline_top.cpp ram0.hex
+all: obj_dir/Vpipeline_top.cpp tests
+
+tests:
+	cd tests; make
 
 obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.v pipeline_test.cpp ram2.v
 	verilator -I.. -cc pipeline_top.v -exe pipeline_test.cpp
