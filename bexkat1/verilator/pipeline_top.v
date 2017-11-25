@@ -8,13 +8,10 @@ module top(input         clk_i,
 	   output [31:0] id_pc,
 	   output [31:0] exe_pc,
 	   output [31:0] mem_pc,
-	   output [31:0] wb_pc,
 	   output 	 exe_pc_set,
 	   output 	 mem_pc_set,
-	   output 	 wb_pc_set,
 	   output 	 exe_flush,
 	   output 	 mem_flush,
-	   output 	 wb_flush,
 	   output [31:0] exe_data1,
 	   output [31:0] exe_data2,
 	   output [31:0] id_reg_data_out1,
@@ -22,15 +19,12 @@ module top(input         clk_i,
 	   output [31:0] exe_result,
 	   output 	 exe_halt,
 	   output 	 mem_halt,
- 	   output 	 wb_halt,
 	   output [31:0] mem_result,
-	   output [31:0] wb_result,
 	   output [31:0] id_reg_data_out2,
 	   output [3:0]  wb_reg_write_addr,
 	   output [1:0]  id_reg_write,
 	   output [1:0]  exe_reg_write,
 	   output [1:0]  mem_reg_write,
-	   output [1:0]  wb_reg_write,
 	   output 	 hazard_stall,
 	   output [1:0]  hazard1,
 	   output [1:0]  hazard2,
@@ -57,14 +51,16 @@ module top(input         clk_i,
 		.pc_set(exe_pc_set),
 		.pc_in(exe_pc));
 
+  always wb_reg_write_addr = mem_ir[23:20];
+  
   idecode decode0(.clk_i(clk_i), .rst_i(rst_i),
 		  .ir_i((hazard_stall|exe_pc_set|mem_pc_set ? 64'h0 : if_ir)),
 		  .ir_o(id_ir),
 		  .pc_i(if_pc),
 		  .pc_o(id_pc),
-		  .reg_data_in(wb_result),
+		  .reg_data_in(mem_result),
 		  .reg_write_addr(wb_reg_write_addr),
-		  .reg_write_i(wb_reg_write),
+		  .reg_write_i(mem_reg_write),
 		  .reg_write_o(id_reg_write),
 		  .reg_data_out1(id_reg_data_out1),
 		  .reg_data_out2(id_reg_data_out2));
@@ -77,8 +73,6 @@ module top(input         clk_i,
 		 .exe_reg_write(exe_reg_write),
 		 .mem_ir(mem_ir),
 		 .mem_reg_write(mem_reg_write),
-		 .wb_reg_write_addr(wb_reg_write_addr),
-		 .wb_reg_write(wb_reg_write),
 		 .stall(hazard_stall),
 		 .hazard1(hazard1),
 		 .hazard2(hazard2));
@@ -86,16 +80,14 @@ module top(input         clk_i,
   always_comb
     begin
       case (hazard1)
-	2'h0: exe_data1 = id_reg_data_out1;
 	2'h1: exe_data1 = mem_result;
 	2'h2: exe_data1 = exe_result;
-	2'h3: exe_data1 = wb_result;
+	default: exe_data1 = id_reg_data_out1;
       endcase // case (hazard1)
       case (hazard2)
-	2'h0: exe_data2 = id_reg_data_out2;
 	2'h1: exe_data2 = mem_result;
 	2'h2: exe_data2 = exe_result;
-	2'h3: exe_data2 = wb_result;
+	default: exe_data2 = id_reg_data_out2;
       endcase // case (hazard2)
     end // always_comb
   
@@ -138,20 +130,6 @@ module top(input         clk_i,
 	   .bus_out(dat_dat_o),
 	   .bus_sel(dat_sel_o));
   
-  wb wb0(.clk_i(clk_i), .rst_i(rst_i),
-	 .ir_i(mem_ir),
-	 .pc_set_i(mem_pc_set),
-	 .pc_set_o(wb_pc_set),
-	 .ccr_i(mem_ccr),
-	 .result_i(mem_result),
-	 .result_o(wb_result),
-	 .halt_i(mem_halt),
-	 .halt_o(wb_halt),
-	 .pc_i(mem_pc),
-	 .pc_o(wb_pc),
-	 .reg_write_addr(wb_reg_write_addr),
-	 .reg_write_i(mem_reg_write),
-	 .reg_write_o(wb_reg_write));
 
   ram2 #(.AWIDTH(15)) ram0(.clk_i(clk_i), .rst_i(rst_i),
 			   .cyc0_i(dat_cyc_o), .stb0_i(1'b1),

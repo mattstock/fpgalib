@@ -33,24 +33,21 @@ int main(int argc, char **argv, char **env) {
     if (top->clk_i) {
       printf("-------------------- %03d --------------------\n", cycle);
       printf("--- PIPELINE STATE ---\n");
-      printf("     % 16s % 16s % 16s % 16s % 16s\n",
+      printf("     % 16s % 16s % 16s % 16s\n",
 	     "ifetch",
 	     "idecode",
 	     "exec",
-	     "mem",
-	     "wb");
+	     "mem");
 	     
-      printf("pc:  % 16x % 16x % 16x % 16x % 16x\n",
+      printf("pc:  % 16x % 16x % 16x % 16x\n",
 	     top->if_pc,
 	     top->id_pc,
 	     top->exe_pc,
-	     top->mem_pc,
-	     top->wb_pc);
-      printf("ir:  %16lx %16lx %16lx %16lx\n",
+	     top->mem_pc);
+      printf("ir:  %16lx %16lx %16lx\n",
 	     top->if_ir,
 	     top->id_ir,
-	     top->exe_ir,
-	     top->mem_ir);
+	     top->exe_ir);
       printf("ra:  % 16x % 16x % 16x % 16x\n",
 	     INS_RA(top->if_ir),
 	     INS_RA(top->id_ir),
@@ -79,29 +76,23 @@ int main(int argc, char **argv, char **env) {
       printf("ed2: % 16s % 16x\n",
 	     "",
 	     top->exe_data2);
-      printf("res: % 16s % 16s % 16x % 16x % 16x\n",
+      printf("res: % 16s % 16s % 16x % 16x\n",
 	     "","",
 	     top->exe_result,
-	     top->mem_result,
-	     top->wb_result);
+	     top->mem_result);
       printf("ccr: % 16s % 16s % 16x % 16x\n",
 	     "","",
 	     top->exe_ccr,
 	     top->mem_ccr);
-      printf("rwr: % 16s % 16d % 16d % 16d % 16d\n",
+      printf("rwr: % 16s % 16d % 16d % 16d\n",
 	     "",
 	     top->id_reg_write,
 	     top->exe_reg_write,
-	     top->mem_reg_write,
-	     top->wb_reg_write);
-      printf("wad: % 16s % 16s % 16s % 16s % 16x\n",
-	     "","","","",
-	     top->wb_reg_write_addr);
-      printf("pcs: % 16s % 16s % 16d % 16d % 16d\n",
+	     top->mem_reg_write);
+      printf("pcs: % 16s % 16s % 16d % 16d\n",
 	     "", "",
 	     top->exe_pc_set,
-	     top->mem_pc_set,
-	     top->wb_pc_set);
+	     top->mem_pc_set);
       printf("--- INTERNAL STATE ---\n");
       printf("alu1: %08x alu2: %08x out: %08x\n",
 	     top->top__DOT__exe0__DOT__alu_in1,
@@ -116,8 +107,9 @@ int main(int argc, char **argv, char **env) {
 	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       printf("\n");
       printf("ssp: %08x\n", top->top__DOT__decode0__DOT__reg0__DOT__ssp);
-      printf("h1: %02x h2: %02x hs: % 2d\n",
-	     top->hazard1, top->hazard2, top->hazard_stall);
+      printf("h1: %02x h2: %02x hs: % 2d wad: %02d\n",
+	     top->hazard1, top->hazard2, top->hazard_stall,
+	     top->wb_reg_write_addr);
       printf("Ins: adr: %08x cyc: %d ack: %d dat_i: %08x\n",
 	     top->if_pc,top->ins_cyc_o, top->ins_ack_i, top->ins_dat_i);
       printf("Dat: adr: %08x cyc: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x\n",
@@ -126,7 +118,7 @@ int main(int argc, char **argv, char **env) {
       cycle++;
     }
 
-    if (top->wb_halt) {
+    if (top->mem_halt) {
       printf("HALT\n");
       break;
     }

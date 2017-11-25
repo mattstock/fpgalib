@@ -13,8 +13,6 @@ module hazard(input              clk_i,
 	      input [1:0] 	 exe_reg_write,
 	      input [63:0] 	 mem_ir,
 	      input [1:0] 	 mem_reg_write,
-	      input [3:0] 	 wb_reg_write_addr,
-	      input [1:0] 	 wb_reg_write,
 	      output logic 	 stall,
 	      output logic [1:0] hazard1,
 	      output logic [1:0] hazard2);
@@ -45,20 +43,15 @@ module hazard(input              clk_i,
     input [3:0] 		 regaddr;
 
     hazard = 2'h0;
-    if (|wb_reg_write &&
+    if (|mem_reg_write &&
 	id_ir != 64'h0 &&
-	wb_reg_write_addr == regaddr)
-      hazard = 2'h3;
+	mem_ra == regaddr)
+      hazard = 2'h1;
     else
-      if (|mem_reg_write &&
+      if (|exe_reg_write &&
 	  id_ir != 64'h0 &&
-	  mem_ra == regaddr)
-	hazard = 2'h1;
-      else
-	if (|exe_reg_write &&
-	    id_ir != 64'h0 &&
-	    exe_ra == regaddr)
-	  hazard = 2'h2;
+	  exe_ra == regaddr)
+	hazard = 2'h2;
   endfunction
 
   always_comb
