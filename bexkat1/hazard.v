@@ -81,7 +81,7 @@ module hazard(input              clk_i,
 	  end
 	T_STORE:
 	  begin
-	    hazard1 = (id_size ? 2'h0 : hazard(id_rb));
+	    hazard1 = hazard(id_ra);
 	    hazard2 = 2'h0;
 	  end
 	T_LOAD:
