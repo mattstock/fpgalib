@@ -251,8 +251,6 @@ module execute(input               clk_i,
 	    if (ir_op[3])
 	      alu_in2 = {ir_sval[29:0], 2'b00};
 	  end
-	T_INTU:
-	  alu_in2 = reg_data1_i;
 	T_CMP:
 	  alu_func = ALU_SUB;
 	T_LOAD:

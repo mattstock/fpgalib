@@ -44,13 +44,13 @@ module intcalc
 	INT_MULUX:
 	  out = mulu_out[2*WIDTH-1:WIDTH];
 	INT_EXT:
-	  out = { {16{sin2[15]}}, sin2[15:0] };
+	  out = { {16{sin1[15]}}, sin1[15:0] };
 	INT_EXTB:
-	  out = { {24{sin2[7]}}, sin2[7:0] };
+	  out = { {24{sin1[7]}}, sin1[7:0] };
 	INT_COM:
-	  out = ~uin2;
+	  out = ~uin1;
 	INT_NEG:
-	  out = -uin2;
+	  out = -uin1;
 	default:
 	  out = 'h0;
       endcase

@@ -58,7 +58,7 @@ module idecode(input               clk_i,
     case (ir_type)
       T_INTU:
 	begin
-	  reg_read1 = ir_ra;
+	  reg_read1 = ir_rb;
 	  reg_read2 = ir_rb;
 	end
       T_CMP:
