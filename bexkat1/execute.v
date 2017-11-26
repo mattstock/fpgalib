@@ -25,7 +25,6 @@ module execute(input               clk_i,
   wire [31:0] 			   ir_extval = ir_i[63:32];
   wire [3:0] 			   ir_type  = ir_i[31:28];
   wire [3:0] 			   ir_op    = ir_i[27:24];
-  wire [3:0] 			   ir_ra    = ir_i[23:20];
   wire [31:0] 			   ir_sval = {{17{ir_i[15]}}, ir_i[15:1]};
   wire [31:0] 			   ir_uval  = {17'h0, ir_i[15:1]};
   wire 				   ir_size = ir_i[0];
@@ -34,7 +33,7 @@ module execute(input               clk_i,
   wire 				   ccr_lt = ccr_o[1];
   wire 				   ccr_eq = ccr_o[0];
   
-  wire [2:0] 			   alu_func;
+  alufunc_t 			   alu_func;
   
   logic [31:0] 			   alu_in1, alu_in2, alu_out;
   logic [31:0] 			   int_out;
@@ -122,12 +121,15 @@ module execute(input               clk_i,
     begin
       halt_next = halt_o;
       if (stall_o)
-	  result_next = result;
+	result_next = result;
       else
 	case (ir_type)
 	  T_INH:
-	    if (ir_op == 4'h4)
-	      halt_next = 1'h1;
+	    begin
+	      if (ir_op == 4'h4)
+		halt_next = 1'h1;
+	      result_next = alu_out;
+	    end
 	  T_INT:
 	    result_next = int_out;
 	  T_INTU:

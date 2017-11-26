@@ -58,6 +58,7 @@ module mem(input               clk_i,
   
   always_comb
     case (ir_op[1:0])
+      2'h0: bus_sel = 4'hf;
       2'h1: bus_sel = (result_i[1] ? 4'b0011 : 4'b1100);
       2'h2: case (result_i[1:0])
 	      2'b00: bus_sel = 4'b1000;
@@ -65,7 +66,7 @@ module mem(input               clk_i,
 	      2'b10: bus_sel = 4'b0010;
 	      2'b11: bus_sel = 4'b0001;
 	    endcase // case (result_i[1:0])
-      default: bus_sel = 4'hf;
+      2'h3: bus_sel = 4'hf;
     endcase // case (ir_op[1:0])
   
   always_comb

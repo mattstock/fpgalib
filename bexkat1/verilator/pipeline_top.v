@@ -8,7 +8,6 @@ module top(input         clk_i,
 	   output [31:0] id_pc,
 	   output [31:0] exe_pc,
 	   output 	 exe_pc_set,
-	   output 	 exe_flush,
 	   output [31:0] exe_data1,
 	   output [31:0] exe_data2,
 	   output [31:0] id_reg_data_out1,
@@ -77,15 +76,17 @@ module top(input         clk_i,
 		
   always_comb
     begin
-      case (hazard1)
+      case (hazard1) 
+	2'h0: exe_data1 = id_reg_data_out1;
 	2'h1: exe_data1 = mem_result;
 	2'h2: exe_data1 = exe_result;
-	default: exe_data1 = id_reg_data_out1;
+	2'h3: exe_data1 = id_reg_data_out1;
       endcase // case (hazard1)
-      case (hazard2)
+      case (hazard2) 
+	2'h0: exe_data2 = id_reg_data_out2;
 	2'h1: exe_data2 = mem_result;
 	2'h2: exe_data2 = exe_result;
-	default: exe_data2 = id_reg_data_out2;
+	2'h3: exe_data2 = id_reg_data_out2;
       endcase // case (hazard2)
     end // always_comb
   

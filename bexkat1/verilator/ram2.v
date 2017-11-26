@@ -33,10 +33,8 @@ module ram2
       $readmemh(INITNAME, mem);
     end
   
-  always_ff @(posedge clk_i or posedge rst_i)
-    begin
-	mem <= mem_next;
-    end
+  always_ff @(posedge clk_i)
+    mem <= mem_next;
   
   always_comb
     begin

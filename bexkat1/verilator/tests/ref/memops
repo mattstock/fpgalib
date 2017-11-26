@@ -130,7 +130,7 @@ rd1:                                 0                0
 rd2:                              1001
 ed1:                              1911
 ed2:                              1001
-res:                                               1911             1911
+res:                                                  0             1911
 ccr:                                                  0
 rwr:                                 0                0                3
 pcs:                                                  0
@@ -141,7 +141,7 @@ alu_func: 2 alu1: 00001911 alu2: 00001001 alu_out: 00002912 int_func: 0 int_out:
 ssp: 00000000
 h1: 01 h2: 00 hs:  0 wad: 01
 Ins: adr: 00000014 cyc: 1 ack: 1 dat_i: 00001044
-Dat: adr: 00001911 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f
+Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 00000000 we: 0 sel: f
 -------------------- 006 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
@@ -154,7 +154,7 @@ rd1:                              1001             1911
 rd2:                              1001
 ed1:                              1001
 ed2:                              1001
-res:                                               1044             1911
+res:                                               1044                0
 ccr:                                                  0
 rwr:                                 0                0                0
 pcs:                                                  0
@@ -178,7 +178,7 @@ rd1:                                 0             1001
 rd2:                              1001
 ed1:                                 0
 ed2:                              1001
-res:                                               1044             1044
+res:                                               1001             1044
 ccr:                                                  0
 rwr:                                 3                0                0
 pcs:                                                  0
@@ -189,7 +189,7 @@ alu_func: 2 alu1: 00000000 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out:
 ssp: 00000000
 h1: 00 h2: 00 hs:  0 wad: 01
 Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42320000
-Dat: adr: 00001044 cyc: 0 ack: 0 dat_i: 00001911 dat_o: 00001001 we: 0 sel: f
+Dat: adr: 00001001 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
 -------------------- 008 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
@@ -202,7 +202,7 @@ rd1:                              1001                0
 rd2:                              1001
 ed1:                              1001
 ed2:                              1001
-res:                                               1044             1044
+res:                                               1044             1001
 ccr:                                                  0
 rwr:                                 0                3                0
 pcs:                                                  0
@@ -226,7 +226,7 @@ rd1:                                 0             1001
 rd2:                              1001
 ed1:                              1911
 ed2:                              1001
-res:                                               1044             1911
+res:                                                  0             1911
 ccr:                                                  0
 rwr:                                 2                0                3
 pcs:                                                  0
@@ -237,7 +237,7 @@ alu_func: 2 alu1: 00001911 alu2: 00001001 alu_out: 00002912 int_func: 2 int_out:
 ssp: 00000000
 h1: 01 h2: 00 hs:  0 wad: 02
 Ins: adr: 00000024 cyc: 1 ack: 1 dat_i: 00000000
-Dat: adr: 00001044 cyc: 0 ack: 0 dat_i: 00001911 dat_o: 00001001 we: 0 sel: f
+Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 00001001 we: 0 sel: f
 -------------------- 010 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
@@ -250,7 +250,7 @@ rd1:                              1001             1911
 rd2:                              1001
 ed1:                              1001
 ed2:                              1001
-res:                                               1911             1044
+res:                                               1911                0
 ccr:                                                  0
 rwr:                                 0                2                0
 pcs:                                                  0

@@ -91,6 +91,7 @@ module idecode(input               clk_i,
 	  pc_next = pc_o;
 	  reg_data_out1_next = reg_data_out1;
 	  reg_data_out2_next = reg_data_out2;
+	  reg_write_next = reg_write_o;
 	end
       else
 	begin

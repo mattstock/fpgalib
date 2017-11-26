@@ -17,8 +17,6 @@ module hazard(input              clk_i,
 	      output logic [1:0] hazard1,
 	      output logic [1:0] hazard2);
 
-  wire [3:0] 			 if_type = if_ir[31:28];
-  wire [3:0] 			 if_ra = if_ir[23:20];
   wire [3:0] 			 if_rb = if_ir[19:16];
   wire [3:0] 			 if_rc = if_ir[15:12];
   wire [3:0] 			 id_type = id_ir[31:28];
@@ -27,14 +25,8 @@ module hazard(input              clk_i,
   wire [3:0] 			 id_rb = id_ir[19:16];
   wire [3:0] 			 id_rc = id_ir[15:12];
   wire 				 id_size = id_ir[0];
-  wire [3:0] 			 exe_type = exe_ir[31:28];
-  wire [3:0] 			 exe_ra = exe_ir[23:20];
-  wire [3:0] 			 exe_rb = exe_ir[19:16];
-  wire [3:0] 			 exe_rc = exe_ir[15:12];
-  wire [3:0] 			 mem_type = mem_ir[31:28];
   wire [3:0] 			 mem_ra = mem_ir[23:20];
-  wire [3:0] 			 mem_rb = mem_ir[19:16];
-  wire [3:0] 			 mem_rc = mem_ir[15:12];
+  wire [3:0] 			 exe_ra = exe_ir[23:20];
   
   assign stall = (id_type == T_LOAD && if_ir != 64'h0 &&
 		  (id_ra == if_rb || id_ra == if_rc));

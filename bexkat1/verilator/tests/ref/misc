@@ -898,7 +898,7 @@ rd1:                          11223344         11223344
 rd2:                          11223344
 ed1:                          11223344
 ed2:                          11223344
-res:                                                 44               44
+res:                                                  0               44
 ccr:                                                  0
 rwr:                                 0                0                3
 pcs:                                                  0
@@ -909,7 +909,7 @@ alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out:
 ssp: 00000000
 h1: 00 h2: 00 hs:  0 wad: 08
 Ins: adr: 00000038 cyc: 1 ack: 1 dat_i: 00000000
-Dat: adr: 00000044 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 11223344 we: 0 sel: f
 -------------------- 038 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
@@ -922,7 +922,7 @@ rd1:                          11223344         11223344
 rd2:                          11223344
 ed1:                          11223344
 ed2:                          11223344
-res:                                                 44               44
+res:                                           11223344                0
 ccr:                                                  0
 rwr:                                 0                0                0
 pcs:                                                  0
@@ -933,5 +933,5 @@ alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out:
 ssp: 00000000
 h1: 00 h2: 00 hs:  0 wad: 00
 Ins: adr: 00000038 cyc: 1 ack: 1 dat_i: 00000000
-Dat: adr: 00000044 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
 HALT
