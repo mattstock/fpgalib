@@ -39,11 +39,10 @@ int main(int argc, char **argv, char **env) {
 	     "exec",
 	     "mem");
 	     
-      printf("pc:  % 16x % 16x % 16x % 16x\n",
+      printf("pc:  % 16x % 16x % 16x\n",
 	     top->if_pc,
 	     top->id_pc,
-	     top->exe_pc,
-	     top->mem_pc);
+	     top->exe_pc);
       printf("ir:  %16lx %16lx %16lx\n",
 	     top->if_ir,
 	     top->id_ir,
@@ -80,24 +79,23 @@ int main(int argc, char **argv, char **env) {
 	     "","",
 	     top->exe_result,
 	     top->mem_result);
-      printf("ccr: % 16s % 16s % 16x % 16x\n",
+      printf("ccr: % 16s % 16s % 16x\n",
 	     "","",
-	     top->exe_ccr,
-	     top->mem_ccr);
+	     top->exe_ccr);
       printf("rwr: % 16s % 16d % 16d % 16d\n",
 	     "",
 	     top->id_reg_write,
 	     top->exe_reg_write,
 	     top->mem_reg_write);
-      printf("pcs: % 16s % 16s % 16d % 16d\n",
+      printf("pcs: % 16s % 16s % 16d\n",
 	     "", "",
-	     top->exe_pc_set,
-	     top->mem_pc_set);
+	     top->exe_pc_set);
       printf("--- INTERNAL STATE ---\n");
-      printf("alu1: %08x alu2: %08x out: %08x\n",
+      printf("alu1: %08x alu2: %08x alu_out: %08x int_out: %08x\n",
 	     top->top__DOT__exe0__DOT__alu_in1,
 	     top->top__DOT__exe0__DOT__alu_in2,
-	     top->top__DOT__exe0__DOT__alu_out);
+	     top->top__DOT__exe0__DOT__alu_out,
+	     top->top__DOT__exe0__DOT__int_out);
       for (int i=0; i < 8; i++)
 	printf("% 3d: %08x",
 	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);

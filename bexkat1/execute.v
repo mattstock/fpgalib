@@ -15,7 +15,8 @@ module execute(input               clk_i,
 	       input [1:0] 	   reg_write_i,
 	       output logic [1:0]  reg_write_o,
 	       output logic [2:0]  ccr_o,
-	       output logic 	   halt_o, 
+	       output logic 	   halt_o,
+	       output logic 	   stall_o,
 	       output [63:0] 	   ir_o,
 	       output [31:0] 	   pc_o,
 	       output 		   pc_set_o);
@@ -36,6 +37,7 @@ module execute(input               clk_i,
   wire [2:0] 			   alu_func;
   
   logic [31:0] 			   alu_in1, alu_in2, alu_out;
+  logic [31:0] 			   int_out;
   logic [2:0] 			   ccr_next;
   /* verilator lint_off UNOPTFLAT */
   logic 			   alu_c, alu_n, alu_v, alu_z;
@@ -46,7 +48,10 @@ module execute(input               clk_i,
   logic [31:0] 			   result_next;
   logic [1:0] 			   reg_write_next;
   logic 			   halt_next;
-  
+  intfunc_t                        int_func;
+
+  assign stall_o = 1'b0;
+
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
@@ -90,10 +95,15 @@ module execute(input               clk_i,
   always_comb
     begin
       halt_next = halt_o;
+  
       case (ir_type)
 	T_INH:
 	  if (ir_op == 4'h4)
 	    halt_next = 1'h1;
+	T_INT:
+	  result_next = int_out;
+	T_INTU:
+	  result_next = int_out;
 	T_LOAD:
 	  if (ir_size)
 	    result_next = ir_extaddr;
@@ -197,7 +207,16 @@ module execute(input               clk_i,
       alu_in1 = reg_data1_i;
       alu_in2 = reg_data2;
       alu_func = alufunc_t'(ir_op[2:0]);
+      int_func = intfunc_t'(ir_op);
       case (ir_type)
+	T_INT:
+	  begin
+	    int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
+	    if (ir_op[3])
+	      alu_in2 = {ir_sval[29:0], 2'b00};
+	  end
+	T_INTU:
+	  int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
 	T_CMP:
 	  alu_func = ALU_SUB;
 	T_LOAD:
@@ -239,5 +258,12 @@ module execute(input               clk_i,
 		.z_out(alu_z),
 		.n_out(alu_n),
 		.v_out(alu_v));
-   
+  
+  intcalc int0(.func(int_func),
+	       .uin1(alu_in1),
+	       .uin2(alu_in2),
+	       .sin1(alu_in1),
+	       .sin2(alu_in2),
+	       .out(int_out));
+  
 endmodule // ifetch
