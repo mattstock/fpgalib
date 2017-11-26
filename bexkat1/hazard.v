@@ -41,7 +41,7 @@ module hazard(input              clk_i,
 
   function [1:0] hazard;
     input [3:0] 		 regaddr;
-
+    
     hazard = 2'h0;
     if (|mem_reg_write &&
 	id_ir != 64'h0 &&
@@ -67,7 +67,17 @@ module hazard(input              clk_i,
 	    hazard1 = hazard(id_rb);
 	    hazard2 = 2'h0;
 	  end
+	T_INTU:
+	  begin
+	    hazard1 = hazard(id_rb);
+	    hazard2 = 2'h0;
+	  end
 	T_ALU:
+	  begin
+	    hazard1 = hazard(id_rb);
+	    hazard2 = (id_op[3] ? 2'h0 : hazard(id_rc));
+	  end
+	T_INT:
 	  begin
 	    hazard1 = hazard(id_rb);
 	    hazard2 = (id_op[3] ? 2'h0 : hazard(id_rc));

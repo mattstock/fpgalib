@@ -56,6 +56,11 @@ module idecode(input               clk_i,
 
   always_comb
     case (ir_type)
+      T_INTU:
+	begin
+	  reg_read1 = ir_ra;
+	  reg_read2 = ir_rb;
+	end
       T_CMP:
 	begin
 	  reg_read1 = ir_ra;
@@ -94,6 +99,8 @@ module idecode(input               clk_i,
 	  reg_data_out1_next = regfile_out1;
 	  reg_data_out2_next = regfile_out2;
 	  case (ir_type)
+	    T_INTU: reg_write_next = 2'h3;
+	    T_INT: reg_write_next = 2'h3;
 	    T_LDI: reg_write_next = 2'h3;
 	    T_LOAD: reg_write_next = 2'h3;
 	    T_MOV: reg_write_next = ir_op[1:0];

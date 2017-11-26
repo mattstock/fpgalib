@@ -48,9 +48,14 @@ module execute(input               clk_i,
   logic [31:0] 			   result_next;
   logic [1:0] 			   reg_write_next;
   logic 			   halt_next;
+  logic [3:0] 			   delay, delay_next;
   intfunc_t                        int_func;
-
-  assign stall_o = 1'b0;
+  logic 			   stall_start;
+  
+  assign stall_start = (ir_type == T_INT ||
+			ir_type == T_INTU) &&
+		       delay == 4'h0;
+  assign stall_o = (delay != 4'h0 && delay != 4'h1) || stall_start;
 
   always_ff @(posedge clk_i or posedge rst_i)
     begin
@@ -64,6 +69,7 @@ module execute(input               clk_i,
 	  reg_write_o <= 2'h0;
 	  halt_o <= 1'h0;
 	  pc_set_o <= 1'h0;
+	  delay <= 4'h0;
 	end
       else
 	begin
@@ -75,131 +81,161 @@ module execute(input               clk_i,
 	  reg_write_o <= reg_write_next;
 	  halt_o <= halt_next;
 	  pc_set_o <= pc_set_next;
+	  delay <= delay_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
   always_comb
-    begin
-      ccr_next = ccr_o;
-      if (ir_type == T_CMP)
-	ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
-    end
+    if (stall_o)
+	ccr_next = ccr_o;
+    else
+      begin
+	ccr_next = ccr_o;
+	if (ir_type == T_CMP)
+	  ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
+      end
+
+  always_comb
+    if (stall_o)
+      begin
+	ir_next = ir_o;
+	reg_data1_next = reg_data1_o;
+	reg_write_next = reg_write_o;
+      end
+    else
+      begin
+	ir_next = ir_i;
+	reg_data1_next = reg_data1_i;
+	reg_write_next = reg_write_i;
+      end
 
   always_comb
     begin
-      ir_next = ir_i;
-      reg_data1_next = reg_data1_i;
-      reg_write_next = reg_write_i;
+      delay_next = delay;
+      if (delay != 4'h0)
+	delay_next = delay - 4'h1;
+      if (stall_start)
+	delay_next = 4'h4;
     end
   
   always_comb
     begin
       halt_next = halt_o;
-  
-      case (ir_type)
-	T_INH:
-	  if (ir_op == 4'h4)
-	    halt_next = 1'h1;
-	T_INT:
-	  result_next = int_out;
-	T_INTU:
-	  result_next = int_out;
-	T_LOAD:
-	  if (ir_size)
-	    result_next = ir_extaddr;
-	  else
+      if (stall_o)
+	  result_next = result;
+      else
+	case (ir_type)
+	  T_INH:
+	    if (ir_op == 4'h4)
+	      halt_next = 1'h1;
+	  T_INT:
+	    result_next = int_out;
+	  T_INTU:
+	    result_next = int_out;
+	  T_LOAD:
+	    if (ir_size)
+	      result_next = ir_extaddr;
+	    else
+	      result_next = alu_out;
+	  T_STORE:
+	    if (ir_size)
+	      result_next = ir_extaddr;
+	    else
+	      result_next = alu_out;
+	  T_LDI:
+	    if (ir_size)
+	      result_next = ir_extval;
+	    else
+	      result_next = ir_uval;
+	  T_MOV:
+	    result_next = reg_data1_i;
+	  default:
 	    result_next = alu_out;
-	T_STORE:
-	  if (ir_size)
-	    result_next = ir_extaddr;
-	  else
-	    result_next = alu_out;
-	T_LDI:
-	  if (ir_size)
-	    result_next = ir_extval;
-	  else
-	    result_next = ir_uval;
-	T_MOV:
-	  result_next = reg_data1_i;
-	default:
-	  result_next = alu_out;
-      endcase // case (ir_type)
+	endcase // case (ir_type)
     end
   
   always_comb
     begin
-      pc_next = pc_i;
-      pc_set_next = 1'h0;
-      
-      case (ir_type)
-	T_BRANCH:
-	  begin
-	    case (ir_op)
-	      4'h0: 
-		begin
-		  pc_next = alu_out; // bra
-		  pc_set_next = 1'b1;
-		end
-	      4'h1: if (ccr_eq)
-		begin
-		  pc_next = alu_out;  // beq
-		  pc_set_next = 1'b1;
-		end
-	      4'h2: if (~ccr_eq)
-		begin
-		  pc_next = alu_out; // bne
-		  pc_set_next = 1'b1;
-		end
-	      4'h3: if (~(ccr_ltu | ccr_eq))
-		begin
-		  pc_next = alu_out; // bgtu
-		  pc_set_next = 1'b1;
-		end
-	      4'h4: if (~(ccr_lt | ccr_eq))
-		begin
-		  pc_next = alu_out; // bgt
-		  pc_set_next = 1'b1;
-		end
-	      4'h5: if (~ccr_lt) 
-		begin
-		  pc_next = alu_out; // bge
-		  pc_set_next = 1'b1;
-		end
-	      4'h6: if (ccr_lt | ccr_eq)
-		begin
-		  pc_next = alu_out; // ble
-		  pc_set_next = 1'b1;
-		end
-	      4'h7: if (ccr_lt)
-		begin
-		  pc_next = alu_out; // blt
-		  pc_set_next = 1'b1;
-		end
-	      4'h8: if (~ccr_ltu)
-		begin
-		  pc_next = alu_out; // bgeu
-		  pc_set_next = 1'b1;
-		end
-	      4'h9: if (ccr_ltu)
-		begin
-		  pc_next = alu_out; // bltu
-		  pc_set_next = 1'b1;
-		end
-	      4'ha: if (ccr_ltu | ccr_eq)
-		begin
-		  pc_next = alu_out; // bleu
-		  pc_set_next = 1'b1;
-		end
-	      default: begin end
-	    endcase // case (ir_op)
-	  end // case: T_BRANCH
-	T_JUMP:
-	  begin
-	    pc_next = (ir_size ? ir_extaddr : alu_out);
-	    pc_set_next = 1'b1;
-	  end
-	default: begin end
-      endcase // case (ir_type)
+      if (stall_o)
+	begin
+	  pc_next = pc_o;
+	  pc_set_next = pc_set_o;
+	end
+      else
+	begin
+	  pc_next = pc_i;
+	  pc_set_next = 1'h0;
+	  
+	  case (ir_type)
+	    T_BRANCH:
+	      begin
+		case (ir_op)
+		  4'h0: 
+		    begin
+		      pc_next = alu_out; // bra
+		      pc_set_next = 1'b1;
+		    end
+		  4'h1: if (ccr_eq)
+		    begin
+		      pc_next = alu_out;  // beq
+		      pc_set_next = 1'b1;
+		    end
+		  4'h2: if (~ccr_eq)
+		    begin
+		      pc_next = alu_out; // bne
+		      pc_set_next = 1'b1;
+		    end
+		  4'h3: if (~(ccr_ltu | ccr_eq))
+		    begin
+		      pc_next = alu_out; // bgtu
+		      pc_set_next = 1'b1;
+		    end
+		  4'h4: if (~(ccr_lt | ccr_eq))
+		    begin
+		      pc_next = alu_out; // bgt
+		      pc_set_next = 1'b1;
+		    end
+		  4'h5: if (~ccr_lt) 
+		    begin
+		      pc_next = alu_out; // bge
+		      pc_set_next = 1'b1;
+		    end
+		  4'h6: if (ccr_lt | ccr_eq)
+		    begin
+		      pc_next = alu_out; // ble
+		      pc_set_next = 1'b1;
+		    end
+		  4'h7: if (ccr_lt)
+		    begin
+		      pc_next = alu_out; // blt
+		      pc_set_next = 1'b1;
+		    end
+		  4'h8: if (~ccr_ltu)
+		    begin
+		      pc_next = alu_out; // bgeu
+		      pc_set_next = 1'b1;
+		    end
+		  4'h9: if (ccr_ltu)
+		    begin
+		      pc_next = alu_out; // bltu
+		      pc_set_next = 1'b1;
+		    end
+		  4'ha: if (ccr_ltu | ccr_eq)
+		    begin
+		      pc_next = alu_out; // bleu
+		      pc_set_next = 1'b1;
+		    end
+		  default: begin end
+		endcase // case (ir_op)
+	      end // case: T_BRANCH
+	    T_JUMP:
+	      begin
+		pc_next = (ir_size ? ir_extaddr : alu_out);
+		pc_set_next = 1'b1;
+	      end
+	    default: begin end
+	  endcase // case (ir_type)
+	end // else: !if(stall_o)
     end // always_comb
 
   always_comb
@@ -216,7 +252,7 @@ module execute(input               clk_i,
 	      alu_in2 = {ir_sval[29:0], 2'b00};
 	  end
 	T_INTU:
-	  int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
+	  alu_in2 = reg_data1_i;
 	T_CMP:
 	  alu_func = ALU_SUB;
 	T_LOAD:

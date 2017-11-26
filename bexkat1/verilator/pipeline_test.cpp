@@ -91,10 +91,12 @@ int main(int argc, char **argv, char **env) {
 	     "", "",
 	     top->exe_pc_set);
       printf("--- INTERNAL STATE ---\n");
-      printf("alu1: %08x alu2: %08x alu_out: %08x int_out: %08x\n",
+      printf("alu_func: %d alu1: %08x alu2: %08x alu_out: %08x int_func: %d int_out: %08x\n",
+	     top->top__DOT__exe0__DOT__alu_func,
 	     top->top__DOT__exe0__DOT__alu_in1,
 	     top->top__DOT__exe0__DOT__alu_in2,
 	     top->top__DOT__exe0__DOT__alu_out,
+	     top->top__DOT__exe0__DOT__int_func,
 	     top->top__DOT__exe0__DOT__int_out);
       for (int i=0; i < 8; i++)
 	printf("% 3d: %08x",
