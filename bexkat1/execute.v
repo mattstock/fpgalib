@@ -248,8 +248,8 @@ module execute(input               clk_i,
 	T_INT:
 	  begin
 	    int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
-	    if (ir_op[3])
-	      alu_in2 = {ir_sval[29:0], 2'b00};
+	    if (ir_op[3]) 
+	      alu_in2 = ir_sval;
 	  end
 	T_CMP:
 	  alu_func = ALU_SUB;
