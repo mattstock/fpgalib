@@ -8,6 +8,7 @@ module mem(input               clk_i,
 	   input 	       rst_i,
 	   input [31:0]        reg_data1_i,
 	   input 	       stall_i,
+	   output logic        stall_o,
 	   input 	       halt_i,
 	   output 	       halt_o,
 	   input [31:0]        result_i,
@@ -37,6 +38,8 @@ module mem(input               clk_i,
   assign bus_we = (ir_type == T_STORE);
   assign bus_adr = result_i;
   assign bus_out = reg_data1_i;
+  
+  assign stall_o = (bus_cyc && !bus_ack);
   
   always_ff @(posedge clk_i or posedge rst_i)
     begin
@@ -71,7 +74,7 @@ module mem(input               clk_i,
   
   always_comb
     begin
-      if (stall_i)
+      if (stall_i || stall_o)
 	begin
 	  halt_next = halt_o;
 	  ir_next = ir_o;

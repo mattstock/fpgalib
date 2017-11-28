@@ -16,6 +16,7 @@ module execute(input               clk_i,
 	       output logic [1:0]  reg_write_o,
 	       output logic [2:0]  ccr_o,
 	       output logic 	   halt_o,
+	       input 		   stall_i,
 	       output logic 	   stall_o,
 	       output [63:0] 	   ir_o,
 	       output [31:0] 	   pc_o,
@@ -85,7 +86,7 @@ module execute(input               clk_i,
     end // always_ff @
 
   always_comb
-    if (stall_o)
+    if (stall_i || stall_o)
 	ccr_next = ccr_o;
     else
       begin
@@ -95,7 +96,7 @@ module execute(input               clk_i,
       end
 
   always_comb
-    if (stall_o)
+    if (stall_i || stall_o)
       begin
 	ir_next = ir_o;
 	reg_data1_next = reg_data1_o;
@@ -120,7 +121,7 @@ module execute(input               clk_i,
   always_comb
     begin
       halt_next = halt_o;
-      if (stall_o)
+      if (stall_i || stall_o)
 	result_next = result;
       else
 	case (ir_type)
@@ -158,7 +159,7 @@ module execute(input               clk_i,
   
   always_comb
     begin
-      if (stall_o)
+      if (stall_i || stall_o)
 	begin
 	  pc_next = pc_o;
 	  pc_set_next = pc_set_o;
