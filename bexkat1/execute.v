@@ -19,6 +19,8 @@ module execute(input               clk_i,
 	       input 		   stall_i,
 	       output logic 	   stall_o,
 	       output [63:0] 	   ir_o,
+	       output logic 	   interrupts_enabled,
+	       output logic 	   exc_o,
 	       output [31:0] 	   pc_o,
 	       output 		   pc_set_o);
 
@@ -51,6 +53,9 @@ module execute(input               clk_i,
   logic [3:0] 			   delay, delay_next;
   intfunc_t                        int_func;
   logic 			   stall_start;
+  logic 			   interrupts_enabled_next;
+  logic [31:0] 			   vectoff, vectoff_next;
+  logic 			   exc_next;
   
   assign stall_start = (ir_type == T_INT ||
 			ir_type == T_INTU) &&
@@ -70,6 +75,9 @@ module execute(input               clk_i,
 	  halt_o <= 1'h0;
 	  pc_set_o <= 1'h0;
 	  delay <= 4'h0;
+	  interrupts_enabled <= 1'b0;
+	  vectoff <= 32'hffffffc0;
+	  exc_o <= 1'h0;
 	end
       else
 	begin
@@ -82,9 +90,13 @@ module execute(input               clk_i,
 	  halt_o <= halt_next;
 	  pc_set_o <= pc_set_next;
 	  delay <= delay_next;
+	  interrupts_enabled <= interrupts_enabled_next;
+	  vectoff <= vectoff_next;
+	  exc_o <= exc_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
+  // CCR update
   always_comb
     if (stall_i || stall_o)
 	ccr_next = ccr_o;
@@ -95,6 +107,7 @@ module execute(input               clk_i,
 	  ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
       end
 
+  // forwarding logic
   always_comb
     if (stall_i || stall_o)
       begin
@@ -109,6 +122,7 @@ module execute(input               clk_i,
 	reg_write_next = reg_write_i;
       end
 
+  // delay logic for multi-cycle ops
   always_comb
     begin
       delay_next = delay;
@@ -117,46 +131,91 @@ module execute(input               clk_i,
       if (stall_start)
 	delay_next = 4'h4;
     end
-  
+
+  // Result
+  always_comb
+    begin
+      if (stall_i || stall_o)
+	begin
+	  exc_next = exc_o;
+	  result_next = result;
+	end
+      else
+	begin
+	  exc_next = 1'b0;
+	  case (ir_type)
+	    T_INH:
+	      if (ir_op == 4'h5)
+		begin
+		  result_next = vectoff; // reset vector
+		  exc_next = 1'b1;
+		end
+	      else
+		if (ir_op == 4'h1 && ir_size == 1'h0) // trap vector
+		  begin
+		    result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
+		    exc_next = 1'b1;
+		  end
+		else
+		  result_next = alu_out;
+	    T_INT:
+	      result_next = int_out;
+	    T_INTU:
+	      result_next = int_out;
+	    T_LOAD:
+	      if (ir_size)
+		result_next = ir_extaddr;
+	      else
+		result_next = alu_out;
+	    T_STORE:
+	      if (ir_size)
+		result_next = ir_extaddr;
+	      else
+		result_next = alu_out;
+	    T_LDI:
+	      if (ir_size)
+		result_next = ir_extval;
+	      else
+		result_next = ir_uval;
+	    T_MOV:
+	      result_next = reg_data1_i;
+	    default:
+	      result_next = alu_out;
+	  endcase // case (ir_type)
+	end // else: !if(stall_i || stall_o)
+    end // always_comb
+
+  // exception logic
   always_comb
     begin
       halt_next = halt_o;
-      if (stall_i || stall_o)
-	result_next = result;
-      else
-	case (ir_type)
-	  T_INH:
-	    begin
-	      if (ir_op == 4'h4)
-		halt_next = 1'h1;
-	      result_next = alu_out;
-	    end
-	  T_INT:
-	    result_next = int_out;
-	  T_INTU:
-	    result_next = int_out;
-	  T_LOAD:
-	    if (ir_size)
-	      result_next = ir_extaddr;
-	    else
-	      result_next = alu_out;
-	  T_STORE:
-	    if (ir_size)
-	      result_next = ir_extaddr;
-	    else
-	      result_next = alu_out;
-	  T_LDI:
-	    if (ir_size)
-	      result_next = ir_extval;
-	    else
-	      result_next = ir_uval;
-	  T_MOV:
-	    result_next = reg_data1_i;
-	  default:
-	    result_next = alu_out;
-	endcase // case (ir_type)
+      exc_next = exc_o;
+      interrupts_enabled_next = interrupts_enabled;
+      vectoff_next = vectoff;
+      
+      if (!stall_i && ir_type == T_INH)
+	begin
+	  case (ir_op)
+	    4'h1: // trap/setint
+	      if (ir_size == 1'h1)
+		vectoff_next = ir_extaddr;
+	      else
+		exc_next = 1'h1;
+	    4'h2: // cli
+	      interrupts_enabled_next = 1'b0;
+	    4'h3: // sti
+	      interrupts_enabled_next = 1'b1;
+	    4'h4: // halt
+	      halt_next = 1'h1;
+	    4'h5: // reset
+	      exc_next = 1'h1;
+	    default:
+	      begin end
+	  endcase // case (ir_op)
+	end // case: T_INH
     end
-  
+
+  // branch logic
   always_comb
     begin
       if (stall_i || stall_o)

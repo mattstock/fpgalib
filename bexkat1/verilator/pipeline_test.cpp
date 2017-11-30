@@ -39,14 +39,16 @@ int main(int argc, char **argv, char **env) {
 	     "exec",
 	     "mem");
 	     
-      printf("pc:  % 16x % 16x % 16x\n",
+      printf("pc:  % 16x % 16x % 16x % 16x\n",
 	     top->if_pc,
 	     top->id_pc,
-	     top->exe_pc);
-      printf("ir:  %16lx %16lx %16lx\n",
+	     top->exe_pc,
+	     top->mem_pc);
+      printf("ir:  %16lx %16lx %16lx %16lx\n",
 	     top->if_ir,
 	     top->id_ir,
-	     top->exe_ir);
+	     top->exe_ir,
+	     top->mem_ir);
       printf("ra:  % 16x % 16x % 16x % 16x\n",
 	     INS_RA(top->if_ir),
 	     INS_RA(top->id_ir),
@@ -87,9 +89,14 @@ int main(int argc, char **argv, char **env) {
 	     top->id_reg_write,
 	     top->exe_reg_write,
 	     top->mem_reg_write);
-      printf("pcs: % 16s % 16s % 16d\n",
+      printf("pcs: % 16s % 16s % 16d % 16d\n",
 	     "", "",
-	     top->exe_pc_set);
+	     top->exe_pc_set,
+	     top->mem_pc_set);
+      printf("exc: % 16s % 16s % 16d % 16d\n",
+	     "", "",
+	     top->exe_exc,
+	     top->mem_exc);
       printf("--- INTERNAL STATE ---\n");
       printf("alu_func: %d alu1: %08x alu2: %08x alu_out: %08x int_func: %d int_out: %08x\n",
 	     top->top__DOT__exe0__DOT__alu_func,
@@ -106,9 +113,13 @@ int main(int argc, char **argv, char **env) {
 	printf("% 3d: %08x",
 	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       printf("\n");
-      printf("ssp: %08x\n", top->top__DOT__decode0__DOT__reg0__DOT__ssp);
-      printf("h1: %02x h2: %02x hs: % 2d wad: %02d\n",
+      printf("ssp: %08x vectoff: %08x inten: % 2d\n",
+	     top->top__DOT__decode0__DOT__reg0__DOT__ssp,
+	     top->top__DOT__exe0__DOT__vectoff,
+	     0);
+      printf("h1: %02x h2: %02x hs: % 2d es: % 2d ms: % 2d wad: %02d\n",
 	     top->hazard1, top->hazard2, top->hazard_stall,
+	     top->exe_stall, top->mem_stall,
 	     top->wb_reg_write_addr);
       printf("Ins: adr: %08x cyc: %d ack: %d dat_i: %08x\n",
 	     top->if_pc,top->ins_cyc_o, top->ins_ack_i, top->ins_dat_i);

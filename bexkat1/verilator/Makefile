@@ -5,7 +5,7 @@ LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
-CPUDEPS = ../bexkat1p.v ../alu_comb.v ../registerfile.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v
+CPUDEPS = ../bexkat1p.v ../alu_comb.v ../registerfile.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../exception.v
 .PHONY: all clean tests
 
 all: obj_dir/Vpipeline_top.cpp tests

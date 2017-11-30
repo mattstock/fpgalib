@@ -4,7 +4,7 @@ AS = bexkat1-elf-as
 LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load memops regrel mov alu misc math branch jump sub
+TESTS = load memops regrel mov alu misc math exceptions branch jump sub
 
 .PHONY: all clean tests rebase
 
@@ -15,7 +15,7 @@ clean:
 
 rebase:
 	@for t in ${TESTS}; do \
-		echo -n $$t ; \
+		echo $$t ; \
 		cp out/$$t.output ref/$$t ; \
 	done
 

@@ -15,8 +15,14 @@ module mem(input               clk_i,
 	   output logic [31:0] result_o,
 	   input [1:0] 	       reg_write_i,
 	   output logic [1:0]  reg_write_o,
+	   input [31:0]        pc_i,
+	   output logic [31:0] pc_o,
+	   input 	       pc_set_i,
+	   output logic        pc_set_o,
 	   input [63:0]        ir_i,
 	   output logic [63:0] ir_o,
+	   input 	       exc_i,
+	   output logic        exc_o,
 	   output logic [31:0] bus_adr,
 	   output logic        bus_we,
 	   output logic        bus_cyc,
@@ -27,14 +33,18 @@ module mem(input               clk_i,
   
   wire [3:0] 		       ir_type  = ir_i[31:28];
   wire [3:0] 		       ir_op    = ir_i[27:24];
+  wire 			       ir_size = ir_i[0];
   
   logic [31:0] 		       result_next;
+  logic [31:0] 		       pc_next;
+  logic 		       pc_set_next;
   logic [1:0] 		       reg_write_next;
   logic [63:0] 		       ir_next;
   logic 		       halt_next;
   
   assign bus_cyc = (ir_type == T_LOAD ||
-		    ir_type == T_STORE);
+		    ir_type == T_STORE ||
+		    exc_i);
   assign bus_we = (ir_type == T_STORE);
   assign bus_adr = result_i;
   assign bus_out = reg_data1_i;
@@ -48,6 +58,8 @@ module mem(input               clk_i,
 	  ir_o <= 64'h0;
 	  reg_write_o <= 2'h0;
 	  result_o <= 32'h0;
+	  pc_o <= 32'h0;
+	  pc_set_o <= 1'h0;
 	  halt_o <= 1'h0;
 	end
       else
@@ -55,6 +67,8 @@ module mem(input               clk_i,
 	  ir_o <= ir_next;
 	  reg_write_o <= reg_write_next;
 	  result_o <= result_next;
+	  pc_o <= pc_next;
+	  pc_set_o <= pc_set_next;
 	  halt_o <= halt_next;
 	end // else: !if(rst_i)
     end // always_ff @
@@ -71,7 +85,30 @@ module mem(input               clk_i,
 	    endcase // case (result_i[1:0])
       2'h3: bus_sel = 4'hf;
     endcase // case (ir_op[1:0])
+
+  // exception PC load
+  always_comb
+    begin
+      if (stall_i || stall_o)
+	begin
+	  pc_next = pc_o;
+	  pc_set_next = pc_set_o;
+	end
+      else
+	begin
+	  pc_next = pc_i;
+	  pc_set_next = pc_set_i;
+	  if (ir_type == T_INH)
+	    if ((ir_op == 4'h1 && ir_size == 1'h0) ||
+		(ir_op == 4'h5))
+	      begin
+		pc_next = result_i;
+		pc_set_next = 1'h1;
+	      end
+	end
+    end
   
+  // register write back
   always_comb
     begin
       if (stall_i || stall_o)
