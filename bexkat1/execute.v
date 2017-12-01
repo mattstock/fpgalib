@@ -19,6 +19,7 @@ module execute(input               clk_i,
 	       input 		   stall_i,
 	       output logic 	   stall_o,
 	       output [63:0] 	   ir_o,
+	       output logic 	   supervisor,
 	       output logic 	   interrupts_enabled,
 	       output logic 	   exc_o,
 	       output [31:0] 	   pc_o,
@@ -56,6 +57,7 @@ module execute(input               clk_i,
   logic 			   interrupts_enabled_next;
   logic [31:0] 			   vectoff, vectoff_next;
   logic 			   exc_next;
+  logic 			   supervisor_next;
   
   assign stall_start = (ir_type == T_INT ||
 			ir_type == T_INTU) &&
@@ -78,6 +80,7 @@ module execute(input               clk_i,
 	  interrupts_enabled <= 1'b0;
 	  vectoff <= 32'hffffffc0;
 	  exc_o <= 1'h0;
+	  supervisor <= 1'h1;
 	end
       else
 	begin
@@ -93,6 +96,7 @@ module execute(input               clk_i,
 	  interrupts_enabled <= interrupts_enabled_next;
 	  vectoff <= vectoff_next;
 	  exc_o <= exc_next;
+	  supervisor <= supervisor_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
@@ -192,13 +196,17 @@ module execute(input               clk_i,
       exc_next = exc_o;
       interrupts_enabled_next = interrupts_enabled;
       vectoff_next = vectoff;
+      supervisor_next = supervisor;
       
       if (!stall_i && ir_type == T_INH)
 	begin
 	  case (ir_op)
 	    4'h1: // trap/setint
 	      if (ir_size == 1'h1)
-		vectoff_next = ir_extaddr;
+		if (supervisor)
+		  vectoff_next = ir_extaddr;
+		else
+		  halt_next = 1'h1;
 	      else
 		exc_next = 1'h1;
 	    4'h2: // cli
@@ -208,7 +216,10 @@ module execute(input               clk_i,
 	    4'h4: // halt
 	      halt_next = 1'h1;
 	    4'h5: // reset
-	      exc_next = 1'h1;
+	      if (supervisor)
+		exc_next = 1'h1;
+	      else
+		halt_next = 1'h1; // should be illegal instruction vector
 	    default:
 	      begin end
 	  endcase // case (ir_op)
