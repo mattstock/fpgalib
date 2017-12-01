@@ -20,6 +20,7 @@ module execute(input               clk_i,
 	       output logic 	   stall_o,
 	       output [63:0] 	   ir_o,
 	       output logic 	   supervisor,
+	       input [2:0] 	   interrupts,
 	       output logic 	   interrupts_enabled,
 	       output logic 	   exc_o,
 	       output [31:0] 	   pc_o,
@@ -140,26 +141,18 @@ module execute(input               clk_i,
   always_comb
     begin
       if (stall_i || stall_o)
-	begin
-	  exc_next = exc_o;
 	  result_next = result;
-	end
       else
-	begin
-	  exc_next = 1'b0;
+	if (|interrupts && interrupts_enabled)
+	  result_next = vectoff + { 26'h0, interrupts, 3'h0 };
+	else
 	  case (ir_type)
 	    T_INH:
 	      if (ir_op == 4'h5)
-		begin
-		  result_next = vectoff; // reset vector
-		  exc_next = 1'b1;
-		end
+		result_next = vectoff; // reset vector
 	      else
 		if (ir_op == 4'h1 && ir_size == 1'h0) // trap vector
-		  begin
-		    result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
-		    exc_next = 1'b1;
-		  end
+		  result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
 		else
 		  result_next = alu_out;
 	    T_INT:
@@ -186,46 +179,58 @@ module execute(input               clk_i,
 	    default:
 	      result_next = alu_out;
 	  endcase // case (ir_type)
-	end // else: !if(stall_i || stall_o)
     end // always_comb
-
+  
   // exception logic
   always_comb
     begin
       halt_next = halt_o;
-      exc_next = exc_o;
       interrupts_enabled_next = interrupts_enabled;
       vectoff_next = vectoff;
       supervisor_next = supervisor;
-      
-      if (!stall_i && ir_type == T_INH)
-	begin
-	  case (ir_op)
-	    4'h1: // trap/setint
-	      if (ir_size == 1'h1)
-		if (supervisor)
-		  vectoff_next = ir_extaddr;
-		else
-		  halt_next = 1'h1;
-	      else
-		exc_next = 1'h1;
-	    4'h2: // cli
-	      interrupts_enabled_next = 1'b0;
-	    4'h3: // sti
-	      interrupts_enabled_next = 1'b1;
-	    4'h4: // halt
-	      halt_next = 1'h1;
-	    4'h5: // reset
-	      if (supervisor)
-		exc_next = 1'h1;
-	      else
-		halt_next = 1'h1; // should be illegal instruction vector
-	    default:
-	      begin end
-	  endcase // case (ir_op)
-	end // case: T_INH
-    end
+      exc_next = 1'h0;
 
+      if (!stall_i)
+	if (|interrupts && interrupts_enabled)
+	  begin
+	    interrupts_enabled_next = 1'b0;
+	    exc_next = 1'h1;
+	  end
+	else
+	  if (ir_type == T_INH)
+	    begin
+	      case (ir_op)
+		4'h1: // trap/setint
+		  if (ir_size == 1'h1)
+		    if (supervisor)
+		      vectoff_next = ir_extaddr;
+		    else
+		      halt_next = 1'h1;
+		  else
+		    begin
+		      exc_next = 1'h1;
+		      interrupts_enabled_next = 1'b0;
+		    end
+		4'h2: // cli
+		  interrupts_enabled_next = 1'b0;
+		4'h3: // sti
+		  interrupts_enabled_next = 1'b1;
+		4'h4: // halt
+		  halt_next = 1'h1;
+		4'h5: // reset
+		  if (supervisor)
+		    begin
+		      exc_next = 1'h1;
+		      interrupts_enabled_next = 1'b0;
+		    end
+		  else
+		    halt_next = 1'h1; // should be illegal instruction vector
+		default:
+		  begin end
+	      endcase // case (ir_op)
+	    end // if (ir_type == T_INH)
+    end // always_comb
+  
   // branch logic
   always_comb
     begin

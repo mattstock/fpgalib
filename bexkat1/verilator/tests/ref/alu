@@ -19,7 +19,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000000 cyc: 1 ack: 1 dat_i: 80002002
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 00000000 we: 0 sel: f
@@ -44,7 +44,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000004 cyc: 1 ack: 1 dat_i: 80100001
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 00000000 we: 0 sel: f
@@ -69,7 +69,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000008 cyc: 1 ack: 1 dat_i: 11111111
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 00000000 we: 0 sel: f
@@ -94,7 +94,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 0000000c cyc: 1 ack: 1 dat_i: 80200001
 Dat: adr: 00001001 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f
@@ -119,7 +119,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000010 cyc: 1 ack: 1 dat_i: 11224455
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 00000000 we: 0 sel: f
@@ -144,7 +144,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00001001 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out: 01002001
   0: 00001001  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000014 cyc: 1 ack: 1 dat_i: 62312000
 Dat: adr: 11111111 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f
@@ -169,7 +169,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00001001 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out: 01002001
   0: 00001001  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 01
 Ins: adr: 00000018 cyc: 1 ack: 1 dat_i: 6a416444
 Dat: adr: 00001001 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
@@ -194,7 +194,7 @@ exc:                                                  0                0
 alu_func: 2 alu1: 11111111 alu2: 11224455 alu_out: 22335566 int_func: 2 int_out: 11111111
   0: 00001001  1: 11111111  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 02 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 60501000
 Dat: adr: 11224455 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
@@ -219,7 +219,7 @@ exc:                                                  0                0
 alu_func: 2 alu1: 11111111 alu2: 00003222 alu_out: 11114333 int_func: 10 int_out: eeeeeeee
   0: 00001001  1: 11111111  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 02
 Ins: adr: 00000020 cyc: 1 ack: 1 dat_i: 68610002
 Dat: adr: 22335566 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11111111 we: 0 sel: 2
@@ -244,7 +244,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00001001 alu2: 11111111 alu_out: 00001001 int_func: 0 int_out: 22222111
   0: 00001001  1: 11111111  2: 11224455  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 03
 Ins: adr: 00000024 cyc: 1 ack: 1 dat_i: 63731000
 Dat: adr: 11114333 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11111111 we: 0 sel: 1
@@ -269,7 +269,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 11111111 alu2: 00000001 alu_out: 00000001 int_func: 8 int_out: 00001111
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 04
 Ins: adr: 00000028 cyc: 1 ack: 1 dat_i: 6b850004
 Dat: adr: 00001001 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
@@ -294,7 +294,7 @@ exc:                                                  0                0
 alu_func: 3 alu1: 22335566 alu2: 11111111 alu_out: 11224455 int_func: 3 int_out: 1fda71c6
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 05
 Ins: adr: 0000002c cyc: 1 ack: 1 dat_i: 64926000
 Dat: adr: 00000001 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 11111111 we: 0 sel: f
@@ -319,7 +319,7 @@ exc:                                                  0                0
 alu_func: 3 alu1: 00001001 alu2: 00000002 alu_out: 00000fff int_func: 11 int_out: ffffefff
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 06
 Ins: adr: 00000030 cyc: 1 ack: 1 dat_i: 6ca00008
 Dat: adr: 11224455 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 22335566 we: 0 sel: f
@@ -344,7 +344,7 @@ exc:                                                  0                0
 alu_func: 4 alu1: 11224455 alu2: 00000001 alu_out: 224488aa int_func: 4 int_out: 11224455
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 07
 Ins: adr: 00000034 cyc: 1 ack: 1 dat_i: 80000001
 Dat: adr: 00000fff cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
@@ -369,7 +369,7 @@ exc:                                                  0                0
 alu_func: 4 alu1: 00001001 alu2: 00000004 alu_out: 00010010 int_func: 12 int_out: 00000000
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 08
 Ins: adr: 00000038 cyc: 1 ack: 1 dat_i: fffffffe
 Dat: adr: 224488aa cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11224455 we: 0 sel: f
@@ -394,7 +394,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00001001 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out: 01002001
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 09
 Ins: adr: 0000003c cyc: 1 ack: 1 dat_i: 80100004
 Dat: adr: 00010010 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
@@ -419,7 +419,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00001001 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out: 01002001
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 10
 Ins: adr: 00000040 cyc: 1 ack: 1 dat_i: 66b01000
 Dat: adr: 00001001 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
@@ -444,7 +444,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00001001 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out: 01002001
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000044 cyc: 1 ack: 1 dat_i: 6ec00006
 Dat: adr: fffffffe cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00001001 we: 0 sel: f
@@ -469,7 +469,7 @@ exc:                                                  0                0
 alu_func: 6 alu1: fffffffe alu2: 00000002 alu_out: 3fffffff int_func: 6 int_out: ffffffff
   0: 00001001  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 01 h2: 02 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000048 cyc: 1 ack: 1 dat_i: 65b01000
 Dat: adr: 00000002 cyc: 0 ack: 0 dat_i: 80002002 dat_o: 00001001 we: 0 sel: f
@@ -494,7 +494,7 @@ exc:                                                  0                0
 alu_func: 6 alu1: fffffffe alu2: 00000003 alu_out: 1fffffff int_func: 14 int_out: 00000000
   0: fffffffe  1: 11111111  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 01
 Ins: adr: 0000004c cyc: 1 ack: 1 dat_i: 6dc00006
 Dat: adr: 3fffffff cyc: 0 ack: 0 dat_i: 00000000 dat_o: fffffffe we: 0 sel: 1
@@ -519,7 +519,7 @@ exc:                                                  0                0
 alu_func: 5 alu1: fffffffe alu2: 00000002 alu_out: ffffffff int_func: 5 int_out: 00000000
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 11
 Ins: adr: 00000050 cyc: 1 ack: 1 dat_i: 61d83000
 Dat: adr: 1fffffff cyc: 0 ack: 0 dat_i: 00000000 dat_o: fffffffe we: 0 sel: 1
@@ -544,7 +544,7 @@ exc:                                                  0                0
 alu_func: 5 alu1: fffffffe alu2: 00000003 alu_out: ffffffff int_func: 13 int_out: 00000000
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: 3fffffff 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 12
 Ins: adr: 00000054 cyc: 1 ack: 1 dat_i: 69e41e1e
 Dat: adr: ffffffff cyc: 0 ack: 0 dat_i: 00000000 dat_o: fffffffe we: 0 sel: 3
@@ -569,7 +569,7 @@ exc:                                                  0                0
 alu_func: 1 alu1: 00000fff alu2: 22335566 alu_out: 22335fff int_func: 1 int_out: 00000000
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: 3fffffff 12: 1fffffff 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 11
 Ins: adr: 00000058 cyc: 1 ack: 1 dat_i: 67f25000
 Dat: adr: ffffffff cyc: 0 ack: 0 dat_i: 00000000 dat_o: fffffffe we: 0 sel: 3
@@ -594,7 +594,7 @@ exc:                                                  0                0
 alu_func: 1 alu1: 11114333 alu2: 00000f0f alu_out: 11114f3f int_func: 9 int_out: 00000033
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: ffffffff 12: 1fffffff 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 12
 Ins: adr: 0000005c cyc: 1 ack: 1 dat_i: 6fe26226
 Dat: adr: 22335fff cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00000fff we: 0 sel: 3
@@ -619,7 +619,7 @@ exc:                                                  0                0
 alu_func: 7 alu1: 11224455 alu2: 00001001 alu_out: 11225454 int_func: 7 int_out: 00000112
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: ffffffff 12: ffffffff 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 13
 Ins: adr: 00000060 cyc: 1 ack: 1 dat_i: 04000000
 Dat: adr: 11114f3f cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11114333 we: 0 sel: 3
@@ -644,7 +644,7 @@ exc:                                                  0                0
 alu_func: 7 alu1: 11224455 alu2: 00003113 alu_out: 11227546 int_func: 15 int_out: 00000000
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: ffffffff 12: ffffffff 13: 22335fff 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 14
 Ins: adr: 00000064 cyc: 1 ack: 1 dat_i: 00000000
 Dat: adr: 11225454 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11224455 we: 0 sel: f
@@ -669,7 +669,7 @@ exc:                                                  0                0
 alu_func: 4 alu1: fffffffe alu2: fffffffe alu_out: 00000000 int_func: 4 int_out: 00000001
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: ffffffff 12: ffffffff 13: 22335fff 14: 11114f3f 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 15
 Ins: adr: 00000068 cyc: 1 ack: 1 dat_i: 00000000
 Dat: adr: 11227546 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11224455 we: 0 sel: f
@@ -694,7 +694,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: fffffffe alu2: fffffffe alu_out: fffffffe int_func: 0 int_out: 00000004
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: ffffffff 12: ffffffff 13: 22335fff 14: 11114f3f 15: 00000000
-ssp: 11225454 vectoff: ffffffc0 inten:  0
+ssp: 11225454 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 14
 Ins: adr: 0000006c cyc: 1 ack: 1 dat_i: 00000000
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80002002 dat_o: fffffffe we: 0 sel: f
@@ -719,7 +719,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: fffffffe alu2: fffffffe alu_out: fffffffe int_func: 0 int_out: 00000004
   0: fffffffe  1: 00000002  2: 11224455  3: 22335566  4: 11114333  5: 00001001  6: 00000001  7: 11224455
   8: 00000fff  9: 224488aa 10: 00010010 11: ffffffff 12: ffffffff 13: 22335fff 14: 11227546 15: 00000000
-ssp: 11225454 vectoff: ffffffc0 inten:  0
+ssp: 11225454 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 0000006c cyc: 1 ack: 1 dat_i: 00000000
 Dat: adr: fffffffe cyc: 0 ack: 0 dat_i: 00000000 dat_o: fffffffe we: 0 sel: f

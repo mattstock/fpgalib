@@ -1,6 +1,7 @@
 .globl _start
 _start:
 	setint 0x0000100
+	sti
 	trap 1
 	ldi %0, 0x11223300
 	halt

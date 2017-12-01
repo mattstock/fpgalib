@@ -19,6 +19,7 @@ int main(int argc, char **argv, char **env) {
 
   top->rst_i = 1;
   top->clk_i = 0;
+  top->interrupts = 0;
   
   while (!Verilated::gotFinish()) {
     // Run the clock
@@ -27,7 +28,9 @@ int main(int argc, char **argv, char **env) {
     // Drop reset
     if (tick == 2)
       top->rst_i = 0;
-
+    if (tick == 9)
+      top->interrupts = 1;
+    
     top->eval();
 
     if (top->clk_i) {
@@ -113,10 +116,11 @@ int main(int argc, char **argv, char **env) {
 	printf("% 3d: %08x",
 	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       printf("\n");
-      printf("ssp: %08x vectoff: %08x inten: % 2d\n",
+      printf("ssp: %08x vectoff: %08x inten: % 2d interrupts: % 2x\n",
 	     top->top__DOT__decode0__DOT__reg0__DOT__ssp,
 	     top->top__DOT__exe0__DOT__vectoff,
-	     0);
+	     top->int_en,
+	     top->interrupts);
       printf("h1: %02x h2: %02x hs: % 2d es: % 2d ms: % 2d wad: %02d\n",
 	     top->hazard1, top->hazard2, top->hazard_stall,
 	     top->exe_stall, top->mem_stall,

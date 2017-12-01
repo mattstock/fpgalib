@@ -19,7 +19,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000000 cyc: 1 ack: 1 dat_i: 80000001
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
@@ -44,7 +44,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000004 cyc: 1 ack: 1 dat_i: deadbeef
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
@@ -69,7 +69,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000008 cyc: 1 ack: 1 dat_i: c0000001
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
@@ -94,7 +94,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 0000000c cyc: 1 ack: 1 dat_i: 0000001c
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
@@ -119,7 +119,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000010 cyc: 1 ack: 1 dat_i: 80008ace
 Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f
@@ -144,7 +144,7 @@ exc:                                                  0                0
 alu_func: 2 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000014 cyc: 1 ack: 1 dat_i: b0000012
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
@@ -169,7 +169,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: deadbeef alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
   0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000018 cyc: 1 ack: 1 dat_i: 04000000
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
@@ -194,7 +194,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: deadbeef alu2: deadbeef alu_out: deadbeef int_func: 0 int_out: 216da321
   0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42100000
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: deadbeef we: 0 sel: f
@@ -219,7 +219,7 @@ exc:                                                  0                0
 alu_func: 4 alu1: deadbeef alu2: deadbeef alu_out: 00000000 int_func: 4 int_out: 00000001
   0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42100000
 Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: deadbeef we: 0 sel: f
@@ -244,7 +244,7 @@ exc:                                                  0                0
 alu_func: 0 alu1: deadbeef alu2: deadbeef alu_out: deadbeef int_func: 0 int_out: 216da321
   0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000020 cyc: 1 ack: 1 dat_i: 42200000
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: deadbeef we: 0 sel: f
@@ -269,7 +269,7 @@ exc:                                                  0                0
 alu_func: 2 alu1: deadbeef alu2: deadbeef alu_out: bd5b7dde int_func: 2 int_out: 00000000
   0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-ssp: 00000000 vectoff: ffffffc0 inten:  0
+ssp: 00000000 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 00000020 cyc: 1 ack: 1 dat_i: 42200000
 Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: deadbeef we: 0 sel: f

@@ -41,6 +41,7 @@ module mem(input               clk_i,
   logic [1:0] 		       reg_write_next;
   logic [63:0] 		       ir_next;
   logic 		       halt_next;
+  logic 		       exc_next;
   
   assign bus_cyc = (ir_type == T_LOAD ||
 		    ir_type == T_STORE ||
@@ -61,6 +62,7 @@ module mem(input               clk_i,
 	  pc_o <= 32'h0;
 	  pc_set_o <= 1'h0;
 	  halt_o <= 1'h0;
+	  exc_o <= 1'h0;
 	end
       else
 	begin
@@ -70,6 +72,7 @@ module mem(input               clk_i,
 	  pc_o <= pc_next;
 	  pc_set_o <= pc_set_next;
 	  halt_o <= halt_next;
+	  exc_o <= exc_next;
 	end // else: !if(rst_i)
     end // always_ff @
   
@@ -98,9 +101,10 @@ module mem(input               clk_i,
 	begin
 	  pc_next = pc_i;
 	  pc_set_next = pc_set_i;
-	  if (ir_type == T_INH)
+	  if (exc_i) // this won't work for multi-cycle
+/*	  if (ir_type == T_INH)
 	    if ((ir_op == 4'h1 && ir_size == 1'h0) ||
-		(ir_op == 4'h5))
+		(ir_op == 4'h5)) */
 	      begin
 		pc_next = result_i;
 		pc_set_next = 1'h1;
@@ -117,6 +121,7 @@ module mem(input               clk_i,
 	  ir_next = ir_o;
 	  result_next = result_o;
 	  reg_write_next = reg_write_o;
+	  exc_next = exc_o;
 	end // if (stall_i)
       else
 	begin
@@ -124,6 +129,7 @@ module mem(input               clk_i,
 	  ir_next = ir_i;
 	  result_next = result_i;
 	  reg_write_next = reg_write_i;
+	  exc_next = exc_i;
 	  
 	  if (ir_type == T_LOAD)
 	    result_next = bus_in;
