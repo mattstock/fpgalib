@@ -124,7 +124,7 @@ int main(int argc, char **argv, char **env) {
       printf("h1: %02x h2: %02x hs: % 2d es: % 2d ms: % 2d wad: %02d\n",
 	     top->hazard1, top->hazard2, top->hazard_stall,
 	     top->exe_stall, top->mem_stall,
-	     top->wb_reg_write_addr);
+	     top->mem_reg_write_addr);
       printf("Ins: adr: %08x cyc: %d ack: %d dat_i: %08x\n",
 	     top->if_pc,top->ins_cyc_o, top->ins_ack_i, top->ins_dat_i);
       printf("Dat: adr: %08x cyc: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x\n",
