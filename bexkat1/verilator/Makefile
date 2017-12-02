@@ -5,7 +5,7 @@ LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
-CPUDEPS = ../bexkat1p.v ../alu_comb.v ../registerfile.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v
+CPUDEPS = ../bexkat1p.v ../alu_comb.v ../bankedregisterfile.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v
 .PHONY: all clean tests
 
 all: obj_dir/Vpipeline_top.cpp tests
@@ -14,7 +14,7 @@ tests:
 	cd tests; make
 
 obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.v pipeline_test.cpp ram2.v
-	verilator -I.. -cc pipeline_top.v -exe pipeline_test.cpp
+	verilator -I.. --unroll-count 256 --unroll-stmts 10000 -cc pipeline_top.v -exe pipeline_test.cpp
 	cd obj_dir; make -f Vpipeline_top.mk
 
 obj_dir/Vifetch_top.cpp: ../ifetch.v ifetch_top.v ifetch_test.cpp ram2.v

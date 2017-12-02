@@ -22,6 +22,8 @@ module mem(input               clk_i,
 	   input [63:0]        ir_i,
 	   output logic [63:0] ir_o,
 	   output logic [3:0]  reg_write_addr,
+	   input [3:0] 	       bank_i,
+	   output logic [3:0]  bank_o,
 	   input 	       exc_i,
 	   output logic        exc_o,
 	   output logic [31:0] bus_adr,
@@ -44,6 +46,7 @@ module mem(input               clk_i,
   logic 		       halt_next;
   logic 		       exc_next;
   logic [63:0] 		       ir_next;
+  logic [3:0] 		       bank_next;
   
   assign bus_cyc = (ir_type == T_LOAD ||
 		    ir_type == T_STORE ||
@@ -66,6 +69,7 @@ module mem(input               clk_i,
 	  exc_o <= 1'h0;
 	  reg_write_addr <= 4'h0;
 	  ir_o <= 64'h0;
+	  bank_o <= 4'h0;
 	end
       else
 	begin
@@ -77,6 +81,7 @@ module mem(input               clk_i,
 	  exc_o <= exc_next;
 	  reg_write_addr <= reg_write_addr_next;
 	  ir_o <= ir_next;
+	  bank_o <= bank_next;
 	end // else: !if(rst_i)
     end // always_ff @
   
@@ -102,6 +107,7 @@ module mem(input               clk_i,
 	  result_next = result_o;
 	  reg_write_next = reg_write_o;
 	  exc_next = exc_o;
+	  bank_next = bank_o;
 	  pc_next = pc_o;
 	  pc_set_next = pc_set_o;
 	  reg_write_addr_next = reg_write_addr;
@@ -114,6 +120,7 @@ module mem(input               clk_i,
 	  reg_write_next = reg_write_i;
 	  exc_next = exc_i;
 	  pc_next = pc_i;
+	  bank_next = bank_i;
 	  pc_set_next = pc_set_i;
 	  reg_write_addr_next = ir_i[23:20];
 	  ir_next = ir_i;

@@ -16,6 +16,8 @@ module execute(input               clk_i,
 	       output logic [1:0]  reg_write_o,
 	       output logic [2:0]  ccr_o,
 	       output logic 	   halt_o,
+	       input [3:0] 	   bank_i,
+	       output logic [3:0]  bank_o,
 	       input 		   stall_i,
 	       output logic 	   stall_o,
 	       output [63:0] 	   ir_o,
@@ -53,6 +55,7 @@ module execute(input               clk_i,
   logic [1:0] 			   reg_write_next;
   logic 			   halt_next;
   logic [3:0] 			   delay, delay_next;
+  logic [3:0] 			   bank_next;
   intfunc_t                        int_func;
   logic 			   stall_start;
   logic 			   interrupts_enabled_next;
@@ -189,46 +192,54 @@ module execute(input               clk_i,
       vectoff_next = vectoff;
       supervisor_next = supervisor;
       exc_next = 1'h0;
-
-      if (!stall_i)
-	if (|interrupts && interrupts_enabled)
-	  begin
-	    interrupts_enabled_next = 1'b0;
-	    exc_next = 1'h1;
-	  end
-	else
-	  if (ir_type == T_INH)
+      
+      if (stall_i)
+	bank_next = bank_o;
+      else
+	begin
+	  bank_next = bank_i;
+      	  if (|interrupts && interrupts_enabled)
 	    begin
-	      case (ir_op)
-		4'h1: // trap/setint
-		  if (ir_size == 1'h1)
-		    if (supervisor)
-		      vectoff_next = ir_extaddr;
+	      interrupts_enabled_next = 1'b0;
+	      exc_next = 1'h1;
+	      bank_next = bank_i + 4'h1;
+	    end
+	  else
+	    if (ir_type == T_INH)
+	      begin
+		case (ir_op)
+		  4'h1: // trap/setint
+		    if (ir_size == 1'h1)
+		      if (supervisor)
+			vectoff_next = ir_extaddr;
+		      else
+			halt_next = 1'h1;
 		    else
-		      halt_next = 1'h1;
-		  else
-		    begin
-		      exc_next = 1'h1;
-		      interrupts_enabled_next = 1'b0;
-		    end
-		4'h2: // cli
-		  interrupts_enabled_next = 1'b0;
-		4'h3: // sti
-		  interrupts_enabled_next = 1'b1;
-		4'h4: // halt
-		  halt_next = 1'h1;
-		4'h5: // reset
-		  if (supervisor)
-		    begin
-		      exc_next = 1'h1;
-		      interrupts_enabled_next = 1'b0;
-		    end
-		  else
-		    halt_next = 1'h1; // should be illegal instruction vector
-		default:
-		  begin end
-	      endcase // case (ir_op)
-	    end // if (ir_type == T_INH)
+		      begin
+			exc_next = 1'h1;
+			bank_next = bank_i + 4'h1;
+			interrupts_enabled_next = 1'b0;
+		      end
+		  4'h2: // cli
+		    interrupts_enabled_next = 1'b0;
+		  4'h3: // sti
+		    interrupts_enabled_next = 1'b1;
+		  4'h4: // halt
+		    halt_next = 1'h1;
+		  4'h5: // reset
+		    if (supervisor)
+		      begin
+			exc_next = 1'h1;
+			bank_next = bank_i + 4'h1;
+			interrupts_enabled_next = 1'b0;
+		      end
+		    else
+		      halt_next = 1'h1; // should be illegal instruction vector
+		  default:
+		    begin end
+		endcase // case (ir_op)
+	      end // if (ir_type == T_INH)
+	end // else: !if(stall_i)
     end // always_comb
   
   // branch logic

@@ -10,6 +10,8 @@ module idecode(input               clk_i,
 	       input [31:0] 	   pc_i,
 	       input 		   stall_i,
 	       input 		   supervisor_i,
+	       input [3:0] 	   bank_i,
+	       output logic [3:0]  bank_o,
 	       input [1:0] 	   reg_write_i,
 	       input [3:0] 	   reg_write_addr,
 	       input [31:0] 	   reg_data_in,
@@ -34,6 +36,7 @@ module idecode(input               clk_i,
   logic [31:0] 			   regfile_out1;
   logic [31:0] 			   regfile_out2;
   logic [1:0] 			   reg_write_next;
+  logic [3:0] 			   bank_next;
   
   always_ff @(posedge clk_i or posedge rst_i)
     begin
@@ -44,6 +47,7 @@ module idecode(input               clk_i,
 	  reg_data_out1 <= 32'h0;
 	  reg_data_out2 <= 32'h0;
 	  reg_write_o <= 2'h0;
+	  bank_o <= 4'h0;
 	end
       else
 	begin
@@ -52,6 +56,7 @@ module idecode(input               clk_i,
 	  reg_data_out1 <= reg_data_out1_next;
 	  reg_data_out2 <= reg_data_out2_next;
 	  reg_write_o <= reg_write_next;
+	  bank_o <= bank_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
@@ -93,11 +98,13 @@ module idecode(input               clk_i,
 	  reg_data_out1_next = reg_data_out1;
 	  reg_data_out2_next = reg_data_out2;
 	  reg_write_next = reg_write_o;
+	  bank_next = bank_o;
 	end
       else
 	begin
 	  ir_next = ir_i;
 	  pc_next = pc_i;
+	  bank_next = bank_i;
 	  reg_data_out1_next = regfile_out1;
 	  reg_data_out2_next = regfile_out2;
 	  case (ir_type)
@@ -112,14 +119,14 @@ module idecode(input               clk_i,
 	end // else: !if(stall_i)
     end // always_comb
   
-  registerfile reg0(.clk_i(clk_i), .rst_i(rst_i),
-		    .supervisor(supervisor_i),
-		    .read1(reg_read1),
-		    .read2(reg_read2),
-		    .write_addr(reg_write_addr),
-		    .write_data(reg_data_in),
-		    .write_en(reg_write_i),
-		    .data1(regfile_out1),
-		    .data2(regfile_out2));
+  bankedregisterfile reg0(.clk_i(clk_i), .rst_i(rst_i),
+			  .read1(reg_read1),
+			  .read2(reg_read2),
+			  .bank(bank_o),
+			  .write_addr(reg_write_addr),
+			  .write_data(reg_data_in),
+			  .write_en(reg_write_i),
+			  .data1(regfile_out1),
+			  .data2(regfile_out2));
   
 endmodule // idecode

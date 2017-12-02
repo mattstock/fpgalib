@@ -67,6 +67,11 @@ int main(int argc, char **argv, char **env) {
 	     INS_RC(top->id_ir),
 	     INS_RC(top->exe_ir),
 	     INS_RC(top->mem_ir));
+      printf("bnk: % 16s % 16x % 16x % 16x\n",
+	     "",
+	     top->id_bank,
+	     top->exe_bank,
+	     top->mem_bank);
       printf("rd1: % 16s % 16x % 16x\n",
 	     "",
 	     top->id_reg_data_out1,
@@ -114,10 +119,10 @@ int main(int argc, char **argv, char **env) {
       printf("\n");
       for (int i=8; i < 16; i++)
 	printf("% 3d: %08x",
-	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	       i+4*top->id_bank,
+	       top->top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*top->id_bank]);
       printf("\n");
-      printf("ssp: %08x vectoff: %08x inten: % 2d interrupts: % 2x\n",
-	     top->top__DOT__decode0__DOT__reg0__DOT__ssp,
+      printf("vectoff: %08x inten: % 2d interrupts: % 2x\n",
 	     top->top__DOT__exe0__DOT__vectoff,
 	     top->int_en,
 	     top->interrupts);
