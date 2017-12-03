@@ -112,7 +112,11 @@ module idecode(input               clk_i,
 	    T_INT: reg_write_next = 2'h3;
 	    T_LDI: reg_write_next = 2'h3;
 	    T_LOAD: reg_write_next = 2'h3;
-	    T_MOV: reg_write_next = ir_op[1:0];
+	    T_MOV: 
+	      case (ir_op)
+		4'h0: reg_write_next = 2'h3;
+		default: reg_write_next = ir_op[1:0];
+	      endcase // case (ir_op)
 	    T_ALU: reg_write_next = 2'h3;
 	    default: reg_write_next = 2'h0;
 	  endcase // case (ir_type)

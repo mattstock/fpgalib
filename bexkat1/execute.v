@@ -106,17 +106,6 @@ module execute(input               clk_i,
 	end // else: !if(rst_i)
     end // always_ff @
 
-  // CCR update
-  always_comb
-    if (stall_i || stall_o)
-	ccr_next = ccr_o;
-    else
-      begin
-	ccr_next = ccr_o;
-	if (ir_type == T_CMP)
-	  ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
-      end
-
   // forwarding logic
   always_comb
     if (stall_i || stall_o)
@@ -165,27 +154,20 @@ module execute(input               clk_i,
 	    T_INTU:
 	      result_next = int_out;
 	    T_LOAD:
-	      if (ir_size)
-		result_next = ir_extaddr;
-	      else
-		result_next = alu_out;
+	      result_next = (ir_size ? ir_extaddr : alu_out);
 	    T_STORE:
-	      if (ir_size)
-		result_next = ir_extaddr;
-	      else
-		result_next = alu_out;
+	      result_next = (ir_size ? ir_extaddr : alu_out);
 	    T_LDI:
-	      if (ir_size)
-		result_next = ir_extval;
-	      else
-		result_next = ir_uval;
+	      result_next = (ir_size ? ir_extaddr : ir_uval);
 	    T_MOV:
-	      result_next = reg_data1_i;
+	      result_next = (ir_op == 4'h0 ? { 28'h0, supervisor, ccr_o } :
+			     reg_data1_i);
 	    default:
 	      result_next = alu_out;
 	  endcase // case (ir_type)
     end // always_comb
   
+  // CCR update
   // exception logic
   always_comb
     begin
@@ -195,11 +177,15 @@ module execute(input               clk_i,
       supervisor_next = supervisor;
       exc_next = 1'h0;
       
-      if (stall_i)
-	bank_next = bank_o;
+      if (stall_i || stall_o)
+	begin
+	  ccr_next = ccr_o;
+	  bank_next = bank_o;
+	end
       else
 	begin
 	  bank_next = bank_i;
+	  ccr_next = ccr_o;
       	  if (|interrupts && interrupts_enabled)
 	    begin
 	      interrupts_enabled_next = 1'b0;
@@ -207,41 +193,53 @@ module execute(input               clk_i,
 	      // bank_next = bank_i + 4'h1;
 	    end
 	  else
-	    if (ir_type == T_INH)
-	      begin
-		case (ir_op)
-		  4'h1: // trap/setint
-		    if (ir_size == 1'h1)
+	    begin
+	      case (ir_type)
+		T_MOV:
+		  if (ir_op == 4'h4)
+		    begin
+		      ccr_next = reg_data1_i[2:0];
+		      supervisor_next = reg_data1_i[3];
+		    end
+		T_CMP:
+		  ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
+		T_INH:
+		  case (ir_op)
+		    4'h1: // trap/setint
+		      if (ir_size == 1'h1)
+			if (supervisor)
+			  vectoff_next = ir_extaddr;
+			else
+			  halt_next = 1'h1;
+		      else
+			begin
+			  exc_next = 1'h1;
+			  // bank_next = bank_i + 4'h1;
+			  interrupts_enabled_next = 1'b0;
+			end
+		    4'h2: // cli
+		      interrupts_enabled_next = 1'b0;
+		    4'h3: // sti
+		      interrupts_enabled_next = 1'b1;
+		    4'h4: // halt
+		      halt_next = 1'h1;
+		    4'h5: // reset
 		      if (supervisor)
-			vectoff_next = ir_extaddr;
+			begin
+			  exc_next = 1'h1;
+			  // bank_next = bank_i + 4'h1;
+			  interrupts_enabled_next = 1'b0;
+			end
 		      else
 			halt_next = 1'h1;
-		    else
-		      begin
-			exc_next = 1'h1;
-			// bank_next = bank_i + 4'h1;
-			interrupts_enabled_next = 1'b0;
-		      end
-		  4'h2: // cli
-		    interrupts_enabled_next = 1'b0;
-		  4'h3: // sti
-		    interrupts_enabled_next = 1'b1;
-		  4'h4: // halt
-		    halt_next = 1'h1;
-		  4'h5: // reset
-		    if (supervisor)
-		      begin
-			exc_next = 1'h1;
-			// bank_next = bank_i + 4'h1;
-			interrupts_enabled_next = 1'b0;
-		      end
-		    else
-		      halt_next = 1'h1; // should be illegal instruction vector
-		  default:
-		    begin end
-		endcase // case (ir_op)
-	      end // if (ir_type == T_INH)
-	end // else: !if(stall_i)
+		    default:
+		      begin end
+		  endcase // case (ir_op)
+		default:
+		  begin end
+	      endcase // case (ir_type)
+	    end // else: !if(|interrupts && interrupts_enabled)
+	end // else: !if(stall_i || stall_o)
     end // always_comb
   
   // branch logic
