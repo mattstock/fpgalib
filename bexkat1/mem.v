@@ -126,14 +126,14 @@ module mem(input               clk_i,
 	  ir_next = ir_i;
 	  
 	  if (exc_i) // this won't work for multi-cycle
-/*	  if (ir_type == T_INH)
-	    if ((ir_op == 4'h1 && ir_size == 1'h0) ||
-		(ir_op == 4'h5)) */
+	    /*	  if (ir_type == T_INH)
+	     if ((ir_op == 4'h1 && ir_size == 1'h0) ||
+	     (ir_op == 4'h5)) */
 	      begin
 		pc_next = result_i;
 		pc_set_next = 1'h1;
 		result_next = pc_o + 32'h4;
-		reg_write_addr_next = 4'hd; // %13
+		reg_write_addr_next = 4'h7; // %7
 		reg_write_next = 2'h3;
 	      end
 	  else

@@ -85,6 +85,7 @@ module execute(input               clk_i,
 	  vectoff <= 32'hffffffc0;
 	  exc_o <= 1'h0;
 	  supervisor <= 1'h1;
+	  bank_o <= 4'h0;
 	end
       else
 	begin
@@ -101,6 +102,7 @@ module execute(input               clk_i,
 	  vectoff <= vectoff_next;
 	  exc_o <= exc_next;
 	  supervisor <= supervisor_next;
+	  bank_o <= bank_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
