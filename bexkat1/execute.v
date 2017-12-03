@@ -204,7 +204,7 @@ module execute(input               clk_i,
 	    begin
 	      interrupts_enabled_next = 1'b0;
 	      exc_next = 1'h1;
-	      bank_next = bank_i + 4'h1;
+	      // bank_next = bank_i + 4'h1;
 	    end
 	  else
 	    if (ir_type == T_INH)
@@ -219,7 +219,7 @@ module execute(input               clk_i,
 		    else
 		      begin
 			exc_next = 1'h1;
-			bank_next = bank_i + 4'h1;
+			// bank_next = bank_i + 4'h1;
 			interrupts_enabled_next = 1'b0;
 		      end
 		  4'h2: // cli
@@ -232,7 +232,7 @@ module execute(input               clk_i,
 		    if (supervisor)
 		      begin
 			exc_next = 1'h1;
-			bank_next = bank_i + 4'h1;
+			// bank_next = bank_i + 4'h1;
 			interrupts_enabled_next = 1'b0;
 		      end
 		    else

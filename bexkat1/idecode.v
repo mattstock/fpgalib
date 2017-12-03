@@ -119,14 +119,14 @@ module idecode(input               clk_i,
 	end // else: !if(stall_i)
     end // always_comb
   
-  bankedregisterfile reg0(.clk_i(clk_i), .rst_i(rst_i),
-			  .read1(reg_read1),
-			  .read2(reg_read2),
-			  .bank(bank_o),
-			  .write_addr(reg_write_addr),
-			  .write_data(reg_data_in),
-			  .write_en(reg_write_i),
-			  .data1(regfile_out1),
-			  .data2(regfile_out2));
+  registerfile reg0(.clk_i(clk_i), .rst_i(rst_i),
+		    .read1(reg_read1),
+		    .read2(reg_read2),
+		    .supervisor(1'b0),
+		    .write_addr(reg_write_addr),
+		    .write_data(reg_data_in),
+		    .write_en(reg_write_i),
+		    .data1(regfile_out1),
+		    .data2(regfile_out2));
   
 endmodule // idecode
