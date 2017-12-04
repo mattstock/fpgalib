@@ -317,6 +317,11 @@ module execute(input               clk_i,
 		  default: begin end
 		endcase // case (ir_op)
 	      end // case: T_BRANCH
+	    T_PUSH:
+	      begin
+		pc_next = (ir_size ? ir_extaddr : alu_out);
+		pc_set_next = 1'b1;
+	      end
 	    T_JUMP:
 	      begin
 		pc_next = (ir_size ? ir_extaddr : alu_out);
@@ -353,6 +358,15 @@ module execute(input               clk_i,
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
 	      alu_in1 = {ir_sval[29:0], 2'b00};
+	  end
+	T_PUSH:
+	  begin
+	    alu_func = ALU_ADD;
+	    if (!ir_size)
+	      begin
+		alu_in1 = pc_i;
+		alu_in2 = {ir_sval[29:0], 2'b00};
+	      end
 	  end
 	T_BRANCH:
 	  begin

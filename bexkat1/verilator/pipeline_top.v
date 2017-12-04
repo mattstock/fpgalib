@@ -63,7 +63,7 @@ module top(input         clk_i,
 		  .ir_i((hazard_stall|
 			 exe_exc|
 			 exe_pc_set|
-			 mem_exc ? 64'h0 : if_ir)),
+			 mem_pc_set ? 64'h0 : if_ir)),
 		  .ir_o(id_ir),
 		  .pc_i(if_pc),
 		  .pc_o(id_pc),

@@ -48,13 +48,13 @@ alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000004 cyc: 1 ack: 1 dat_i: deadbeef
+Ins: adr: 00000004 cyc: 1 ack: 1 dat_i: 11223344
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
 -------------------- 002 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
 pc:                 8                4                0                0
-ir:  deadbeef80000001                0                0                0
+ir:  1122334480000001                0                0                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
@@ -74,13 +74,13 @@ alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000008 cyc: 1 ack: 1 dat_i: c0000001
+Ins: adr: 00000008 cyc: 1 ack: 1 dat_i: 11000001
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
 -------------------- 003 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
 pc:                 c                8                4                0
-ir:                 0 deadbeef80000001                0                0
+ir:                 0 1122334480000001                0                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
@@ -100,13 +100,13 @@ alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 0000000c cyc: 1 ack: 1 dat_i: 0000001c
+Ins: adr: 0000000c cyc: 1 ack: 1 dat_i: 00000024
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
 -------------------- 004 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
 pc:                10                c                8                4
-ir:        1cc0000001                0 deadbeef80000001                0
+ir:        2411000001                0 1122334480000001                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
@@ -115,7 +115,7 @@ rd1:                                 0                0
 rd2:                                 0
 ed1:                                 0
 ed2:                                 0
-res:                                           deadbeef                0
+res:                                           11223344                0
 ccr:                                                  0
 rwr:                                 0                3                0
 pcs:                                                  0                0
@@ -126,162 +126,734 @@ alu_func: 0 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  0
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000010 cyc: 1 ack: 1 dat_i: 80008ace
-Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f
+Ins: adr: 00000010 cyc: 1 ack: 1 dat_i: 1200000e
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f
 -------------------- 005 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
 pc:                14               10                c                8
-ir:          80008ace       1cc0000001                0 deadbeef80000001
+ir:          1200000e       2411000001                0 1122334480000001
 ra:                 0                0                0                0
 rb:                 0                0                0                0
-rc:                 8                0                0                0
+rc:                 0                0                0                0
 bnk:                                 0                0                0
 rd1:                                 0                0
 rd2:                                 0
 ed1:                                 0
 ed2:                                 0
-res:                                                  0         deadbeef
+res:                                                  0         11223344
 ccr:                                                  0
 rwr:                                 0                0                3
 pcs:                                                  0                0
 exc:                                                  0                0
 --- INTERNAL STATE ---
-alu_func: 2 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
+alu_func: 2 alu1: 00000000 alu2: 00000000 alu_out: 00000000 int_func: 1 int_out: 00000000
   0: 00000000  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000014 cyc: 1 ack: 1 dat_i: b0000012
+Ins: adr: 00000014 cyc: 1 ack: 1 dat_i: 80300001
 Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
 -------------------- 006 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
-pc:                18               14               1c                c
-ir:          b0000012         80008ace       1cc0000001                0
-ra:                 0                0                0                0
-rb:                 0                0                0                0
-rc:                 0                8                0                0
-bnk:                                 0                0                0
-rd1:                          deadbeef                0
-rd2:                                 0
-ed1:                          deadbeef
-ed2:                                 0
-res:                                                  0                0
-ccr:                                                  0
-rwr:                                 3                0                0
-pcs:                                                  1                0
-exc:                                                  0                0
---- INTERNAL STATE ---
-alu_func: 0 alu1: deadbeef alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
-  0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
-  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
-vectoff: ffffffc0 inten:  0 interrupts:  1
-h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000018 cyc: 1 ack: 1 dat_i: 04000000
-Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 00000000 we: 0 sel: f
--------------------- 007 --------------------
---- PIPELINE STATE ---
-               ifetch          idecode             exec              mem
-pc:                1c               18               14               1c
-ir:           4000000                0                0       1cc0000001
+pc:                18               14               24                c
+ir:                 0         1200000e       2411000001                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
 bnk:                                 0                0                0
-rd1:                          deadbeef         deadbeef
-rd2:                          deadbeef
-ed1:                          deadbeef
-ed2:                          deadbeef
+rd1:                          11223344                0
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
 res:                                                  0                0
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  1                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000018 cyc: 1 ack: 1 dat_i: deadbeef
+Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 00008000 dat_o: 00000000 we: 0 sel: c
+-------------------- 007 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                1c               18               14               24
+ir:  deadbeef80300001                0                0       2411000001
+ra:                 3                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344               10
+ccr:                                                  0
+rwr:                                 0                0                3
+pcs:                                                  0                1
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 13
+Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42130000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 008 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                24               1c               18               14
+ir:                 0                0                0                0
+ra:                 0                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000024 cyc: 1 ack: 1 dat_i: 80108ace
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 009 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                28               24               1c               18
+ir:          80108ace                0                0                0
+ra:                 1                0                0                0
+rb:                 0                0                0                0
+rc:                 8                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000028 cyc: 1 ack: 1 dat_i: c00d0000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 010 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                2c               28               24               1c
+ir:          c00d0000         80108ace                0                0
+ra:                 0                1                0                0
+rb:                 d                0                0                0
+rc:                 0                8                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                                 0
+ed1:                          11223344
+ed2:                                 0
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 3                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
+  0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 0000002c cyc: 1 ack: 1 dat_i: 04000000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 011 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                30               2c               28               24
+ir:           4000000         c00d0000         80108ace                0
+ra:                 0                0                1                0
+rb:                 0                d                0                0
+rc:                 0                0                8                0
+bnk:                                 0                0                0
+rd1:                                10         11223344
+rd2:                          11223344
+ed1:                                10
+ed2:                          11223344
+res:                                               4567         11223344
+ccr:                                                  0
+rwr:                                 0                3                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 2 alu1: 00000010 alu2: 00000000 alu_out: 00000010 int_func: 0 int_out: 00000000
+  0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000030 cyc: 1 ack: 1 dat_i: 80206488
+Dat: adr: 00004567 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 012 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                34               30               10               28
+ir:          80206488          4000000         c00d0000         80108ace
+ra:                 2                0                0                1
+rb:                 0                0                d                0
+rc:                 6                0                0                8
+bnk:                                 0                0                0
+rd1:                          11223344               10
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                                 10             4567
+ccr:                                                  0
+rwr:                                 0                0                3
+pcs:                                                  1                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 01
+Ins: adr: 00000034 cyc: 1 ack: 1 dat_i: c00d0000
+Dat: adr: 00000010 cyc: 0 ack: 0 dat_i: 1200000e dat_o: 00000010 we: 0 sel: f
+-------------------- 013 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                38               34               30               10
+ir:          c00d0000                0                0         c00d0000
+ra:                 0                0                0                0
+rb:                 d                0                0                d
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344               10
 ccr:                                                  0
 rwr:                                 0                0                0
 pcs:                                                  0                1
 exc:                                                  0                0
 --- INTERNAL STATE ---
-alu_func: 0 alu1: deadbeef alu2: deadbeef alu_out: deadbeef int_func: 0 int_out: 216da321
-  0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
-  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42100000
-Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: deadbeef we: 0 sel: f
--------------------- 008 --------------------
+Ins: adr: 00000038 cyc: 1 ack: 1 dat_i: 04000000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 014 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
-pc:                1c               1c               18               14
-ir:                 0          4000000                0                0
+pc:                10               38               34               30
+ir:                 0                0                0                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
 bnk:                                 0                0                0
-rd1:                          deadbeef         deadbeef
-rd2:                          deadbeef
-ed1:                          deadbeef
-ed2:                          deadbeef
-res:                                           deadbeef                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
 ccr:                                                  0
 rwr:                                 0                0                0
 pcs:                                                  0                0
 exc:                                                  0                0
 --- INTERNAL STATE ---
-alu_func: 4 alu1: deadbeef alu2: deadbeef alu_out: 00000000 int_func: 4 int_out: 00000001
-  0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
-  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42100000
-Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: deadbeef we: 0 sel: f
--------------------- 009 --------------------
+Ins: adr: 00000010 cyc: 1 ack: 1 dat_i: 1200000e
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 015 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
-pc:                20               1c               1c               18
-ir:          42100000                0          4000000                0
-ra:                 1                0                0                0
+pc:                14               10               38               34
+ir:          1200000e                0                0                0
+ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
 bnk:                                 0                0                0
-rd1:                          deadbeef         deadbeef
-rd2:                          deadbeef
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000014 cyc: 1 ack: 1 dat_i: 80300001
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 016 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                18               14               10               38
+ir:                 0         1200000e                0                0
+ra:                 0                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 2 alu1: 00000014 alu2: 0000001c alu_out: 00000030 int_func: 2 int_out: 00000014
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000018 cyc: 1 ack: 1 dat_i: deadbeef
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 017 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                1c               18               30               10
+ir:  deadbeef80300001                0         1200000e                0
+ra:                 3                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                                 30         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  1                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42130000
+Dat: adr: 00000030 cyc: 0 ack: 0 dat_i: 00000080 dat_o: 11223344 we: 0 sel: 8
+-------------------- 018 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                20               1c               18               30
+ir:          42130000                0                0         1200000e
+ra:                 1                0                0                0
+rb:                 3                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344               14
+ccr:                                                  0
+rwr:                                 0                0                3
+pcs:                                                  0                1
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000010 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 13
+Ins: adr: 00000020 cyc: 1 ack: 1 dat_i: 04000000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 019 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                30               20               1c               18
+ir:                 0                0                0                0
+ra:                 0                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000030 cyc: 1 ack: 1 dat_i: 80206488
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 020 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                34               30               20               1c
+ir:          80206488                0                0                0
+ra:                 2                0                0                0
+rb:                 0                0                0                0
+rc:                 6                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000034 cyc: 1 ack: 1 dat_i: c00d0000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 021 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                38               34               30               20
+ir:          c00d0000         80206488                0                0
+ra:                 0                2                0                0
+rb:                 d                0                0                0
+rc:                 0                6                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                                 0
+ed1:                          11223344
+ed2:                                 0
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 3                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000038 cyc: 1 ack: 1 dat_i: 04000000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 022 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                3c               38               34               30
+ir:           4000000         c00d0000         80206488                0
+ra:                 0                0                2                0
+rb:                 0                d                0                0
+rc:                 0                0                6                0
+bnk:                                 0                0                0
+rd1:                                14         11223344
+rd2:                          11223344
+ed1:                                14
+ed2:                          11223344
+res:                                               3244         11223344
+ccr:                                                  0
+rwr:                                 0                3                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 2 alu1: 00000014 alu2: 00000000 alu_out: 00000014 int_func: 0 int_out: 00000000
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 0000003c cyc: 1 ack: 1 dat_i: 00000000
+Dat: adr: 00003244 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 023 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                40               3c               14               34
+ir:                 0          4000000         c00d0000         80206488
+ra:                 0                0                0                2
+rb:                 0                0                d                0
+rc:                 0                0                0                6
+bnk:                                 0                0                0
+rd1:                          11223344               14
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                                 14             3244
+ccr:                                                  0
+rwr:                                 0                0                3
+pcs:                                                  1                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 02
+Ins: adr: 00000040 cyc: 1 ack: 1 dat_i: 00000000
+Dat: adr: 00000014 cyc: 0 ack: 0 dat_i: 80300001 dat_o: 00000014 we: 0 sel: f
+-------------------- 024 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                44               40               3c               14
+ir:                 0                0                0         c00d0000
+ra:                 0                0                0                0
+rb:                 0                0                0                d
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344               14
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                1
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00003244  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000044 cyc: 1 ack: 1 dat_i: 00000000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 025 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                14               44               40               3c
+ir:                 0                0                0                0
+ra:                 0                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00003244  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000014 cyc: 1 ack: 1 dat_i: 80300001
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 026 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                18               14               44               40
+ir:                 0                0                0                0
+ra:                 0                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00003244  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000018 cyc: 1 ack: 1 dat_i: deadbeef
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 027 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                1c               18               14               44
+ir:  deadbeef80300001                0                0                0
+ra:                 3                0                0                0
+rb:                 0                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 0                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00003244  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 0000001c cyc: 1 ack: 1 dat_i: 42130000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 028 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                20               1c               18               14
+ir:          42130000 deadbeef80300001                0                0
+ra:                 1                3                0                0
+rb:                 3                0                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           11223344         11223344
+ccr:                                                  0
+rwr:                                 3                0                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out: b0542a10
+  0: 11223344  1: 00004567  2: 00003244  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000020 cyc: 1 ack: 1 dat_i: 04000000
+Dat: adr: 11223344 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 029 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                24               20               1c               18
+ir:           4000000         42130000 deadbeef80300001                0
+ra:                 0                1                3                0
+rb:                 0                3                0                0
+rc:                 0                0                0                0
+bnk:                                 0                0                0
+rd1:                                 0         11223344
+rd2:                          11223344
 ed1:                          deadbeef
-ed2:                          deadbeef
+ed2:                          11223344
+res:                                           deadbeef         11223344
+ccr:                                                  0
+rwr:                                 2                3                0
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 2 alu1: deadbeef alu2: 11223344 alu_out: efcff233 int_func: 2 int_out: efcff233
+  0: 11223344  1: 00004567  2: 00003244  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 02 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
+Ins: adr: 00000024 cyc: 1 ack: 1 dat_i: 80108ace
+Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
+-------------------- 030 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                28               24               20               1c
+ir:          80108ace          4000000         42130000 deadbeef80300001
+ra:                 1                0                1                3
+rb:                 0                0                3                0
+rc:                 8                0                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         deadbeef
+rd2:                          11223344
+ed1:                          11223344
+ed2:                          11223344
+res:                                           deadbeef         deadbeef
+ccr:                                                  0
+rwr:                                 0                2                3
+pcs:                                                  0                0
+exc:                                                  0                0
+--- INTERNAL STATE ---
+alu_func: 4 alu1: 11223344 alu2: 11223344 alu_out: 00000000 int_func: 4 int_out: 00000001
+  0: 11223344  1: 00004567  2: 00003244  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
+vectoff: ffffffc0 inten:  0 interrupts:  1
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 03
+Ins: adr: 00000028 cyc: 1 ack: 1 dat_i: c00d0000
+Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: deadbeef we: 0 sel: 1
+-------------------- 031 --------------------
+--- PIPELINE STATE ---
+               ifetch          idecode             exec              mem
+pc:                2c               28               24               20
+ir:          c00d0000         80108ace          4000000         42130000
+ra:                 0                1                0                1
+rb:                 d                0                0                3
+rc:                 0                8                0                0
+bnk:                                 0                0                0
+rd1:                          11223344         11223344
+rd2:                                 0
+ed1:                          11223344
+ed2:                                 0
 res:                                                  0         deadbeef
 ccr:                                                  0
-rwr:                                 0                0                0
+rwr:                                 3                0                2
 pcs:                                                  0                0
 exc:                                                  0                0
 --- INTERNAL STATE ---
-alu_func: 0 alu1: deadbeef alu2: deadbeef alu_out: deadbeef int_func: 0 int_out: 216da321
-  0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
-  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
+alu_func: 0 alu1: 11223344 alu2: 00000000 alu_out: 00000000 int_func: 0 int_out: 00000000
+  0: 11223344  1: 00004567  2: 00003244  3: deadbeef  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
-h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000020 cyc: 1 ack: 1 dat_i: 42200000
-Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: deadbeef we: 0 sel: f
--------------------- 010 --------------------
+h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 01
+Ins: adr: 0000002c cyc: 1 ack: 1 dat_i: 04000000
+Dat: adr: 00000000 cyc: 0 ack: 0 dat_i: 80000001 dat_o: 11223344 we: 0 sel: f
+-------------------- 032 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
-pc:                20               20               1c               1c
-ir:          42100000         42100000                0                0
-ra:                 1                1                0                0
-rb:                 0                0                0                0
-rc:                 0                0                0                0
+pc:                2c               2c               28               24
+ir:          c00d0000         c00d0000         80108ace                0
+ra:                 0                0                1                0
+rb:                 d                d                0                0
+rc:                 0                0                8                0
 bnk:                                 0                0                0
-rd1:                          deadbeef         deadbeef
-rd2:                          deadbeef
-ed1:                          deadbeef
-ed2:                          deadbeef
-res:                                           deadbeef                0
+rd1:                                14         11223344
+rd2:                          11223344
+ed1:                                14
+ed2:                          11223344
+res:                                               4567                0
 ccr:                                                  0
-rwr:                                 2                0                0
+rwr:                                 0                3                0
 pcs:                                                  0                0
 exc:                                                  0                0
 --- INTERNAL STATE ---
-alu_func: 2 alu1: deadbeef alu2: deadbeef alu_out: bd5b7dde int_func: 2 int_out: 00000000
-  0: deadbeef  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
-  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
+alu_func: 2 alu1: 00000014 alu2: 00000000 alu_out: 00000014 int_func: 0 int_out: 00000000
+  0: 11223344  1: 0000beef  2: 00003244  3: deadbeef  4: 00000000  5: 00000000  6: 00000000  7: 00000000
+  8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000014 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000020 cyc: 1 ack: 1 dat_i: 42200000
-Dat: adr: deadbeef cyc: 0 ack: 0 dat_i: 00000000 dat_o: deadbeef we: 0 sel: f
+Ins: adr: 0000002c cyc: 1 ack: 1 dat_i: 04000000
+Dat: adr: 00004567 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11223344 we: 0 sel: f
 HALT

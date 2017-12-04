@@ -124,18 +124,31 @@ module mem(input               clk_i,
 	  pc_set_next = pc_set_i;
 	  reg_write_addr_next = ir_i[23:20];
 	  ir_next = ir_i;
-	  
-	  if (exc_i) // this won't work for multi-cycle
-	    /*	  if (ir_type == T_INH)=
-	     if ((ir_op == 4'h1 && ir_size == 1'h0) ||
-	     (ir_op == 4'h5)) */
-	      begin
-		pc_next = result_i;
-		pc_set_next = 1'h1;
-		result_next = pc_o + 32'h4;
-		reg_write_addr_next = 4'hd; // %13 used for link reg
-		reg_write_next = 2'h3;
-	      end
+
+	  /*
+	   * all of this code looks similar, but it flows differently
+	   * through the pipeline.  For exceptions, we need to do a memory
+	   * lookup, and so the jump address in result_i.  We save the
+	   * current PC to %13 so we can pop back later.
+	   * 
+	   * For normal jumps and branches, the mem cycle is a no op,
+	   * and the result is already in the pc register along with the
+	   * set flag for the ifetch.
+	   * 
+	   * For subroutine branches and jumps, we need to save the PC,
+	   * and so it's like a hybrid.
+	   */
+	  if (exc_i)
+	    begin
+	      pc_next = result_i;
+	      pc_set_next = 1'h1;
+	    end
+	  if (exc_i || ir_type == T_PUSH)
+	    begin
+	      result_next = pc_o + 32'h4;
+	      reg_write_addr_next = 4'hd; // %13 used for link reg
+	      reg_write_next = 2'h3;
+	    end
 	  else
 	    if (ir_type == T_LOAD)
 	      result_next = bus_in;
