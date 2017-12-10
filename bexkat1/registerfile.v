@@ -1,5 +1,5 @@
 module registerfile
-  #(WIDTH=32, COUNTP=4)
+  #(WIDTH=32, COUNTP=4, SPREG=4'd15)
   (input              clk_i, 
    input 	      rst_i,
    input 	      supervisor, 
@@ -8,21 +8,48 @@ module registerfile
    input [COUNTP-1:0] write_addr,
    input [WIDTH-1:0]  write_data,
    input [1:0] 	      write_en,
+   input [WIDTH-1:0]  sp_data,
+   input [1:0] 	      sp_en,
    output [WIDTH-1:0] data1,
    output [WIDTH-1:0] data2);
 
   localparam COUNT=2**COUNTP;
+
+  /* We allow multiple writes for the sole purpose of being able to
+   * do stack operations - we need to adjust the stack pointer (either %15
+   * or ssp) at the same time as we may need to load the result of a pop into
+   * another register.  To avoid various hazards, we partition writes so that
+   * the sp/%15 is a separate operation from other writes.
+   */
   
   logic [WIDTH-1:0]   regfile [COUNT-1:0];
   logic [WIDTH-1:0]   regfile_next [COUNT-1:0];
   logic [WIDTH-1:0]   ssp, ssp_next;
+
+  function [WIDTH-1:0] align_val;
+    input [1:0] byte_en;
+    input [WIDTH-1:0] load;
+
+    case (byte_en)
+      2'h0: align_val = load;
+      2'h1: align_val = { 24'h0, load[7:0] };
+      2'h2: align_val = { 16'h0, load[15:0] };
+      2'h3: align_val = load;
+    endcase // case (byte_en)
+  endfunction
+
+  function [WIDTH-1:0] pass_val;
+    input [COUNTP-1:0] addr;
+
+    return (supervisor && addr == SPREG ? sp_data : write_data);
+  endfunction  
   
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
 	begin
 	  for (int i=0; i < COUNT; i = i + 1)
-	    regfile[i] <= 'h00000000;
+	    regfile[i] <= 32'h0;
 	  ssp <= 32'h0;
 	end
       else
@@ -33,49 +60,42 @@ module registerfile
 	end // else: !if(rst_i)
     end // always_ff @
 
+  // Writes
   always_comb
     begin
       for (int i=0; i < COUNT; i = i + 1)
 	regfile_next[i] = regfile[i];
       ssp_next = ssp;
-      data1 = (supervisor && read1 == 4'd15 ? ssp : regfile[read1]);
-      data2 = (supervisor && read2 == 4'd15 ? ssp : regfile[read2]);
-      case (write_en)
-	2'b00: begin end
-	2'b01:
-	  begin
-	    if (read1 == write_addr)
-	      data1 = { 24'h0, write_data[7:0] };
-	    if (read2 == write_addr)
-	      data2 = { 24'h0, write_data[7:0] };
-	    if (supervisor && write_addr == 4'd15)
-	      ssp_next = { 24'h0, write_data[7:0] };
-	    else
-	      regfile_next[write_addr] = { 24'h000000, write_data[7:0] };
-	  end
-	2'b10:
-	  begin
-	    if (read1 == write_addr)
-	      data1 = { 16'h0, write_data[15:0] };
-	    if (read2 == write_addr)
-	      data2 = { 16'h0, write_data[15:0] };
-	    if (supervisor && write_addr == 4'd15)
-	      ssp_next = { 16'h0, write_data[15:0] };
-	    else
-	      regfile_next[write_addr] = { 16'h0000, write_data[15:0] };
-	  end
-	2'b11:
-	  begin
-	    if (read1 == write_addr)
-	      data1 = write_data;
-	    if (read2 == write_addr)
-	      data2 = write_data;
-	    if (supervisor && write_addr == 4'd15)
-	      ssp_next = write_data;
-	    else
-	      regfile_next[write_addr] = write_data;
-	  end
-      endcase // case (write_en)
+      if (|write_en)
+	regfile_next[write_addr] = align_val(write_en, write_data);
+      if (|sp_en)
+	if (supervisor)
+	  ssp_next = align_val(sp_en, sp_data);
+	else
+	  regfile_next[SPREG] = align_val(sp_en, sp_data);
+    end // always_comb
+
+  // Read logic
+  always_comb
+    begin
+      data1 = (supervisor && read1 == SPREG ? ssp : regfile[read1]);
+      data2 = (supervisor && read2 == SPREG ? ssp : regfile[read2]);
+      
+      // Passthrough logic
+      if (|write_en)
+	begin
+	  if (read1 == write_addr)
+	    data1 = align_val(write_en, pass_val(read1));
+	  if (read2 == write_addr)
+	    data2 = align_val(write_en, pass_val(read2));
+	end
+      if (|sp_en)
+	begin
+	  if (read1 == SPREG)
+	    data1 = align_val(sp_en, pass_val(read1));
+	  if (read2 == SPREG)
+	    data2 = align_val(sp_en, pass_val(read2));
+	end
     end // always_comb
 endmodule // registerfile
 

@@ -673,7 +673,7 @@ alu_func: 7 alu1: 11224455 alu2: 00003113 alu_out: 11227546 int_func: 15 int_out
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 14
 Ins: adr: 00000064 cyc: 1 ack: 1 dat_i: 00000000
-Dat: adr: 11225454 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11224455 we: 0 sel: f
+Dat: adr: 11225454 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11224455 we: 0 sel: 3
 -------------------- 026 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem
@@ -699,7 +699,7 @@ alu_func: 4 alu1: fffffffe alu2: fffffffe alu_out: 00000000 int_func: 4 int_out:
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hs:  0 es:  0 ms:  0 wad: 15
 Ins: adr: 00000068 cyc: 1 ack: 1 dat_i: 00000000
-Dat: adr: 11227546 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11224455 we: 0 sel: f
+Dat: adr: 11227546 cyc: 0 ack: 0 dat_i: 00000000 dat_o: 11224455 we: 0 sel: 3
 -------------------- 027 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode             exec              mem

@@ -9,11 +9,14 @@ module execute(input               clk_i,
 	       input [63:0] 	   ir_i,
 	       input [31:0] 	   pc_i,
 	       input [31:0] 	   reg_data1_i,
-	       input [31:0] 	   reg_data2,
-	       output logic [31:0] result,
 	       output logic [31:0] reg_data1_o,
+	       input [31:0] 	   reg_data2_i,
+	       output logic [31:0] reg_data2_o,
+	       output logic [31:0] result,
 	       input [1:0] 	   reg_write_i,
 	       output logic [1:0]  reg_write_o,
+	       input [1:0] 	   sp_write_i,
+	       output logic [1:0]  sp_write_o,
 	       output logic [2:0]  ccr_o,
 	       output logic 	   halt_o,
 	       input [3:0] 	   bank_i,
@@ -48,11 +51,14 @@ module execute(input               clk_i,
   /* verilator lint_off UNOPTFLAT */
   logic 			   alu_c, alu_n, alu_v, alu_z;
   /* verilator lint_on UNOPTFLAT */
-  logic [31:0] 			   pc_next, reg_data1_next;
+  logic [31:0] 			   pc_next;
+  logic [31:0] 			   reg_data1_next;
+  logic [31:0] 			   reg_data2_next;
   logic 			   pc_set_next;
   logic [63:0] 			   ir_next;
   logic [31:0] 			   result_next;
   logic [1:0] 			   reg_write_next;
+  logic [1:0] 			   sp_write_next;
   logic 			   halt_next;
   logic [3:0] 			   delay, delay_next;
   logic [3:0] 			   bank_next;
@@ -75,6 +81,7 @@ module execute(input               clk_i,
 	  ir_o <= 64'h0;
 	  pc_o <= 32'h0;
 	  reg_data1_o <= 32'h0;
+	  reg_data2_o <= 32'h0;
 	  ccr_o <= 3'h0;
 	  result <= 32'h0;
 	  reg_write_o <= 2'h0;
@@ -86,15 +93,18 @@ module execute(input               clk_i,
 	  exc_o <= 1'h0;
 	  supervisor <= 1'h1;
 	  bank_o <= 4'h0;
+	  sp_write_o <= 2'h0;
 	end
       else
 	begin
 	  ir_o <= ir_next;
 	  pc_o <= pc_next;
 	  reg_data1_o <= reg_data1_next;
+	  reg_data2_o <= reg_data2_next;
 	  ccr_o <= ccr_next;
 	  result <= result_next;
 	  reg_write_o <= reg_write_next;
+	  sp_write_o <= sp_write_next;
 	  halt_o <= halt_next;
 	  pc_set_o <= pc_set_next;
 	  delay <= delay_next;
@@ -112,13 +122,17 @@ module execute(input               clk_i,
       begin
 	ir_next = ir_o;
 	reg_data1_next = reg_data1_o;
+	reg_data2_next = reg_data2_o;
 	reg_write_next = reg_write_o;
+	sp_write_next = sp_write_o;
       end
     else
       begin
 	ir_next = ir_i;
 	reg_data1_next = reg_data1_i;
+	reg_data2_next = reg_data2_i;
 	reg_write_next = reg_write_i;
+	sp_write_next = sp_write_i;
       end
 
   // delay logic for multi-cycle ops
@@ -149,6 +163,8 @@ module execute(input               clk_i,
 		  result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
 		else
 		  result_next = alu_out;
+	    T_PUSH:
+	      result_next = (ir_size ? ir_extaddr : alu_out);
 	    T_INT:
 	      result_next = int_out;
 	    T_INTU:
@@ -318,10 +334,11 @@ module execute(input               clk_i,
 		endcase // case (ir_op)
 	      end // case: T_BRANCH
 	    T_PUSH:
-	      begin
-		pc_next = (ir_size ? ir_extaddr : alu_out);
+	      if (ir_op != 4'h0)
 		pc_set_next = 1'b1;
-	      end
+	    T_POP:
+	      if (ir_op != 4'h0)
+		pc_set_next = 1'b1;
 	    T_JUMP:
 	      begin
 		pc_next = (ir_size ? ir_extaddr : alu_out);
@@ -335,23 +352,43 @@ module execute(input               clk_i,
   always_comb
     begin
       alu_in1 = reg_data1_i;
-      alu_in2 = reg_data2;
+      alu_in2 = reg_data2_i;
       alu_func = alufunc_t'(ir_op[2:0]);
       int_func = intfunc_t'(ir_op);
       case (ir_type)
+	T_PUSH:
+	  case (ir_op)
+	    4'h0: // push
+	      begin
+		alu_func = ALU_SUB;
+		alu_in2 = 32'h4;
+	      end
+	    4'h1: // jsr, jsrd
+	      begin
+		alu_func = ALU_ADD;
+		if (!ir_size)
+		  alu_in1 = {ir_sval[29:0], 2'b00};
+	      end
+	    4'h2: // bsr
+	      begin
+		alu_func = ALU_ADD;
+		alu_in1 = {ir_sval[29:0], 2'b00};
+		alu_in2 = pc_i;
+	      end
+	    default: begin end
+	  endcase // case (ir_op)
+	T_POP:
+	  alu_in2 = 32'h4;
+	T_CMP:
+	  alu_func = ALU_SUB;
+	T_ALU: 
+	    if (ir_op[3]) 
+	      alu_in2 = ir_sval;
 	T_INT:
 	  begin
 	    int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
 	    if (ir_op[3]) 
 	      alu_in2 = ir_sval;
-	  end
-	T_CMP:
-	  alu_func = ALU_SUB;
-	T_LOAD:
-	  begin
-	    alu_func = ALU_ADD;
-	    if (!ir_size)
-	      alu_in1 = {ir_sval[29:0], 2'b00};
 	  end
 	T_STORE:
 	  begin
@@ -359,30 +396,24 @@ module execute(input               clk_i,
 	    if (!ir_size)
 	      alu_in1 = {ir_sval[29:0], 2'b00};
 	  end
-	T_PUSH:
+	T_LOAD:
 	  begin
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
-	      begin
-		alu_in1 = pc_i;
-		alu_in2 = {ir_sval[29:0], 2'b00};
-	      end
+	      alu_in1 = {ir_sval[29:0], 2'b00};
 	  end
 	T_BRANCH:
 	  begin
-	    alu_in1 = pc_i;
-	    alu_in2 = {ir_sval[29:0], 2'b00};
 	    alu_func = ALU_ADD;
+	    alu_in1 = {ir_sval[29:0], 2'b00};
+	    alu_in2 = pc_i;
 	  end
 	T_JUMP:
 	  begin
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
-	      alu_in2 = {ir_sval[29:0], 2'b00};
+	      alu_in1 = {ir_sval[29:0], 2'b00};
 	  end
-	T_ALU: 
-	    if (ir_op[3]) 
-	      alu_in2 = ir_sval;
 	default: begin end
       endcase // case (ir_type)
     end // always_comb

@@ -15,6 +15,9 @@ module idecode(input               clk_i,
 	       input [1:0] 	   reg_write_i,
 	       input [3:0] 	   reg_write_addr,
 	       input [31:0] 	   reg_data_in,
+	       input [31:0] 	   sp_data_i,
+	       input [1:0] 	   sp_write_i,
+	       output logic [1:0]  sp_write_o,
 	       output logic [1:0]  reg_write_o,
 	       output [63:0] 	   ir_o,
 	       output logic [31:0] pc_o,
@@ -35,7 +38,7 @@ module idecode(input               clk_i,
   logic [31:0] 			   reg_data_out2_next;
   logic [31:0] 			   regfile_out1;
   logic [31:0] 			   regfile_out2;
-  logic [1:0] 			   reg_write_next;
+  logic [1:0] 			   reg_write_next, sp_write_next;
   logic [3:0] 			   bank_next;
   
   always_ff @(posedge clk_i or posedge rst_i)
@@ -47,6 +50,7 @@ module idecode(input               clk_i,
 	  reg_data_out1 <= 32'h0;
 	  reg_data_out2 <= 32'h0;
 	  reg_write_o <= 2'h0;
+	  sp_write_o <= 2'h0;
 	  bank_o <= 4'h0;
 	end
       else
@@ -56,20 +60,36 @@ module idecode(input               clk_i,
 	  reg_data_out1 <= reg_data_out1_next;
 	  reg_data_out2 <= reg_data_out2_next;
 	  reg_write_o <= reg_write_next;
+	  sp_write_o <= sp_write_next;
 	  bank_o <= bank_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
   always_comb
     case (ir_type)
+      T_PUSH:
+	begin
+	  reg_read1 = 4'd15;
+	  reg_read2 = ir_ra;
+	end
+      T_POP:
+	begin
+	  reg_read1 = 4'd15;
+	  reg_read2 = ir_ra;
+	end
+      T_CMP:
+	begin
+	  reg_read1 = ir_ra;
+	  reg_read2 = ir_rb;
+	end
       T_INTU:
 	begin
 	  reg_read1 = ir_rb;
 	  reg_read2 = ir_rb;
 	end
-      T_CMP:
+      T_FPU:
 	begin
-	  reg_read1 = ir_ra;
+	  reg_read1 = ir_rb;
 	  reg_read2 = ir_rb;
 	end
       T_STORE:
@@ -82,11 +102,22 @@ module idecode(input               clk_i,
 	  reg_read1 = ir_ra;
 	  reg_read2 = ir_rb;
 	end
+      T_BRANCH:
+	begin
+	  reg_read1 = ir_rb;
+	  reg_read2 = ir_rb;
+	end
+      T_JUMP:
+	begin
+	  reg_read1 = ir_rb;
+	  reg_read2 = ir_rb;
+	end
       default:
 	begin
 	  reg_read1 = ir_rb;
 	  reg_read2 = ir_rc;
 	end
+      
     endcase // case (ir_type)
   
   always_comb
@@ -99,6 +130,7 @@ module idecode(input               clk_i,
 	  reg_data_out2_next = reg_data_out2;
 	  reg_write_next = reg_write_o;
 	  bank_next = bank_o;
+	  sp_write_next = sp_write_o;
 	end
       else
 	begin
@@ -107,11 +139,27 @@ module idecode(input               clk_i,
 	  bank_next = bank_i;
 	  reg_data_out1_next = regfile_out1;
 	  reg_data_out2_next = regfile_out2;
+
+	  // stack ops
+	  case (ir_type)
+	    T_PUSH: 
+	      begin
+		sp_write_next = 2'h3;
+		reg_data_out1_next = regfile_out1 - 32'h4;
+	      end
+	    T_POP:
+		sp_write_next = 2'h3;
+	    default:
+	      sp_write_next = 2'h0;
+	  endcase // case (ir_type)
+
+	  // general register writing ops
 	  case (ir_type)
 	    T_INTU: reg_write_next = 2'h3;
 	    T_INT: reg_write_next = 2'h3;
 	    T_LDI: reg_write_next = 2'h3;
 	    T_LOAD: reg_write_next = 2'h3;
+	    T_POP: reg_write_next = 2'h3;
 	    T_MOV: 
 	      case (ir_op)
 		4'h0: reg_write_next = 2'h3;
@@ -130,6 +178,8 @@ module idecode(input               clk_i,
 		    .write_addr(reg_write_addr),
 		    .write_data(reg_data_in),
 		    .write_en(reg_write_i),
+		    .sp_data(sp_data_i),
+		    .sp_en(sp_write_i),
 		    .data1(regfile_out1),
 		    .data2(regfile_out2));
   
