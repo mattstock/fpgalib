@@ -1,5 +1,6 @@
 .globl _start
 _start:
+	ldi %sp, 0x00001000
 	setint 0x0000100
 	sti
 	trap 1
@@ -15,8 +16,8 @@ _start:
 
 	.org 0x1100
 	ldi %1, 0x12345678
-	halt
-	
+	rts
+
 	.org 0x1200
 	ldi %2, 0xffeeffee
-	halt
+	rts

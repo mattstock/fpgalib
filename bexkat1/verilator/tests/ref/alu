@@ -6,9 +6,11 @@ ir:                 0                0                0                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                                 0                0
-rd2:                                 0
+rd2:                                 0                0
 ed1:                                 0
 ed2:                                 0
 res:                                                  0                0
@@ -32,9 +34,11 @@ ir:          80002002                0                0                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 2                0                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                                 0                0
-rd2:                                 0
+rd2:                                 0                0
 ed1:                                 0
 ed2:                                 0
 res:                                                  0                0
@@ -58,9 +62,11 @@ ir:                 0         80002002                0                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                2                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                                 0                0
-rd2:                                 0
+rd2:                                 0                0
 ed1:                                 0
 ed2:                                 0
 res:                                                  0                0
@@ -84,9 +90,11 @@ ir:  1111111180100001                0         80002002                0
 ra:                 1                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                2                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                                 0                0
-rd2:                                 0
+rd2:                                 0                0
 ed1:                                 0
 ed2:                                 0
 res:                                               1001                0
@@ -110,9 +118,11 @@ ir:                 0 1111111180100001                0         80002002
 ra:                 0                1                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                2
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                                 0                0
-rd2:                                 0
+rd2:                                 0                0
 ed1:                                 0
 ed2:                                 0
 res:                                                  0             1001
@@ -136,9 +146,11 @@ ir:  1122445580200001                0 1111111180100001                0
 ra:                 2                0                1                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001                0
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                              1001
 ed2:                              1001
 res:                                           11111111                0
@@ -162,9 +174,11 @@ ir:          62312000 1122445580200001                0 1111111180100001
 ra:                 3                2                0                1
 rb:                 1                0                0                0
 rc:                 2                0                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001             1001
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                              1001
 ed2:                              1001
 res:                                               1001         11111111
@@ -188,9 +202,11 @@ ir:          6a416444         62312000 1122445580200001                0
 ra:                 4                3                2                0
 rb:                 1                1                0                0
 rc:                 6                2                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          11111111             1001
-rd2:                                 0
+rd2:                                 0                0
 ed1:                          11111111
 ed2:                          11224455
 res:                                           11224455             1001
@@ -214,9 +230,11 @@ ir:          60501000         6a416444         62312000 1122445580200001
 ra:                 5                4                3                2
 rb:                 0                1                1                0
 rc:                 1                6                2                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          11111111         11111111
-rd2:                                 0
+rd2:                                 0                0
 ed1:                          11111111
 ed2:                                 0
 res:                                           22335566         11224455
@@ -240,9 +258,11 @@ ir:          68610002         60501000         6a416444         62312000
 ra:                 6                5                4                3
 rb:                 1                0                1                1
 rc:                 0                1                6                2
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001         11111111
-rd2:                          11111111
+rd2:                          11111111         11111111
 ed1:                              1001
 ed2:                          11111111
 res:                                           11114333         22335566
@@ -266,9 +286,11 @@ ir:          63731000         68610002         60501000         6a416444
 ra:                 7                6                5                4
 rb:                 3                1                0                1
 rc:                 1                0                1                6
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          11111111             1001
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                          11111111
 ed2:                              1001
 res:                                               1001         11114333
@@ -292,9 +314,11 @@ ir:          6b850004         63731000         68610002         60501000
 ra:                 8                7                6                5
 rb:                 5                3                1                0
 rc:                 0                1                0                1
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          22335566         11111111
-rd2:                          11111111
+rd2:                          11111111         11111111
 ed1:                          22335566
 ed2:                          11111111
 res:                                                  1             1001
@@ -318,9 +342,11 @@ ir:          64926000         6b850004         63731000         68610002
 ra:                 9                8                7                6
 rb:                 2                5                3                1
 rc:                 6                0                1                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001         22335566
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                              1001
 ed2:                              1001
 res:                                           11224455                1
@@ -344,9 +370,11 @@ ir:          6ca00008         64926000         6b850004         63731000
 ra:                 a                9                8                7
 rb:                 0                2                5                3
 rc:                 0                6                0                1
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          11224455             1001
-rd2:                                 1
+rd2:                                 1                1
 ed1:                          11224455
 ed2:                                 1
 res:                                                fff         11224455
@@ -370,9 +398,11 @@ ir:                 0         6ca00008         64926000         6b850004
 ra:                 0                a                9                8
 rb:                 0                0                2                5
 rc:                 0                0                6                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001         11224455
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                              1001
 ed2:                              1001
 res:                                           224488aa              fff
@@ -396,9 +426,11 @@ ir:  fffffffe80000001                0         6ca00008         64926000
 ra:                 0                0                a                9
 rb:                 0                0                0                2
 rc:                 0                0                0                6
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001             1001
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                              1001
 ed2:                              1001
 res:                                              10010         224488aa
@@ -422,9 +454,11 @@ ir:          80100004 fffffffe80000001                0         6ca00008
 ra:                 1                0                0                a
 rb:                 0                0                0                0
 rc:                 0                0                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001             1001
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                              1001
 ed2:                              1001
 res:                                               1001            10010
@@ -448,9 +482,11 @@ ir:          66b01000         80100004 fffffffe80000001                0
 ra:                 b                1                0                0
 rb:                 0                0                0                0
 rc:                 1                0                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001             1001
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                              1001
 ed2:                              1001
 res:                                           fffffffe             1001
@@ -474,9 +510,11 @@ ir:          6ec00006         66b01000         80100004 fffffffe80000001
 ra:                 c                b                1                0
 rb:                 0                0                0                0
 rc:                 0                1                0                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                              1001             1001
-rd2:                          11111111
+rd2:                          11111111         11111111
 ed1:                          fffffffe
 ed2:                                 2
 res:                                                  2         fffffffe
@@ -500,9 +538,11 @@ ir:          65b01000         6ec00006         66b01000         80100004
 ra:                 b                c                b                1
 rb:                 0                0                0                0
 rc:                 1                0                1                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          fffffffe         fffffffe
-rd2:                          fffffffe
+rd2:                          fffffffe         fffffffe
 ed1:                          fffffffe
 ed2:                          fffffffe
 res:                                           3fffffff                2
@@ -526,9 +566,11 @@ ir:          6dc00006         65b01000         6ec00006         66b01000
 ra:                 c                b                c                b
 rb:                 0                0                0                0
 rc:                 0                1                0                1
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          fffffffe         fffffffe
-rd2:                                 2
+rd2:                                 2                2
 ed1:                          fffffffe
 ed2:                                 2
 res:                                           1fffffff         3fffffff
@@ -552,9 +594,11 @@ ir:          61d83000         6dc00006         65b01000         6ec00006
 ra:                 d                c                b                c
 rb:                 8                0                0                0
 rc:                 3                0                1                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          fffffffe         fffffffe
-rd2:                          fffffffe
+rd2:                          fffffffe         fffffffe
 ed1:                          fffffffe
 ed2:                          fffffffe
 res:                                           ffffffff         1fffffff
@@ -578,9 +622,11 @@ ir:          69e41e1e         61d83000         6dc00006         65b01000
 ra:                 e                d                c                b
 rb:                 4                8                0                0
 rc:                 1                3                0                1
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                               fff         fffffffe
-rd2:                          22335566
+rd2:                          22335566         22335566
 ed1:                               fff
 ed2:                          22335566
 res:                                           ffffffff         ffffffff
@@ -604,9 +650,11 @@ ir:          67f25000         69e41e1e         61d83000         6dc00006
 ra:                 f                e                d                c
 rb:                 2                4                8                0
 rc:                 5                1                3                0
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          11114333              fff
-rd2:                                 2
+rd2:                                 2                2
 ed1:                          11114333
 ed2:                                 2
 res:                                           22335fff         ffffffff
@@ -630,9 +678,11 @@ ir:          6fe26226         67f25000         69e41e1e         61d83000
 ra:                 e                f                e                d
 rb:                 2                2                4                8
 rc:                 6                5                1                3
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          11224455         11114333
-rd2:                              1001
+rd2:                              1001             1001
 ed1:                          11224455
 ed2:                              1001
 res:                                           11114f3f         22335fff
@@ -656,9 +706,11 @@ ir:           4000000         6fe26226         67f25000         69e41e1e
 ra:                 0                e                f                e
 rb:                 0                2                2                4
 rc:                 0                6                5                1
+spd:                                 0                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          11224455         11224455
-rd2:                                 1
+rd2:                                 1                1
 ed1:                          11224455
 ed2:                                 1
 res:                                           11225454         11114f3f
@@ -682,9 +734,11 @@ ir:                 0          4000000         6fe26226         67f25000
 ra:                 0                0                e                f
 rb:                 0                0                2                2
 rc:                 0                0                6                5
+spd:                          11225454                0                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          fffffffe         11224455
-rd2:                          fffffffe
+rd2:                          fffffffe         fffffffe
 ed1:                          fffffffe
 ed2:                          fffffffe
 res:                                           11227546         11225454
@@ -708,9 +762,11 @@ ir:                 0                0          4000000         6fe26226
 ra:                 0                0                0                e
 rb:                 0                0                0                2
 rc:                 0                0                0                6
+spd:                          11225454         11225454                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          fffffffe         fffffffe
-rd2:                          fffffffe
+rd2:                          fffffffe         fffffffe
 ed1:                          fffffffe
 ed2:                          fffffffe
 res:                                                  0         11227546
@@ -734,9 +790,11 @@ ir:                 0                0                0                0
 ra:                 0                0                0                0
 rb:                 0                0                0                0
 rc:                 0                0                0                0
+spd:                          11225454         11225454                0
+spw:                                 0                0                0
 bnk:                                 0                0                0
 rd1:                          fffffffe         fffffffe
-rd2:                          fffffffe
+rd2:                          fffffffe         fffffffe
 ed1:                          fffffffe
 ed2:                          fffffffe
 res:                                           fffffffe                0

@@ -18,6 +18,7 @@ module mem(input               clk_i,
 	   output logic [1:0]  reg_write_o,
 	   input [1:0] 	       sp_write_i,
 	   output logic [1:0]  sp_write_o,
+	   input [31:0]        sp_data_i,
 	   output logic [31:0] sp_data_o,
 	   input [31:0]        pc_i,
 	   output logic [31:0] pc_o,
@@ -54,8 +55,6 @@ module mem(input               clk_i,
   logic [63:0] 		       ir_next;
   logic [3:0] 		       bank_next;
   
-  assign bus_we = (ir_type == T_STORE || ir_type == T_PUSH);
-
   assign stall_o = (bus_cyc && !bus_ack);
   
   always_ff @(posedge clk_i or posedge rst_i)
@@ -106,7 +105,7 @@ module mem(input               clk_i,
       2'h3: bus_sel = 4'hf;
     endcase // case (ir_op[1:0])
   endfunction
-    
+
   // bus stuff that's opcode dependent
   always_comb
     begin
@@ -114,31 +113,55 @@ module mem(input               clk_i,
       bus_adr = result_i;
       bus_out = reg_data1_i;
       bus_sel = databus_sel(ir_op[1:0], result_i[1:0]);
-      case (ir_type)
-	T_LOAD:
+      bus_we = 1'b0;
+      
+      if (exc_i)
+	begin
 	  bus_cyc = 1'b1;
-	T_STORE:
-	  bus_cyc = 1'b1;
-	T_PUSH:
-	  begin
+	  bus_we = 1'b1;
+	  bus_sel = 4'hf;
+	  bus_adr = sp_data_i;
+	  bus_out = pc_i - (ir_size ? 32'h8 : 32'h4);
+	end
+      else
+	case (ir_type)
+	  T_INH:
+	    if (ir_op == 4'h5 || (ir_op == 4'h1 && ~ir_size))
+	      begin
+		bus_cyc = 1'b1;
+		bus_we = 1'b1;
+		bus_sel = 4'hf;
+		bus_adr = sp_data_i;
+		bus_out = pc_i;
+	      end
+	  T_LOAD:
 	    bus_cyc = 1'b1;
-	    bus_sel = 4'hf;
-	    bus_adr = reg_data1_i;
-	    if (ir_op == 4'h0)
-	      bus_out = reg_data2_i;
-	    else
-	      bus_out = pc_i;
-	  end
-	T_POP:
-	  begin
-	    bus_cyc = 1'b1;
-	    bus_sel = 4'hf;
-	    bus_adr = reg_data1_i;
-	  end
-	default:
-	  begin
-	  end
-      endcase // case (ir_type)
+	  T_STORE:
+	    begin
+	      bus_cyc = 1'b1;
+	      bus_we = 1'b1;
+	    end
+	  T_PUSH:
+	    begin
+	      bus_we = 1'b1;
+	      bus_cyc = 1'b1;
+	      bus_sel = 4'hf;
+	      bus_adr = reg_data1_i;
+	      if (ir_op == 4'h0)
+		bus_out = reg_data2_i;
+	      else
+		bus_out = pc_i;
+	    end
+	  T_POP:
+	    begin
+	      bus_cyc = 1'b1;
+	      bus_sel = 4'hf;
+	      bus_adr = reg_data1_i;
+	    end
+	  default:
+	    begin
+	    end
+	endcase // case (ir_type)
     end
   
   // register write back
@@ -176,12 +199,19 @@ module mem(input               clk_i,
 	    begin
 	      pc_next = result_i;
 	      pc_set_next = 1'h1;
-	      result_next = pc_o + 32'h4;
-	      reg_write_addr_next = 4'hd; // %13 used for link reg
-	      reg_write_next = 2'h3;
+	      sp_data_next = sp_data_i;
+	      sp_write_next = 2'h3;
 	    end
 	  else
 	    case (ir_type)
+	      T_INH:
+		if (ir_op == 4'h5 || (ir_op == 4'h1 && ~ir_size))
+		  begin
+		    pc_next = result_i;
+		    pc_set_next = 1'h1;
+		    sp_data_next = sp_data_i;
+		    sp_write_next = 2'h3;
+		  end
 	      T_LOAD: result_next = bus_in;
 	      T_PUSH:
 		begin

@@ -8,7 +8,8 @@ module registerfile
    input [COUNTP-1:0] write_addr,
    input [WIDTH-1:0]  write_data,
    input [1:0] 	      write_en,
-   input [WIDTH-1:0]  sp_data,
+   input [WIDTH-1:0]  sp_data_i,
+   output [WIDTH-1:0] sp_data_o,
    input [1:0] 	      sp_en,
    output [WIDTH-1:0] data1,
    output [WIDTH-1:0] data2);
@@ -41,7 +42,7 @@ module registerfile
   function [WIDTH-1:0] pass_val;
     input [COUNTP-1:0] addr;
 
-    return (supervisor && addr == SPREG ? sp_data : write_data);
+    return (supervisor && addr == SPREG ? sp_data_i : write_data);
   endfunction  
   
   always_ff @(posedge clk_i or posedge rst_i)
@@ -70,9 +71,9 @@ module registerfile
 	regfile_next[write_addr] = align_val(write_en, write_data);
       if (|sp_en)
 	if (supervisor)
-	  ssp_next = align_val(sp_en, sp_data);
+	  ssp_next = align_val(sp_en, sp_data_i);
 	else
-	  regfile_next[SPREG] = align_val(sp_en, sp_data);
+	  regfile_next[SPREG] = align_val(sp_en, sp_data_i);
     end // always_comb
 
   // Read logic
@@ -80,6 +81,7 @@ module registerfile
     begin
       data1 = (supervisor && read1 == SPREG ? ssp : regfile[read1]);
       data2 = (supervisor && read2 == SPREG ? ssp : regfile[read2]);
+      sp_data_o = (supervisor ? ssp : regfile[SPREG]);
       
       // Passthrough logic
       if (|write_en)
@@ -88,6 +90,8 @@ module registerfile
 	    data1 = align_val(write_en, pass_val(read1));
 	  if (read2 == write_addr)
 	    data2 = align_val(write_en, pass_val(read2));
+	  if (write_addr == SPREG)
+	    sp_data_o = write_data;
 	end
       if (|sp_en)
 	begin
@@ -95,6 +99,7 @@ module registerfile
 	    data1 = align_val(sp_en, pass_val(read1));
 	  if (read2 == SPREG)
 	    data2 = align_val(sp_en, pass_val(read2));
+	  sp_data_o = write_data;
 	end
     end // always_comb
 endmodule // registerfile

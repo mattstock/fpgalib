@@ -67,6 +67,16 @@ int main(int argc, char **argv, char **env) {
 	     INS_RC(top->id_ir),
 	     INS_RC(top->exe_ir),
 	     INS_RC(top->mem_ir));
+      printf("spd: % 16s % 16x % 16x % 16x\n",
+	     "",
+	     top->id_sp_data,
+	     top->exe_sp_data,
+	     top->mem_sp_data);
+      printf("spw: % 16s % 16x % 16x % 16x\n",
+	     "",
+	     top->id_sp_write,
+	     top->exe_sp_write,
+	     top->mem_sp_write);
       printf("bnk: % 16s % 16x % 16x % 16x\n",
 	     "",
 	     top->id_bank,
@@ -76,8 +86,9 @@ int main(int argc, char **argv, char **env) {
 	     "",
 	     top->id_reg_data_out1,
 	     top->exe_reg_data_out1);
-      printf("rd2: % 16s % 16x\n",
+      printf("rd2: % 16s % 16x % 16x\n",
 	     "",
+	     top->id_reg_data_out2,
 	     top->id_reg_data_out2);
       printf("ed1: % 16s % 16x\n",
 	     "",
