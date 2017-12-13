@@ -146,7 +146,7 @@ module mem(input               clk_i,
 	      bus_we = 1'b1;
 	      bus_cyc = 1'b1;
 	      bus_sel = 4'hf;
-	      bus_adr = reg_data1_i;
+	      bus_adr = sp_data_i; // use decremented value
 	      if (ir_op == 4'h0)
 		bus_out = reg_data2_i;
 	      else
@@ -156,7 +156,7 @@ module mem(input               clk_i,
 	    begin
 	      bus_cyc = 1'b1;
 	      bus_sel = 4'hf;
-	      bus_adr = reg_data1_i;
+	      bus_adr = reg_data1_i; // use pre-increment value
 	    end
 	  default:
 	    begin
@@ -186,7 +186,7 @@ module mem(input               clk_i,
 	  halt_next = halt_i;
 	  result_next = result_i;
 	  reg_write_next = reg_write_i;
-	  sp_data_next = 32'h0;
+	  sp_data_next = sp_data_i;
 	  sp_write_next = sp_write_i;
 	  exc_next = exc_i;
 	  pc_next = pc_i;
@@ -199,7 +199,6 @@ module mem(input               clk_i,
 	    begin
 	      pc_next = result_i;
 	      pc_set_next = 1'h1;
-	      sp_data_next = sp_data_i;
 	      sp_write_next = 2'h3;
 	    end
 	  else
@@ -209,7 +208,6 @@ module mem(input               clk_i,
 		  begin
 		    pc_next = result_i;
 		    pc_set_next = 1'h1;
-		    sp_data_next = sp_data_i;
 		    sp_write_next = 2'h3;
 		  end
 	      T_LOAD: result_next = bus_in;
@@ -219,12 +217,10 @@ module mem(input               clk_i,
 		    begin
 		      pc_next = result_i;
 		      pc_set_next = 1'h1;
-		      sp_data_next = reg_data1_i;
 		    end
 		end
 	      T_POP:
 		begin
-		  sp_data_next = reg_data1_i + 32'h4;
 		  if (ir_op == 4'h0)
 		    result_next = bus_in;
 		  else

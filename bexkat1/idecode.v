@@ -146,7 +146,7 @@ module idecode(input               clk_i,
 	    T_PUSH: 
 	      begin
 		sp_write_next = 2'h3;
-		reg_data_out1_next = regfile_out1 - 32'h4;
+		reg_data_out1_next = regfile_out1;
 	      end
 	    T_POP:
 		sp_write_next = 2'h3;

@@ -37,6 +37,7 @@ module execute(input               clk_i,
   wire [31:0] 			   ir_extval = ir_i[63:32];
   wire [3:0] 			   ir_type  = ir_i[31:28];
   wire [3:0] 			   ir_op    = ir_i[27:24];
+  wire [3:0] 			   ir_ra = ir_i[23:20];
   wire [31:0] 			   ir_sval = {{17{ir_i[15]}}, ir_i[15:1]};
   wire [31:0] 			   ir_uval  = {17'h0, ir_i[15:1]};
   wire 				   ir_size = ir_i[0];
@@ -150,47 +151,6 @@ module execute(input               clk_i,
     end
 
   // Result
-  always_comb
-    begin
-      if (stall_i || stall_o)
-	begin
-	  result_next = result;
-	end
-      else
-	begin
-	  if (|interrupts && interrupts_enabled)
-	    result_next = vectoff + { 26'h0, interrupts, 3'h0 };
-	  else
-	    case (ir_type)
-	      T_INH:
-		if (ir_op == 4'h5)
-		  result_next = vectoff; // reset vector
-		else
-		  if (ir_op == 4'h1 && ir_size == 1'h0) // trap vector
-		    result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
-		  else
-		    result_next = alu_out;
-	      T_PUSH:
-		result_next = (ir_size ? ir_extaddr : alu_out);
-	      T_INT:
-		result_next = int_out;
-	      T_INTU:
-		result_next = int_out;
-	      T_LOAD:
-		result_next = (ir_size ? ir_extaddr : alu_out);
-	      T_STORE:
-		result_next = (ir_size ? ir_extaddr : alu_out);
-	      T_LDI:
-		result_next = (ir_size ? ir_extaddr : ir_uval);
-	      T_MOV:
-		result_next = (ir_op == 4'h0 ? { 28'h0, supervisor, ccr_o } :
-			       reg_data1_i);
-	      default:
-		result_next = alu_out;
-	    endcase // case (ir_type)
-	end // else: !if(stall_i || stall_o)
-    end // always_comb
-  
   // CCR update
   // exception logic
   always_comb
@@ -207,6 +167,7 @@ module execute(input               clk_i,
 	  bank_next = bank_o;
 	  sp_write_next = sp_write_o;
 	  sp_data_next = sp_data_o;
+	  result_next = result;
 	end
       else
 	begin
@@ -214,22 +175,89 @@ module execute(input               clk_i,
 	  ccr_next = ccr_o;
 	  sp_write_next = sp_write_i;
 	  sp_data_next = sp_data_i;
+	  result_next = alu_out;
       	  if (|interrupts && interrupts_enabled)
 	    begin
 	      interrupts_enabled_next = 1'b0;
 	      exc_next = 1'h1;
 	      sp_data_next = sp_data_i - 32'h4;
+	      result_next = vectoff + { 26'h0, interrupts, 3'h0 };
 	      // bank_next = bank_i + 4'h1;
 	    end
 	  else
 	    begin
 	      case (ir_type)
-		T_MOV:
-		  if (ir_op == 4'h4)
+		T_PUSH:
+		  begin
+		    result_next = (ir_size ? ir_extaddr : alu_out);
+		    sp_data_next = sp_data_i - 32'h4;
+		  end
+		T_ALU:
+		  if (ir_ra == 4'd15)
 		    begin
-		      ccr_next = reg_data1_i[2:0];
-		      supervisor_next = reg_data1_i[3];
+		      sp_data_next = alu_out;
+		      sp_write_next = 2'd3;
 		    end
+		T_INT:
+		  begin
+		    result_next = int_out;
+		    if (ir_ra == 4'd15)
+		      begin
+			sp_data_next = int_out;
+			sp_write_next = 2'd3;
+		      end
+		  end
+		T_INTU:
+		  begin
+		    result_next = int_out;
+		    if (ir_ra == 4'd15)
+		      begin
+			sp_data_next = int_out;
+			sp_write_next = 2'd3;
+		      end
+		  end
+		T_LOAD:
+		  result_next = (ir_size ? ir_extaddr : alu_out);
+		T_STORE:
+		  begin
+		    result_next = (ir_size ? ir_extaddr : alu_out);
+		    if (ir_ra == 4'd15)
+		      begin
+			sp_data_next = (ir_size ? ir_extaddr : alu_out);
+			sp_write_next = 2'd3;
+		      end
+		  end
+		T_LDI:
+		  begin
+		    result_next = (ir_size ? ir_extaddr : ir_uval);
+		    if (ir_ra == 4'd15)
+		      begin
+			sp_data_next = (ir_size ? ir_extaddr : ir_uval);
+			sp_write_next = 2'd3;
+		      end
+		  end
+		T_POP:
+		  sp_data_next = sp_data_i + 32'h4;
+		T_MOV:
+		  case (ir_op)
+		    4'h0:
+		      result_next = { 28'h0, supervisor, ccr_o };
+		    4'h4:
+		      begin
+			result_next = reg_data1_i;
+			ccr_next = reg_data1_i[2:0];
+			supervisor_next = reg_data1_i[3];
+		      end
+		    default:
+		      begin
+			result_next = reg_data1_i;
+			if (ir_ra == 4'd15)
+			  begin
+			    sp_data_next = reg_data1_i;
+			    sp_write_next = 2'h3;
+			  end
+		      end
+		  endcase // case (ir_op)
 		T_CMP:
 		  ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
 		T_INH:
@@ -237,12 +265,16 @@ module execute(input               clk_i,
 		    4'h1: // trap/setint
 		      if (ir_size == 1'h1)
 			if (supervisor)
-			  vectoff_next = ir_extaddr;
+			  begin
+			    result_next = alu_out;
+			    vectoff_next = ir_extaddr;
+			  end
 			else
 			  halt_next = 1'h1;
 		      else
 			begin
 			  // bank_next = bank_i + 4'h1;
+			  result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
 			  interrupts_enabled_next = 1'b0;
 			  sp_data_next = sp_data_i - 32'h4;
 			end
@@ -256,6 +288,7 @@ module execute(input               clk_i,
 		      if (supervisor)
 			begin
 			  // bank_next = bank_i + 4'h1;
+			  result_next = vectoff; // reset vector
 			  interrupts_enabled_next = 1'b0;
 			end
 		      else

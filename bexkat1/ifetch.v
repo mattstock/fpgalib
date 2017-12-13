@@ -81,7 +81,10 @@ module ifetch(input               clk_i,
 	      begin
 		state_next = S_BUSWAIT;
 		if (pc_set)
-		  pc_next = pc_in; // from another stage
+		  begin
+		    ir_next = 64'h0;
+		    pc_next = pc_in; // from another stage
+		  end
 		else
 		  pc_next = pc + 'h4;
 	      end

@@ -15,6 +15,7 @@ module top(input         clk_i,
 	   output [31:0] exe_data2,
 	   output [31:0] id_reg_data_out1,
 	   output [31:0] exe_reg_data_out1,
+	   output [31:0] exe_sp_in,
 	   output [31:0] exe_result,
 	   output 	 exe_halt,
 	   output 	 mem_halt,
@@ -37,8 +38,9 @@ module top(input         clk_i,
 	   output [31:0] exe_sp_data,
 	   output [31:0] mem_sp_data,
 	   output 	 hazard_stall,
-	   output [1:0]  hazard1,
-	   output [1:0]  hazard2,
+	   output [2:0]  hazard1,
+	   output [2:0]  hazard2,
+	   output [1:0]  sp_hazard,
 	   output [2:0]  exe_ccr,
 	   output [3:0]  id_bank,
 	   output [3:0]  exe_bank,
@@ -97,24 +99,38 @@ module top(input         clk_i,
 		 .exe_reg_write(exe_reg_write),
 		 .mem_ir(mem_ir),
 		 .mem_reg_write(mem_reg_write),
+		 .id_sp_write(id_sp_write),
+		 .exe_sp_write(exe_sp_write),
+		 .mem_sp_write(mem_sp_write),
 		 .stall(hazard_stall),
 		 .hazard1(hazard1),
-		 .hazard2(hazard2));
+		 .hazard2(hazard2),
+		 .sp_hazard(sp_hazard));
 		
   always_comb
     begin
       case (hazard1) 
-	2'h0: exe_data1 = id_reg_data_out1;
-	2'h1: exe_data1 = mem_result;
-	2'h2: exe_data1 = exe_result;
-	2'h3: exe_data1 = id_reg_data_out1;
+	3'h0: exe_data1 = id_reg_data_out1;
+	3'h1: exe_data1 = mem_result;
+	3'h2: exe_data1 = exe_result;
+	3'h3: exe_data1 = mem_sp_data;
+	3'h4: exe_data1 = exe_sp_data;
+	default: exe_data1 = id_reg_data_out1;
       endcase // case (hazard1)
       case (hazard2) 
-	2'h0: exe_data2 = id_reg_data_out2;
-	2'h1: exe_data2 = mem_result;
-	2'h2: exe_data2 = exe_result;
-	2'h3: exe_data2 = id_reg_data_out2;
+	3'h0: exe_data2 = id_reg_data_out2;
+	3'h1: exe_data2 = mem_result;
+	3'h2: exe_data2 = exe_result;
+	3'h3: exe_data2 = mem_sp_data;
+	3'h4: exe_data2 = exe_sp_data;
+	default : exe_data2 = id_reg_data_out2;
       endcase // case (hazard2)
+      case (sp_hazard)
+	2'h0: exe_sp_in = id_sp_data;
+	2'h1: exe_sp_in = exe_sp_data;
+	2'h2: exe_sp_in = mem_sp_data;
+	2'h3: exe_sp_in = id_sp_data;
+      endcase // case (sp_hazard)
     end // always_comb
   
   execute exe0(.clk_i(clk_i), .rst_i(rst_i),
@@ -128,9 +144,9 @@ module top(input         clk_i,
 	       .halt_o(exe_halt),
 	       .stall_i(mem_stall),
 	       .stall_o(exe_stall),
-	       .sp_write_i((|exe_sp_write ? 2'h0 : id_sp_write)),
+	       .sp_write_i(exe_pc_set ? 2'h0 : id_sp_write),
 	       .sp_write_o(exe_sp_write),
-	       .sp_data_i(id_sp_data),
+	       .sp_data_i(exe_sp_in),
 	       .sp_data_o(exe_sp_data),
 	       .bank_i(id_bank),
 	       .bank_o(exe_bank),
