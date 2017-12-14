@@ -93,6 +93,7 @@ module mem(input               clk_i,
     input [1:0] opcode;
     input [1:0] addr;
 
+    databus_sel = 4'hf;
     case (opcode)
       2'h0: databus_sel = 4'hf;
       2'h1: databus_sel = (addr[1] ? 4'b0011 : 4'b1100);

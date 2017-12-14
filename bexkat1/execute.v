@@ -34,7 +34,6 @@ module execute(input               clk_i,
 	       output 		   pc_set_o);
 
   wire [31:0] 			   ir_extaddr = ir_i[63:32];
-  wire [31:0] 			   ir_extval = ir_i[63:32];
   wire [3:0] 			   ir_type  = ir_i[31:28];
   wire [3:0] 			   ir_op    = ir_i[27:24];
   wire [3:0] 			   ir_ra = ir_i[23:20];
@@ -137,7 +136,6 @@ module execute(input               clk_i,
 	reg_data1_next = reg_data1_i;
 	reg_data2_next = reg_data2_i;
 	reg_write_next = reg_write_i;
-	sp_write_next = sp_write_i;
       end
 
   // delay logic for multi-cycle ops

@@ -34,7 +34,7 @@ module top(input         clk_i,
 		 .dat_sel_o(dat_sel),
 		 .dat_dat_i(dat_cpu_in), .dat_dat_o(dat_cpu_out));
    
-   ram2 #(.AWIDTH(15)) ram0(.clk_i(clk_i), .rst_i(rst_i),
+   ram2 #(.AWIDTH(15), .INITNAME("/home/mstock/projects/fpgalib/bexkat1/verilator/tests/out/alu.hex")) ram0(.clk_i(clk_i), .rst_i(rst_i),
 			  .cyc0_i(dat_cyc), .stb0_i(1'b1),
 			  .sel0_i(dat_sel), .we0_i(dat_we),
 			  .adr0_i(dat_adr[16:2]), .dat0_i(dat_cpu_out),

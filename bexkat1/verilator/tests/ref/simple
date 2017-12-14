@@ -9572,7 +9572,7 @@ alu_func: 0 alu1: 0000ffd8 alu2: 00000004 alu_out: 00000000 int_func: 0 int_out:
 vectoff: 00010000 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
 Ins: adr: 0000009c cyc: 1 ack: 1 dat_i: 21000000
-Dat: adr: 0000004b cyc: 0 ack: 0 dat_i: 00000080 dat_o: 0000004b we: 0 sel: 1
+Dat: adr: 0000004b cyc: 0 ack: 0 dat_i: 00010080 dat_o: 0000004b we: 0 sel: f
 -------------------- 383 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode                              exec              mem
