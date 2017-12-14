@@ -3,106 +3,184 @@
 
 import bexkat1Def::*;
 
-module bexkat1p(input 	      clk_i,
+module bexkat1p(input 	           clk_i,
 		input 		   rst_i,
 		input 		   ins_ack_i,
 		output [31:0] 	   ins_adr_o,
-		output logic 	   ins_cyc_o,
 		output logic 	   ins_we_o,
+		output logic 	   ins_cyc_o,
 		input [31:0] 	   ins_dat_i,
 		output logic [3:0] ins_sel_o,
 		output 		   halt,
 		input [2:0] 	   inter,
 		output 		   int_en,
 		output [3:0] 	   exception,
-		output 		   supervisor,
+		output logic 	   supervisor,
 		input 		   dat_ack_i,
 		output [31:0] 	   dat_adr_o,
 		output logic 	   dat_cyc_o,
 		output logic 	   dat_we_o,
 		input [31:0] 	   dat_dat_i,
 		output [31:0] 	   dat_dat_o,
-		output logic [3:0] dat_sel_o,
-		output logic [3:0] reg_write_addr);
+		output logic [3:0] dat_sel_o);
 
-  // pipeline var
-  logic [63:0] 			   ir[3:0];
-  logic [31:0] 			   pc[4:0];
-  logic [31:0] 			   result[2:0];
-  logic [1:0] 			   reg_write[2:0];
-  logic [2:0] 			   ccr[1:0];
-  logic 			   if_stall, id_stall, exec_stall, mem_stall, wb_stall;
-  logic 			   fetch_cyc;
-  logic 			   fetch_ack;
-  logic [3:0] 			   reg_write_addr;
-  logic [31:0] 			   reg_data_in;
-  logic [31:0] 			   reg_data_out1[1:0];
-  logic [31:0] 			   reg_data_out2;
-  logic 			   pc_set;
+  logic [63:0] 			   if_ir, id_ir, exe_ir, mem_ir;
+  logic [31:0] 			   if_pc, id_pc, exe_pc, mem_pc;
+  logic 			   exe_pc_set, mem_pc_set;
+  logic [31:0] 			   exe_data1, exe_data2;
+  logic [31:0] 			   id_reg_data_out1, exe_reg_data_out1;
+  logic [31:0] 			   exe_sp_in, exe_result;
+  logic 			   exe_halt, mem_halt;
+  logic 			   exe_stall, mem_stall;
+  logic 			   exe_exc, mem_exc;
+  logic [31:0] 			   mem_result;
+  logic [31:0] 			   id_reg_data_out2, exe_reg_data_out2;
+  logic [3:0] 			   mem_reg_write_addr;
+  logic [1:0] 			   id_reg_write, exe_reg_write, mem_reg_write;
+  logic [1:0] 			   id_sp_write, exe_sp_write, mem_sp_write;
+  logic [31:0] 			   id_sp_data, exe_sp_data, mem_sp_data;
+  logic 			   hazard_stall;
+  logic [2:0] 			   hazard1, hazard2;
+  logic [1:0] 			   sp_hazard;
+  logic [2:0] 			   exe_ccr;
+  logic [3:0] 			   id_bank, exe_bank, mem_bank;
   
-  // we'll need to mux these later, but for now the bus is just for
-  // instructions.
-  
-  assign ins_adr_o = pc[0];
+  assign halt = mem_halt;  
+  assign ins_adr_o = if_pc;
   assign ins_sel_o = 4'hf;
-  assign ins_we_o = 1'h0;
+  assign ins_we_o = 1'b0;
   assign exception = 4'h0;
-  assign halt = 1'h0;
-  assign supervisor = 1'h0;
-  
-  // since we only have part of the path defined
   
   ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i),
-		.ir(ir[0]),
-		.pc(pc[0]),
+		.ir(if_ir),
+		.pc(if_pc),
+		.stall_i(hazard_stall|exe_halt|exe_stall|
+			 mem_stall),
 		.bus_cyc(ins_cyc_o),
 		.bus_ack(ins_ack_i),
 		.bus_in(ins_dat_i),
-		.pc_set(pc_set),
-		.stall_i(1'b0),
-		.stall_o(if_stall),
-		.pc_in(pc[4]));
-  
+		.pc_set(mem_pc_set),
+		.pc_in(mem_pc));
+
   idecode decode0(.clk_i(clk_i), .rst_i(rst_i),
-		  .ir_i(ir[0]),
-		  .ir_o(ir[1]),
-		  .stall_i(if_stall),
-		  .stall_o(id_stall),
-		  .pc_i(pc[0]),
-		  .pc_o(pc[1]),
-		  .reg_data_in(result[2]),
-		  .reg_write_addr(reg_write_addr),
-		  .reg_write(reg_write[1]),
-		  .reg_data_out1(reg_data_out1[0]),
-		  .reg_data_out2(reg_data_out2));
+		  .ir_i((hazard_stall|
+			 exe_exc|
+			 exe_pc_set|
+			 mem_pc_set ? 64'h0 : if_ir)),
+		  .ir_o(id_ir),
+		  .pc_i(if_pc),
+		  .pc_o(id_pc),
+		  .bank_i(mem_bank),
+		  .bank_o(id_bank),
+		  .supervisor_i(supervisor),
+		  .stall_i(exe_stall|mem_stall),
+		  .sp_write_i(mem_sp_write),
+		  .sp_write_o(id_sp_write),
+		  .sp_data_i(mem_sp_data),
+		  .sp_data_o(id_sp_data),
+		  .reg_data_in(mem_result),
+		  .reg_write_addr(mem_reg_write_addr),
+		  .reg_write_i(mem_reg_write),
+		  .reg_write_o(id_reg_write),
+		  .reg_data_out1(id_reg_data_out1),
+		  .reg_data_out2(id_reg_data_out2));
+
+  hazard hazard0(.clk_i(clk_i), .rst_i(rst_i),
+		 .if_ir(if_ir),
+		 .id_ir(id_ir),
+		 .id_reg_write(id_reg_write),
+		 .exe_ir(exe_ir),
+		 .exe_reg_write(exe_reg_write),
+		 .mem_ir(mem_ir),
+		 .mem_reg_write(mem_reg_write),
+		 .id_sp_write(id_sp_write),
+		 .exe_sp_write(exe_sp_write),
+		 .mem_sp_write(mem_sp_write),
+		 .stall(hazard_stall),
+		 .hazard1(hazard1),
+		 .hazard2(hazard2),
+		 .sp_hazard(sp_hazard));
+		
+  always_comb
+    begin
+      case (hazard1) 
+	3'h0: exe_data1 = id_reg_data_out1;
+	3'h1: exe_data1 = mem_result;
+	3'h2: exe_data1 = exe_result;
+	3'h3: exe_data1 = mem_sp_data;
+	3'h4: exe_data1 = exe_sp_data;
+	default: exe_data1 = id_reg_data_out1;
+      endcase // case (hazard1)
+      case (hazard2) 
+	3'h0: exe_data2 = id_reg_data_out2;
+	3'h1: exe_data2 = mem_result;
+	3'h2: exe_data2 = exe_result;
+	3'h3: exe_data2 = mem_sp_data;
+	3'h4: exe_data2 = exe_sp_data;
+	default : exe_data2 = id_reg_data_out2;
+      endcase // case (hazard2)
+      case (sp_hazard)
+	2'h0: exe_sp_in = id_sp_data;
+	2'h1: exe_sp_in = exe_sp_data;
+	2'h2: exe_sp_in = mem_sp_data;
+	2'h3: exe_sp_in = id_sp_data;
+      endcase // case (sp_hazard)
+    end // always_comb
   
   execute exe0(.clk_i(clk_i), .rst_i(rst_i),
-	       .reg_data1_i(reg_data_out1[0]),
-	       .reg_data2(reg_data_out2),
-	       .result(result[0]),
-	       .reg_write(reg_write[0]),
-	       .reg_data1_o(reg_data_out1[1]),
-	       .stall_i(id_stall),
-	       .stall_o(exec_stall),
-	       .pc_i(pc[1]),
-	       .pc_o(pc[2]),
-	       .ir_i(ir[1]),
-	       .ir_o(ir[2]),
-	       .ccr_o(ccr[0]));
+	       .reg_data1_i(exe_data1),
+	       .reg_data1_o(exe_reg_data_out1),
+	       .reg_data2_i(exe_data2),
+	       .reg_data2_o(exe_reg_data_out2),
+	       .result(exe_result),
+	       .reg_write_i((exe_exc|exe_pc_set ? 2'h0 : id_reg_write)),
+	       .reg_write_o(exe_reg_write),
+	       .halt_o(exe_halt),
+	       .stall_i(mem_stall),
+	       .stall_o(exe_stall),
+	       .sp_write_i(exe_pc_set ? 2'h0 : id_sp_write),
+	       .sp_write_o(exe_sp_write),
+	       .sp_data_i(exe_sp_in),
+	       .sp_data_o(exe_sp_data),
+	       .bank_i(id_bank),
+	       .bank_o(exe_bank),
+	       .pc_i(id_pc),
+	       .pc_o(exe_pc),
+	       .pc_set_o(exe_pc_set),
+	       .supervisor(supervisor),
+	       .interrupts(inter),
+	       .interrupts_enabled(int_en),
+	       .exc_o(exe_exc),
+	       .ir_i((exe_exc|exe_pc_set ? 64'h0 : id_ir)),
+	       .ir_o(exe_ir),
+	       .ccr_o(exe_ccr));
+  
   mem mem0(.clk_i(clk_i), .rst_i(rst_i),
-	   .reg_data1_i(reg_data_out1[1]),
-	   .reg_write_o(reg_write[1]),
-	   .reg_write_i(reg_write[0]),
-	   .result_i(result[0]),
-	   .result_o(result[1]),
-	   .stall_i(exec_stall),
+	   .reg_data1_i(exe_reg_data_out1),
+	   .reg_data2_i(exe_reg_data_out2),
+	   .reg_write_i(exe_reg_write),
+	   .reg_write_o(mem_reg_write),
+	   .reg_write_addr(mem_reg_write_addr),
+	   .result_i(exe_result),
+	   .result_o(mem_result),
+	   .bank_i(exe_bank),
+	   .bank_o(mem_bank),
+	   .halt_i(exe_halt),
+	   .halt_o(mem_halt),
+	   .ir_i((exe_halt ? 64'h0 : exe_ir)),
+	   .ir_o(mem_ir),
+	   .stall_i(exe_stall),
 	   .stall_o(mem_stall),
-	   .ir_i(ir[2]),
-	   .ir_o(ir[3]),
-	   .pc_i(pc[2]),
-	   .pc_o(pc[3]),
-	   .ccr_i(ccr[0]),
-	   .ccr_o(ccr[1]),
+	   .sp_write_i(exe_sp_write),
+	   .sp_write_o(mem_sp_write),
+	   .sp_data_i(exe_sp_data),
+	   .sp_data_o(mem_sp_data),
+	   .exc_i(exe_exc),
+	   .exc_o(mem_exc),
+	   .pc_i(exe_pc),
+	   .pc_o(mem_pc),
+	   .pc_set_i(exe_pc_set),
+	   .pc_set_o(mem_pc_set),
 	   .bus_adr(dat_adr_o),
 	   .bus_cyc(dat_cyc_o),
 	   .bus_ack(dat_ack_i),
@@ -110,18 +188,5 @@ module bexkat1p(input 	      clk_i,
 	   .bus_we(dat_we_o),
 	   .bus_out(dat_dat_o),
 	   .bus_sel(dat_sel_o));
-  wb wb0(.clk_i(clk_i), .rst_i(rst_i),
-	 .ir_i(ir[3]),
-	 .pc_set(pc_set),
-	 .ccr_i(ccr[1]),
-	 .result_o(result[2]),
-	 .result_i(result[1]),
-	 .pc_o(pc[4]),
-	 .pc_i(pc[3]),
-	 .stall_i(mem_stall),
-	 .stall_o(wb_stall),
-	 .reg_write_addr(reg_write_addr),
-	 .reg_write_i(reg_write[1]),
-	 .reg_write_o(reg_write[2]));
   
 endmodule // bexkat1p

@@ -424,7 +424,7 @@ module execute(input               clk_i,
 	      begin
 		alu_func = ALU_ADD;
 		if (!ir_size)
-		  alu_in1 = {ir_sval[29:0], 2'b00};
+		  alu_in1 = ir_sval;
 	      end
 	    4'h2: // bsr
 	      begin
@@ -451,13 +451,13 @@ module execute(input               clk_i,
 	  begin
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
-	      alu_in1 = {ir_sval[29:0], 2'b00};
+	      alu_in1 = ir_sval;
 	  end
 	T_LOAD:
 	  begin
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
-	      alu_in1 = {ir_sval[29:0], 2'b00};
+	      alu_in1 = ir_sval;
 	  end
 	T_BRANCH:
 	  begin
@@ -469,7 +469,7 @@ module execute(input               clk_i,
 	  begin
 	    alu_func = ALU_ADD;
 	    if (!ir_size)
-	      alu_in1 = {ir_sval[29:0], 2'b00};
+	      alu_in1 = ir_sval;
 	  end
 	default: begin end
       endcase // case (ir_type)
