@@ -34,6 +34,7 @@ module mem(input               clk_i,
 	   output logic [31:0] bus_adr,
 	   output logic        bus_we,
 	   output logic        bus_cyc,
+	   output logic        bus_stb,
 	   input 	       bus_ack,
 	   input [31:0]        bus_in,
 	   output logic [31:0] bus_out,
@@ -110,7 +111,8 @@ module mem(input               clk_i,
   // bus stuff that's opcode dependent
   always_comb
     begin
-      bus_cyc = exc_i;
+      bus_cyc = 1'b0;
+      bus_stb = 1'b0;
       bus_adr = result_i;
       bus_out = reg_data1_i;
       bus_sel = databus_sel(ir_op[1:0], result_i[1:0]);
@@ -119,6 +121,7 @@ module mem(input               clk_i,
       if (exc_i)
 	begin
 	  bus_cyc = 1'b1;
+	  bus_stb = 1'b1;
 	  bus_we = 1'b1;
 	  bus_sel = 4'hf;
 	  bus_adr = sp_data_i;
