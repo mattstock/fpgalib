@@ -142,9 +142,10 @@ int main(int argc, char **argv, char **env) {
       printf("Ins: adr: %08x cyc: %d ack: %d dat_i: %08x stall: %d\n",
 	     top->ins_adr_o,top->ins_cyc_o, top->ins_ack_i, top->ins_dat_i,
 	     top->ins_stall_i);
-      printf("Dat: adr: %08x cyc: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
+      printf("Dat: adr: %08x cyc: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %x\n",
 	     top->dat_adr_o, top->dat_cyc_o, top->dat_ack_i, top->dat_dat_i,
-	     top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i);
+	     top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i,
+	     top->top__DOT__mem0__DOT__state);
       printf("Arb: adr: %08x stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state: %x\n",
 	     top->arb_adr_o, top->arb_stb_o, top->arb_ack_i, top->arb_dat_i,
 	     top->arb_dat_o, top->arb_we_o, top->arb_sel_o, top->arb_stall_i,

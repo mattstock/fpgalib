@@ -8,7 +8,7 @@ TEMP := $(shell mktemp)
 CPUDEPS = ../bexkat1p.v ../alu_comb.v ../bankedregisterfile.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../registerfile.v ../arbiter.v ../fifo.v
 .PHONY: all clean tests
 
-all: obj_dir/Vpipeline
+all: obj_dir/Vifetch obj_dir/Vpipeline tests
 
 tests:
 	cd tests; make
@@ -24,6 +24,12 @@ obj_dir/Varbiter.cpp: ../arbiter.v
 
 obj_dir/Varbiter: obj_dir/Varbiter.cpp arbiter_test.cpp
 	cd obj_dir; make -f Varbiter.mk
+
+obj_dir/Vifetch.cpp: ../ifetch.v
+	verilator -I.. -cc ../ifetch.v -exe ifetch_test.cpp
+
+obj_dir/Vifetch: obj_dir/Vifetch.cpp ifetch_test.cpp
+	cd obj_dir; make -f Vifetch.mk
 
 clean:
 	rm -f *.o *.hex *.bin *.mif *.gkd *.expand ram0

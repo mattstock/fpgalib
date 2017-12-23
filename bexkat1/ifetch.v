@@ -21,9 +21,12 @@ module ifetch(input               clk_i,
   logic [31:0] 			  pc_next, low_next, low;
   logic [31:0] 			  bus_adr_next, val;
   logic 			  full, empty;
-  logic 			  state, state_next;
 
-  assign bus_cyc = ~pc_set;
+  typedef enum bit [1:0] { S_RESET, S_FETCH, S_FETCH2 } state_t;
+  
+  state_t 			  state, state_next;
+
+  assign bus_cyc = (state != S_RESET && !pc_set);
 
   fifo #(.AWIDTH(4), .DWIDTH(32)) fifo0(.clk_i(clk_i), .rst_i(rst_i|pc_set),
 					.push(bus_ack), .in(bus_in),
@@ -37,7 +40,7 @@ module ifetch(input               clk_i,
 	ir <= 64'h0;
 	low <= 32'h0;
 	bus_adr <= 32'h0;
-	state <= 1'h0;
+	state <= S_RESET;
       end
     else
       begin
@@ -52,7 +55,7 @@ module ifetch(input               clk_i,
   always_comb
     begin
       bus_adr_next = bus_adr;
-      if (!bus_stall_i)
+      if (!bus_stall_i && (state != S_RESET))
 	bus_adr_next = (pc_set ? pc_in : bus_adr + 32'h4);
     end
 
@@ -62,27 +65,36 @@ module ifetch(input               clk_i,
       pc_next = pc;
       low_next = low;
       state_next = state;
+      if (state == S_RESET)
+	state_next = S_FETCH;
       if (pc_set)
-	pc_next = pc_in;
+	begin
+	  pc_next = pc_in;
+	  state_next = S_RESET;
+	end
       if (stall_i || empty || pc_set)
 	ir_next = 64'h0;
       else
 	begin
 	  pc_next = pc + 32'h4;
-	  if (state == 1'b0)
-	    if (val[0])
+	  case (state)
+	    S_FETCH:
+	      if (val[0])
+		begin
+		  ir_next = 64'h0;
+		  low_next = val;
+		  state_next = S_FETCH2;
+		end
+	      else
+		ir_next = { 32'h0, val };
+	    S_FETCH2:
 	      begin
-		ir_next = 64'h0;
-		low_next = val;
-		state_next = 1'h1;
-	      end
-	    else
-	      ir_next = { 32'h0, val };
-	  else
-	    begin
-	      ir_next = { val, low };
-	      state_next = 1'h0;
-	    end // else: !if(val[0])
+		ir_next = { val, low };
+		state_next = S_FETCH;
+	      end // else: !if(val[0])
+	    default:
+	      state_next = S_FETCH;
+	  endcase // case (state)
 	end // else: !if(stall_i || empty)
     end // always_comb
   

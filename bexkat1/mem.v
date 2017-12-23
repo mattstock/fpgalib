@@ -55,8 +55,20 @@ module mem(input               clk_i,
   logic 		       exc_next;
   logic [63:0] 		       ir_next;
   logic [3:0] 		       bank_next;
+
+  logic [31:0] 		       bus_dat_next;
+  logic [3:0] 		       bus_sel_next;
+  logic [31:0] 		       bus_adr_next;
+  logic 		       bus_we_next;
+  logic 		       bus_stb_next;
   
-  assign stall_o = (bus_cyc_o && !bus_ack_i);
+  assign bus_cyc_o = state != S_IDLE;
+  assign stall_o = bus_cyc_o;
+
+  typedef enum 		       bit [2:0] { S_IDLE, S_EXC, S_LOAD, S_STORE, 
+					   S_PUSH, S_POP, S_JSR, S_RTS 
+					   } state_t;
+  state_t state, state_next;
   
   always_ff @(posedge clk_i or posedge rst_i)
     begin
@@ -73,6 +85,12 @@ module mem(input               clk_i,
 	  reg_write_addr <= 4'h0;
 	  ir_o <= 64'h0;
 	  bank_o <= 4'h0;
+	  state <= S_IDLE;
+	  bus_dat_o <= 32'h0;
+	  bus_sel_o <= 4'h0;
+	  bus_adr_o <= 32'h0;
+	  bus_we_o <= 1'b0;
+	  bus_stb_o <= 1'b0;
 	end
       else
 	begin
@@ -87,6 +105,12 @@ module mem(input               clk_i,
 	  reg_write_addr <= reg_write_addr_next;
 	  ir_o <= ir_next;
 	  bank_o <= bank_next;
+	  state <= state_next;
+	  bus_stb_o <= bus_stb_next;
+	  bus_dat_o <= bus_dat_next;
+	  bus_sel_o <= bus_sel_next;
+	  bus_adr_o <= bus_adr_next;
+	  bus_we_o <= bus_we_next;
 	end // else: !if(rst_i)
     end // always_ff @
 
@@ -111,58 +135,151 @@ module mem(input               clk_i,
   // bus stuff that's opcode dependent
   always_comb
     begin
-      bus_cyc_o = 1'b0;
-      bus_stb_o = 1'b0;
-      bus_adr_o = result_i;
-      bus_dat_o = reg_data1_i;
-      bus_sel_o = databus_sel(ir_op[1:0], result_i[1:0]);
-      bus_we_o = 1'b0;
-      
-      if (exc_i)
+      state_next = state;
+      bus_adr_next = bus_adr_o;
+      bus_dat_next = bus_dat_o;
+      bus_sel_next = bus_sel_o; 
+      bus_stb_next = bus_stb_o;
+      bus_we_next = bus_we_o;
+      if (stall_i)
 	begin
-	  bus_cyc_o = 1'b1;
-	  bus_stb_o = 1'b1;
-	  bus_we_o = 1'b1;
-	  bus_sel_o = 4'hf;
-	  bus_adr_o = sp_data_i;
-	  bus_dat_o = pc_i - (ir_size ? 32'h8 : 32'h4);
+	  pc_next = pc_o;
+	  pc_set_next = pc_set_o;
+	  result_next = result_o;
 	end
       else
-	case (ir_type)
-	  T_INH:
-	    if (ir_op == 4'h5 || (ir_op == 4'h1 && ~ir_size))
+	begin
+	  pc_next = pc_i;
+	  pc_set_next = pc_set_i;
+	  result_next = result_i;
+	end
+      case (state)
+	S_IDLE:
+	  if (exc_i)
+	    begin
+	      state_next = S_EXC;
+	      bus_stb_next = 1'b1;
+	      bus_we_next = 1'b1;
+	      bus_sel_next = 4'hf;
+	      bus_adr_next = sp_data_i;
+	      bus_dat_next = pc_i - (ir_size ? 32'h8 : 32'h4);
+	    end
+	  else
+	    case (ir_type)
+	      T_INH:
+		if (ir_op == 4'h5 || (ir_op == 4'h1 && ~ir_size))
+		  begin
+		    state_next = S_EXC;
+		    bus_stb_next = 1'b1;
+		    bus_we_next = 1'b1;
+		    bus_sel_next = 4'hf;
+		    bus_adr_next = sp_data_i;
+		    bus_dat_next = pc_i;
+		  end
+	      T_LOAD:
+		begin
+		  state_next = S_LOAD;
+		  bus_stb_next = 1'b1;
+		  bus_adr_next = result_i;
+		  bus_dat_next = reg_data1_i;
+		  bus_sel_next = databus_sel(ir_op[1:0], result_i[1:0]);
+		  bus_we_next = 1'b0;
+		end
+	      T_STORE:
+		begin
+		  state_next = S_STORE;
+		  bus_stb_next = 1'b1;
+		  bus_adr_next = result_i;
+		  bus_dat_next = reg_data1_i;
+		  bus_sel_next = databus_sel(ir_op[1:0], result_i[1:0]);
+		  bus_we_next = 1'b1;
+		end
+	      T_PUSH:
+		begin
+		  state_next = (ir_op == 4'h0 ? S_PUSH : S_JSR);
+		  bus_stb_next = 1'b1;
+		  bus_we_next = 1'b1;
+		  bus_sel_next = 4'hf;
+		  bus_adr_next = sp_data_i; // use decremented value
+		  bus_dat_next = (ir_op == 4'h0 ? reg_data2_i : pc_i);
+		end
+	      T_POP:
+		begin
+		  state_next = (ir_op == 4'h0 ? S_POP : S_RTS);
+		  bus_stb_next = 1'b1;
+		  bus_sel_next = 4'hf;
+		  bus_adr_next = reg_data1_i; // use pre-increment value
+		  bus_dat_next = reg_data1_i;
+		  bus_we_next = 1'b0;
+		end
+	      default:
+		begin
+		end
+	      endcase // case (ir_type)
+	S_EXC:
+	  begin
+	    bus_stb_next = 1'b0;
+	    if (bus_ack_i)
 	      begin
-		bus_cyc_o = 1'b1;
-		bus_we_o = 1'b1;
-		bus_sel_o = 4'hf;
-		bus_adr_o = sp_data_i;
-		bus_dat_o = pc_i;
+		pc_next = result_i;
+		pc_set_next = 1'h1;
+		sp_write_next = 2'h3;
+		state_next = S_IDLE;
 	      end
-	  T_LOAD:
-	    bus_cyc_o = 1'b1;
-	  T_STORE:
-	    begin
-	      bus_cyc_o = 1'b1;
-	      bus_we_o = 1'b1;
-	    end
-	  T_PUSH:
-	    begin
-	      bus_we_o = 1'b1;
-	      bus_cyc_o = 1'b1;
-	      bus_sel_o = 4'hf;
-	      bus_adr_o = sp_data_i; // use decremented value
-	      bus_dat_o = (ir_op == 4'h0 ? reg_data2_i : pc_i);
-	    end
-	  T_POP:
-	    begin
-	      bus_cyc_o = 1'b1;
-	      bus_sel_o = 4'hf;
-	      bus_adr_o = reg_data1_i; // use pre-increment value
-	    end
-	  default:
-	    begin
-	    end
-	endcase // case (ir_type)
+	  end
+	S_PUSH:
+	  begin
+	    bus_stb_next = 1'b0;
+	    if (bus_ack_i)
+	      state_next = S_IDLE;
+	  end
+	S_JSR:
+	  begin
+	    bus_stb_next = 1'b0;
+	    if (bus_ack_i)
+	      begin
+		state_next = S_IDLE;
+		pc_next = result_i;
+		pc_set_next = 1'h1;
+	      end
+	  end
+	S_POP:
+	  begin
+	    bus_stb_next = 1'b0;
+	    if (bus_ack_i)
+	      begin
+		state_next = S_IDLE;
+		result_next = bus_dat_i;
+	      end
+	  end
+	S_RTS:
+	  begin
+	    bus_stb_next = 1'b0;
+	    if (bus_ack_i)
+	      begin
+		state_next = S_IDLE;
+		pc_next = bus_dat_i;
+		pc_set_next = 1'h1;
+	      end
+	  end
+	S_LOAD:
+	  begin
+	    bus_stb_next = 1'b0;
+	    if (bus_ack_i)
+	      begin
+		state_next = S_IDLE;
+		result_next = bus_dat_i;
+	      end
+	  end
+	S_STORE:
+	  begin
+	    bus_stb_next = 1'b0;
+	    if (bus_ack_i)
+	      state_next = S_IDLE;
+	  end
+	default:
+	  state_next = S_IDLE;
+      endcase // case (state)
     end
   
   // register write back
@@ -171,12 +288,9 @@ module mem(input               clk_i,
       if (stall_i || stall_o)
 	begin
 	  halt_next = halt_o;
-	  result_next = result_o;
 	  reg_write_next = reg_write_o;
 	  exc_next = exc_o;
 	  bank_next = bank_o;
-	  pc_next = pc_o;
-	  pc_set_next = pc_set_o;
 	  sp_data_next = sp_data_o;
 	  sp_write_next = sp_write_o;
 	  reg_write_addr_next = reg_write_addr;
@@ -185,53 +299,13 @@ module mem(input               clk_i,
       else
 	begin
 	  halt_next = halt_i;
-	  result_next = result_i;
 	  reg_write_next = reg_write_i;
 	  sp_data_next = sp_data_i;
 	  sp_write_next = sp_write_i;
 	  exc_next = exc_i;
-	  pc_next = pc_i;
 	  bank_next = bank_i;
-	  pc_set_next = pc_set_i;
 	  reg_write_addr_next = ir_i[23:20];
 	  ir_next = ir_i;
-
-	  if (exc_i)
-	    begin
-	      pc_next = result_i;
-	      pc_set_next = 1'h1;
-	      sp_write_next = 2'h3;
-	    end
-	  else
-	    case (ir_type)
-	      T_INH:
-		if (ir_op == 4'h5 || (ir_op == 4'h1 && ~ir_size))
-		  begin
-		    pc_next = result_i;
-		    pc_set_next = 1'h1;
-		    sp_write_next = 2'h3;
-		  end
-	      T_LOAD: result_next = bus_dat_i;
-	      T_PUSH:
-		begin
-		  if (ir_op != 4'h0)
-		    begin
-		      pc_next = result_i;
-		      pc_set_next = 1'h1;
-		    end
-		end
-	      T_POP:
-		begin
-		  if (ir_op == 4'h0)
-		    result_next = bus_dat_i;
-		  else
-		    begin
-		      pc_next = bus_dat_i;
-		      pc_set_next = 1'h1;
-		    end
-		end
-	      default: begin end
-	    endcase // case (ir_type)
 	end // else: !if(stall_i)
     end // always_comb
   

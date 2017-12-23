@@ -73,7 +73,7 @@ module top(input         clk_i,
 		.ir(if_ir),
 		.pc(if_pc),
 		.stall_i(hazard_stall|exe_halt|exe_stall|
-			 mem_stall),
+			 mem_stall|dat_stall_i),
 		.bus_stall_i(ins_stall_i|dat_stall_i),
 		.bus_adr(ins_adr_o),
 		.bus_cyc(ins_cyc_o),
