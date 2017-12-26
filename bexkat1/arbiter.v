@@ -55,6 +55,7 @@ module arbiter
       m_dat_next[0] = m_dat_o[0];
       m_dat_next[1] = m_dat_o[1];
       we_o = 1'h0;
+      sel_o = 4'hf;
       s_dat_o = 32'h0;
       adr_o = 'h0;
       

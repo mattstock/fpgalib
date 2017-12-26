@@ -145,12 +145,14 @@ module mem(input               clk_i,
 	begin
 	  pc_next = pc_o;
 	  pc_set_next = pc_set_o;
+	  sp_write_next = sp_write_o;
 	  result_next = result_o;
 	end
       else
 	begin
 	  pc_next = pc_i;
 	  pc_set_next = pc_set_i;
+	  sp_write_next = sp_write_i;
 	  result_next = result_i;
 	end
       case (state)
@@ -292,7 +294,6 @@ module mem(input               clk_i,
 	  exc_next = exc_o;
 	  bank_next = bank_o;
 	  sp_data_next = sp_data_o;
-	  sp_write_next = sp_write_o;
 	  reg_write_addr_next = reg_write_addr;
 	  ir_next = ir_o;
 	end // if (stall_i)
@@ -301,7 +302,6 @@ module mem(input               clk_i,
 	  halt_next = halt_i;
 	  reg_write_next = reg_write_i;
 	  sp_data_next = sp_data_i;
-	  sp_write_next = sp_write_i;
 	  exc_next = exc_i;
 	  bank_next = bank_i;
 	  reg_write_addr_next = ir_i[23:20];

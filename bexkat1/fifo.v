@@ -41,12 +41,13 @@ module fifo
 
   always_comb
     begin
-      ridx_next = (pop && !empty ? ridx + 1 : ridx);
-      widx_next = (push && !full ? widx + 1 : widx);
+      ridx_next = (pop && !empty ? ridx + 4'h1 : ridx);
+      widx_next = (push && !full ? widx + 4'h1 : widx);
+      cidx_next = cidx;
       if (pop && !empty && !(push && !full))
-	cidx_next = cidx - 1;
+	cidx_next = cidx - 4'h1;
       if (push && !full && !(pop && !empty))
-	cidx_next = cidx + 1;
+	cidx_next = cidx + 4'h1;
     end
 
   always_comb
