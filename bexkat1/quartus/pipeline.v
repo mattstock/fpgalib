@@ -6,6 +6,10 @@ module pipeline(input              raw_clock_50,
 		output logic [7:0] hex4,
 		output logic [7:0] hex5,
 		input [1:0] 	   key,
+		input 		   rxd,
+		output logic 	   txd,
+		input 		   cts,
+		output logic 	   rts,
 		output logic [9:0] ledr);
 
    logic 			   locked;
@@ -23,9 +27,11 @@ module pipeline(input              raw_clock_50,
    logic [2:0] 			   inter;
    logic 			   clk_i;
    logic 			   int_en;
-   
+
+   assign txd = rxd;
+   assign rts = cts;
    assign inter = 3'h0;
-   assign ledr = { 4'b1, locked, supervisor, halt,
+   assign ledr = { 2'b1, rxd, cts, locked, supervisor, halt,
 		   dat_cyc, dat_ack, dat_we};
    
    
