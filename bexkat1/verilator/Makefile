@@ -8,7 +8,7 @@ TEMP := $(shell mktemp)
 CPUDEPS = ../bexkat1p.v ../alu_comb.v ../bankedregisterfile.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../registerfile.v ../arbiter.v ../fifo.v
 .PHONY: all clean tests
 
-all: obj_dir/Vifetch obj_dir/Vpipeline tests
+all: obj_dir/Vpipeline tests
 
 tests:
 	cd tests; make

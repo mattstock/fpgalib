@@ -14,9 +14,10 @@ set_output_delay -clock altera_reserved_tck 20 [ get_ports altera_reserved_tdo ]
 
 # all async user input and really slow stuff
 set_false_path -from [get_ports {key*}] -to *
+set_false_path -from [get_ports {rxd, cts}] -to *
 set_false_path -from * -to [get_ports {led*}]
 set_false_path -from * -to [get_ports {hex*}]
-
+set_false_path -from * -to [get_ports {txd, rts}]
 
 set_multicycle_path -through [get_pins -compatibility_mode {*intcalc*}] -setup -start 12
 set_multicycle_path -through [get_pins -compatibility_mode {*intcalc*}] -hold -start 11

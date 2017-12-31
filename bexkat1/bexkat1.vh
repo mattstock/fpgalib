@@ -4,6 +4,18 @@
 `ifndef _BEXKAT1_VH
 `define _BEXKAT1_VH
 
+interface wb_bus;
+   logic [31:0]  adr;
+   logic [31:0]  dat_i;
+   logic [31:0]  dat_o;
+   logic 	 cyc;
+   logic 	 stall;
+   logic 	 we;
+   logic 	 ack;
+   logic [3:0] 	 sel;
+   logic 	 stb;
+endinterface
+		  
 // verilator lint_off DECLFILENAME
 package bexkat1Def;
 //  verilator lint_on DECLFILENAME
