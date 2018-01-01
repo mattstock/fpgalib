@@ -17,7 +17,7 @@ module ram
   localparam S_IDLE = 1'b0;
   localparam S_ACTIVE = 1'b1;
   
-  always idx = { bus.adr[AWIDTH-1:0], 2'b0 };
+  always idx = { bus.adr[AWIDTH+1:2], 2'b0 };
   always bus.ack = (state == S_ACTIVE);
 
   always bus.stall = 1'b0;

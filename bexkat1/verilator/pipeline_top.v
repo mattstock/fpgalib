@@ -50,12 +50,56 @@ module top(input         clk_i,
 	   output [3:0]  id_bank,
 	   output [3:0]  exe_bank,
 	   output [3:0]  mem_bank,
-	   output 	 supervisor);
-
+	   output 	 supervisor,
+	   output 	 arb_we_o,
+	   output 	 arb_ack_i,
+	   output 	 arb_cyc_o,
+	   output 	 arb_stall_i,
+	   output 	 arb_stb_o,
+	   output [3:0]  arb_sel_o,
+	   output [31:0] arb_dat_i,
+	   output [31:0] arb_dat_o,
+	   output [14:0] arb_adr_o,
+	   output [31:0] ins_adr_o,
+	   output 	 ins_ack_i,
+	   output 	 ins_cyc_o,
+	   output 	 ins_stb_o,
+	   output [31:0] ins_dat_i,
+	   output [31:0] dat_adr_o,
+	   output 	 dat_cyc_o,
+	   output 	 dat_ack_i,
+	   output 	 dat_stb_o,
+	   output [31:0] dat_dat_i,
+	   output 	 dat_we_o,
+	   output [3:0]  dat_sel_o,
+	   output [31:0] dat_dat_o);
    
-   wb_bus ins_bus();
-   wb_bus dat_bus();
-   wb_bus arb_bus();
+  wb_bus ins_bus();
+  wb_bus dat_bus();
+  wb_bus arb_bus();
+
+  assign arb_we_o = arb_bus.we;
+  assign arb_ack_i = arb_bus.ack;
+  assign arb_stall_i = arb_bus.stall;
+  assign arb_stb_o = arb_bus.stb;
+  assign arb_sel_o = arb_bus.sel;
+  assign arb_dat_i = arb_bus.dat_i;
+  assign arb_dat_o = arb_bus.dat_o;
+  assign arb_adr_o = arb_bus.adr[14:0];
+  assign arb_cyc_o = arb_bus.cyc;
+  assign ins_adr_o = ins_bus.adr;
+  assign ins_ack_i = ins_bus.ack;
+  assign ins_cyc_o = ins_bus.cyc;
+  assign ins_stb_o = ins_bus.stb;
+  assign ins_dat_i = ins_bus.dat_i;
+  assign dat_adr_o = dat_bus.adr;
+  assign dat_cyc_o = dat_bus.cyc;
+  assign dat_ack_i = dat_bus.ack;
+  assign dat_stb_o = dat_bus.stb;
+  assign dat_dat_i = dat_bus.dat_i;
+  assign dat_we_o = dat_bus.we;
+  assign dat_sel_o = dat_bus.sel;
+  assign dat_dat_o = dat_bus.dat_o;
    
   ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i),
 		.ir(if_ir),

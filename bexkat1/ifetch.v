@@ -23,6 +23,7 @@ module ifetch(input               clk_i,
   state_t 			  state, state_next;
 
   assign bus.cyc = (state != S_RESET && !pc_set);
+  assign bus.stb = bus.cyc;
 
   fifo #(.AWIDTH(4), .DWIDTH(32)) fifo0(.clk_i(clk_i), .rst_i(rst_i|pc_set),
 					.push(bus.ack), .in(bus.dat_i),
@@ -68,30 +69,31 @@ module ifetch(input               clk_i,
 	  pc_next = pc_in;
 	  state_next = S_RESET;
 	end
-      if (stall_i || empty || pc_set)
-	ir_next = 64'h0;
-      else
-	begin
-	  pc_next = pc + 32'h4;
-	  case (state)
-	    S_FETCH:
-	      if (val[0])
+      if (!stall_i)
+	if (empty || pc_set)
+	  ir_next = 64'h0;
+	else
+	  begin
+	    pc_next = pc + 32'h4;
+	    case (state)
+	      S_FETCH:
+		if (val[0])
+		  begin
+		    ir_next = 64'h0;
+		    low_next = val;
+		    state_next = S_FETCH2;
+		  end
+		else
+		  ir_next = { 32'h0, val };
+	      S_FETCH2:
 		begin
-		  ir_next = 64'h0;
-		  low_next = val;
-		  state_next = S_FETCH2;
-		end
-	      else
-		ir_next = { 32'h0, val };
-	    S_FETCH2:
-	      begin
-		ir_next = { val, low };
+		  ir_next = { val, low };
+		  state_next = S_FETCH;
+		end // else: !if(val[0])
+	      default:
 		state_next = S_FETCH;
-	      end // else: !if(val[0])
-	    default:
-	      state_next = S_FETCH;
-	  endcase // case (state)
-	end // else: !if(stall_i || empty)
+	    endcase // case (state)
+	  end // else: !if(empty || pc_set)
     end // always_comb
   
 endmodule // ifetch
