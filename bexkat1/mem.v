@@ -177,7 +177,13 @@ module mem(input               clk_i,
 		end
 	      T_PUSH:
 		begin
-		  state_next = (ir_op == 4'h0 ? S_PUSH : S_JSR);
+		  if (ir_op == 4'h0)
+		    state_next = S_PUSH;
+		  else
+		    begin
+		      state_next = S_JSR;
+		      pc_next = result_i;
+		    end
 		  bus_cyc_next = 1'b1;
 		  bus_stb_next = 1'b1;
 		  bus_we_next = 1'b1;
@@ -226,7 +232,6 @@ module mem(input               clk_i,
 	      begin
 		state_next = S_IDLE;
 		bus_cyc_next = 1'b0;
-		pc_next = result_i;
 		pc_set_next = 1'h1;
 	      end
 	  end
