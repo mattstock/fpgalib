@@ -8,8 +8,9 @@ module ifetch(input               clk_i,
 	      input 		  rst_i,
 	      output [63:0] 	  ir,
 	      output logic [31:0] pc,
-	      if_wb.master        bus,
+				  if_wb.master bus,
 	      input 		  pc_set,
+	      input 		  halt,
 	      input 		  stall_i,
 	      input [31:0] 	  pc_in);
   
@@ -18,7 +19,7 @@ module ifetch(input               clk_i,
   logic [31:0] 			  bus_adr_next, val;
   logic 			  full, empty;
 
-  typedef enum bit [1:0] { S_RESET, S_FETCH, S_FETCH2 } state_t;
+  typedef enum bit [1:0] { S_RESET, S_HALT, S_FETCH, S_FETCH2 } state_t;
   
   state_t 			  state, state_next;
   
@@ -32,7 +33,7 @@ module ifetch(input               clk_i,
   assign bus.dat_o = dat_o;
 `endif
 
-  assign bus.cyc = (state != S_RESET && !pc_set);
+  assign bus.cyc = ((state == S_FETCH || state == S_FETCH2) && !pc_set);
   assign bus.stb = bus.cyc;
   assign bus.sel = 4'hf;
   assign bus.we = 1'b0;
@@ -68,42 +69,59 @@ module ifetch(input               clk_i,
       low_next = low;
       state_next = state;
       bus_adr_next = bus.adr;
-      if (state == S_RESET)
-	state_next = S_FETCH;
-      else
-	if (!bus.stall)
-	  bus_adr_next = bus.adr + 32'h4;
-      if (pc_set)
-	begin
+       
+       
+       if (pc_set)
+	 begin
 	  pc_next = pc_in;
 	  bus_adr_next = pc_in;
 	  state_next = S_RESET;
 	end
-      if (!stall_i)
-	if (empty || pc_set)
-	  ir_next = 64'h0;
-	else
-	  begin
-	    pc_next = pc + 32'h4;
-	    case (state)
-	      S_FETCH:
-		if (val[0])
-		  begin
-		    ir_next = 64'h0;
-		    low_next = val;
-		    state_next = S_FETCH2;
-		  end
+       
+       case (state)
+	 S_RESET:
+	   state_next = S_FETCH;
+	 S_HALT:
+	   state_next = S_HALT;
+	 S_FETCH:
+	   begin
+	      if (!bus.stall)
+		bus_adr_next = bus.adr + 32'h4;
+	      if (!stall_i)
+		if (empty || pc_set)
+		  ir_next = 64'h0;
 		else
-		  ir_next = { 32'h0, val };
-	      S_FETCH2:
-		begin
-		  ir_next = { val, low };
-		  state_next = S_FETCH;
-		end // else: !if(val[0])
-	      default:
-		state_next = S_FETCH;
-	    endcase // case (state)
-	  end // else: !if(empty || pc_set)
+		  begin
+		     pc_next = pc + 32'h4;
+       		     if (val[0])
+		       begin
+			  ir_next = 64'h0;
+			  low_next = val;
+			  state_next = S_FETCH2;
+		       end
+		     else
+		       ir_next = { 32'h0, val };
+		  end // else: !if(empty || pc_set)
+	      if (halt)
+		state_next = S_HALT;
+	   end
+	 S_FETCH2:
+	   begin
+	      if (!bus.stall)
+		bus_adr_next = bus.adr + 32'h4;
+	      if (!stall_i)
+		if (empty || pc_set)
+		  ir_next = 64'h0;
+		else
+		  begin
+		     pc_next = pc + 32'h4;
+		     ir_next = { val, low };
+		     state_next = S_FETCH;
+		  end
+	      if (halt)
+		state_next = S_HALT;
+	   end
+       endcase // case (state)
     end // always_comb
   
 endmodule // ifetch
