@@ -1541,7 +1541,7 @@ BusCtrl: adr: 000000d4 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 dat_o: 00000000 we: 
 -------------------- 055 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode                              exec              mem
-pc:                4c               4c                                48               44
+pc:                50               4c                                48               44
 ir:                 0                0                                 0                0
 ra:                 0                0                                 0                0
 rb:                 0                0                                 0                0
@@ -1561,9 +1561,9 @@ alu_func: 0 alu1: 78881111 alu2: 78881111 alu_out: 78881111 int_func: 0 int_out:
   8: 00000154  9: 13334321 10: 38bfd852 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 000000d8 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
-  fifo: cidx: f ridx: 3 widx: 2 value[idx]: 00000000
+Ins: adr: 000000d8 cyc: 0 stb: 0 ack: 1 dat_i: 00000000 stall: 0 state: 3
+  fifo: cidx: e ridx: 4 widx: 2 value[idx]: 00000000
 Mem: adr: 00000000 cyc: 0 stb: 0 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: 0 stall: 0 state 0
-BusCtrl: adr: 000000d8 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f stall: 0
+BusCtrl: adr: 000000d8 cyc: 0 stb: 0 ack: 1 dat_i: 00000000 dat_o: 00000000 we: 0 sel: f stall: 0
   busfifo: cidx: 1 ridx: 5 widx: 6 adr[idx]: 000000d4, path[idx]: 0
 HALT

@@ -107,7 +107,8 @@ module top(input         clk_i,
   ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i),
 		.ir(if_ir),
 		.pc(if_pc),
-		.stall_i(hazard_stall|exe_halt|exe_stall|
+		.halt(exe_halt|mem_halt),
+		.stall_i(hazard_stall|exe_stall|
 			 mem_stall),
 		.bus(ins_bus.master),
 		.pc_set(mem_pc_set),

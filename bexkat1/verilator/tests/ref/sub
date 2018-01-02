@@ -413,7 +413,7 @@ alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 0000002c cyc: 0 stb: 0 ack: 0 dat_i: 04000000 stall: 0 state: 0
+Ins: adr: 0000002c cyc: 0 stb: 0 ack: 0 dat_i: 04000000 stall: 0 state: 1
   fifo: cidx: 0 ridx: 0 widx: 0 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 04000000 dat_o: 00000018 we: 1 sel: f stall: 0 state 0
 BusCtrl: adr: 0000002c cyc: 0 stb: 0 ack: 0 dat_i: 00000018 dat_o: 04000000 we: 0 sel: f stall: 0
@@ -721,7 +721,7 @@ alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000034 cyc: 0 stb: 0 ack: 0 dat_i: 00000018 stall: 0 state: 0
+Ins: adr: 00000034 cyc: 0 stb: 0 ack: 0 dat_i: 00000018 stall: 0 state: 1
   fifo: cidx: 0 ridx: 0 widx: 0 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 00000018 dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
 BusCtrl: adr: 00000034 cyc: 0 stb: 0 ack: 0 dat_i: 00000ffc dat_o: 00000018 we: 0 sel: f stall: 0
@@ -1001,7 +1001,7 @@ alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000034 cyc: 0 stb: 0 ack: 0 dat_i: 80108ace stall: 0 state: 0
+Ins: adr: 00000034 cyc: 0 stb: 0 ack: 0 dat_i: 80108ace stall: 0 state: 1
   fifo: cidx: 0 ridx: 0 widx: 0 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 80108ace dat_o: 0000001c we: 1 sel: f stall: 0 state 0
 BusCtrl: adr: 00000034 cyc: 0 stb: 0 ack: 0 dat_i: 0000001c dat_o: 80108ace we: 0 sel: f stall: 0
@@ -1309,7 +1309,7 @@ alu_func: 0 alu1: 11223344 alu2: 11223344 alu_out: 11223344 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 0000003c cyc: 0 stb: 0 ack: 0 dat_i: 0000001c stall: 0 state: 0
+Ins: adr: 0000003c cyc: 0 stb: 0 ack: 0 dat_i: 0000001c stall: 0 state: 1
   fifo: cidx: 0 ridx: 0 widx: 0 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 0000001c dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
 BusCtrl: adr: 0000003c cyc: 0 stb: 0 ack: 0 dat_i: 00000ffc dat_o: 0000001c we: 0 sel: f stall: 0
@@ -1597,11 +1597,11 @@ BusCtrl: adr: 0000003c cyc: 1 stb: 1 ack: 1 dat_i: 00000ffc dat_o: 21000000 we: 
 -------------------- 057 --------------------
 --- PIPELINE STATE ---
                ifetch          idecode                              exec              mem
-pc:                34               34                                30               2c
-ir:          21000000         21000000                          80108ace                0
-ra:                 0                0                                 1                0
+pc:                38               34                                30               2c
+ir:          80206488         21000000                          80108ace                0
+ra:                 2                0                                 1                0
 rb:                 0                0                                 0                0
-rc:                 0                0                                 8                0
+rc:                 6                0                                 8                0
 spd:                              1000/            1000             1000             1000
 spw:                                 3                                 0                0
 rd1:                              1000/            1000         11223344
@@ -1617,9 +1617,9 @@ alu_func: 1 alu1: 00001000 alu2: 00000004 alu_out: 00001004 int_func: 1 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 00000040 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
-  fifo: cidx: 2 ridx: 6 widx: 8 value[idx]: 80206488
+Ins: adr: 00000040 cyc: 0 stb: 0 ack: 1 dat_i: 00000000 stall: 0 state: 3
+  fifo: cidx: 1 ridx: 7 widx: 8 value[idx]: 21000000
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 00000000 dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
-BusCtrl: adr: 00000040 cyc: 1 stb: 1 ack: 1 dat_i: 00000ffc dat_o: 00000000 we: 0 sel: f stall: 0
+BusCtrl: adr: 00000040 cyc: 0 stb: 0 ack: 1 dat_i: 00000ffc dat_o: 00000000 we: 0 sel: f stall: 0
   busfifo: cidx: 1 ridx: b widx: c adr[idx]: 0000003c, path[idx]: 0
 HALT

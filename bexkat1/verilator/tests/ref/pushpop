@@ -749,7 +749,7 @@ alu_func: 0 alu1: 12345678 alu2: 12345678 alu_out: 12345678 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 02
-Ins: adr: 00000048 cyc: 1 stb: 1 ack: 0 dat_i: 12345678 stall: 1 state: 1
+Ins: adr: 00000048 cyc: 0 stb: 0 ack: 0 dat_i: 12345678 stall: 1 state: 3
   fifo: cidx: 2 ridx: 0 widx: 2 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 12345678 dat_o: 00000ffc we: 0 sel: f stall: 0 state 5
 BusCtrl: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 00000ffc dat_o: 12345678 we: 0 sel: f stall: 0
@@ -777,10 +777,10 @@ alu_func: 0 alu1: 12345678 alu2: 12345678 alu_out: 12345678 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 02
-Ins: adr: 00000048 cyc: 1 stb: 1 ack: 0 dat_i: 12345678 stall: 0 state: 1
+Ins: adr: 00000048 cyc: 0 stb: 0 ack: 0 dat_i: 12345678 stall: 0 state: 3
   fifo: cidx: 2 ridx: 0 widx: 2 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 12345678 dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
-BusCtrl: adr: 00000048 cyc: 1 stb: 1 ack: 0 dat_i: 00000ffc dat_o: 12345678 we: 0 sel: f stall: 0
+BusCtrl: adr: 00000048 cyc: 0 stb: 0 ack: 0 dat_i: 00000ffc dat_o: 12345678 we: 0 sel: f stall: 0
   busfifo: cidx: 0 ridx: 6 widx: 6 adr[idx]: 00000018, path[idx]: 0
 -------------------- 028 --------------------
 --- PIPELINE STATE ---
@@ -805,9 +805,9 @@ alu_func: 0 alu1: 12345678 alu2: 12345678 alu_out: 12345678 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  0 wad: 00
-Ins: adr: 0000004c cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
-  fifo: cidx: 2 ridx: 0 widx: 2 value[idx]: 00000000
-Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 00000000 dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
-BusCtrl: adr: 0000004c cyc: 1 stb: 1 ack: 1 dat_i: 00000ffc dat_o: 00000000 we: 0 sel: f stall: 0
-  busfifo: cidx: 1 ridx: 6 widx: 7 adr[idx]: 00000048, path[idx]: 0
+Ins: adr: 00000048 cyc: 0 stb: 0 ack: 0 dat_i: 12345678 stall: 0 state: 3
+  fifo: cidx: 1 ridx: 1 widx: 2 value[idx]: 00000000
+Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 12345678 dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
+BusCtrl: adr: 00000048 cyc: 0 stb: 0 ack: 0 dat_i: 00000ffc dat_o: 12345678 we: 0 sel: f stall: 0
+  busfifo: cidx: 0 ridx: 6 widx: 6 adr[idx]: 00000018, path[idx]: 0
 HALT
