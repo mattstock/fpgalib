@@ -329,7 +329,7 @@ alu_func: 0 alu1: 12345678 alu2: 12345678 alu_out: 12345678 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 00
-Ins: adr: 00000028 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 00000028 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 1 ridx: 8 widx: 9 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 1 ack: 0 dat_i: 00000000 dat_o: 12345678 we: 1 sel: f stall: 0 state 4
 BusCtrl: adr: 00000ffc cyc: 1 stb: 1 ack: 1 dat_i: 12345678 dat_o: 00000000 we: 1 sel: f stall: 0
@@ -357,7 +357,7 @@ alu_func: 0 alu1: 12345678 alu2: 12345678 alu_out: 12345678 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 00
-Ins: adr: 00000028 cyc: 1 stb: 1 ack: 0 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 00000028 cyc: 1 stb: 1 ack: 0 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 2 ridx: 8 widx: a value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 00000000 dat_o: 12345678 we: 1 sel: f stall: 0 state 4
 BusCtrl: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 12345678 dat_o: 00000000 we: 1 sel: f stall: 0
@@ -553,7 +553,7 @@ alu_func: 0 alu1: 00000ffc alu2: 00000004 alu_out: 00000004 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 04 h2: 00 hsp: 01 hs:  0 es:  0 ms:  1 wad: 01
-Ins: adr: 00000040 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 00000040 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 1 ridx: e widx: f value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 1 ack: 0 dat_i: 00000000 dat_o: 00000ffc we: 0 sel: f stall: 0 state 5
 BusCtrl: adr: 00000ffc cyc: 1 stb: 1 ack: 1 dat_i: 00000ffc dat_o: 00000000 we: 0 sel: f stall: 0
@@ -581,7 +581,7 @@ alu_func: 0 alu1: 00000ffc alu2: 00000004 alu_out: 00000004 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 04 h2: 00 hsp: 01 hs:  0 es:  0 ms:  1 wad: 01
-Ins: adr: 00000040 cyc: 1 stb: 1 ack: 0 dat_i: 12345678 stall: 0 state: 1
+Ins: adr: 00000040 cyc: 1 stb: 1 ack: 0 dat_i: 12345678 stall: 1 state: 1
   fifo: cidx: 2 ridx: e widx: 0 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 12345678 dat_o: 00000ffc we: 0 sel: f stall: 0 state 5
 BusCtrl: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 00000ffc dat_o: 12345678 we: 0 sel: f stall: 0
@@ -637,7 +637,7 @@ alu_func: 4 alu1: 12345678 alu2: 12345678 alu_out: 00000000 int_func: 4 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 01 hs:  0 es:  0 ms:  1 wad: 00
-Ins: adr: 00000044 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 00000044 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 1 ridx: f widx: 0 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 1 ack: 0 dat_i: 00000000 dat_o: 12345678 we: 1 sel: f stall: 0 state 4
 BusCtrl: adr: 00000ffc cyc: 1 stb: 1 ack: 1 dat_i: 12345678 dat_o: 00000000 we: 1 sel: f stall: 0
@@ -665,7 +665,7 @@ alu_func: 4 alu1: 12345678 alu2: 12345678 alu_out: 00000000 int_func: 4 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 01 hs:  0 es:  0 ms:  1 wad: 00
-Ins: adr: 00000044 cyc: 1 stb: 1 ack: 0 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 00000044 cyc: 1 stb: 1 ack: 0 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 2 ridx: f widx: 1 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 00000000 dat_o: 12345678 we: 1 sel: f stall: 0 state 4
 BusCtrl: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 12345678 dat_o: 00000000 we: 1 sel: f stall: 0
@@ -721,7 +721,7 @@ alu_func: 0 alu1: 12345678 alu2: 12345678 alu_out: 12345678 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 02
-Ins: adr: 00000048 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 00000048 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 1 ridx: 0 widx: 1 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 1 ack: 0 dat_i: 00000000 dat_o: 00000ffc we: 0 sel: f stall: 0 state 5
 BusCtrl: adr: 00000ffc cyc: 1 stb: 1 ack: 1 dat_i: 00000ffc dat_o: 00000000 we: 0 sel: f stall: 0
@@ -749,7 +749,7 @@ alu_func: 0 alu1: 12345678 alu2: 12345678 alu_out: 12345678 int_func: 0 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 02
-Ins: adr: 00000048 cyc: 1 stb: 1 ack: 0 dat_i: 12345678 stall: 0 state: 1
+Ins: adr: 00000048 cyc: 1 stb: 1 ack: 0 dat_i: 12345678 stall: 1 state: 1
   fifo: cidx: 2 ridx: 0 widx: 2 value[idx]: 00000000
 Mem: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 12345678 dat_o: 00000ffc we: 0 sel: f stall: 0 state 5
 BusCtrl: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 00000ffc dat_o: 12345678 we: 0 sel: f stall: 0

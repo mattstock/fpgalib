@@ -4,7 +4,7 @@ derive_pll_clocks
 derive_clock_uncertainty
 
 set_clock_groups -asynchronous -group { \
-  pll0|altpll_component|auto_generated|pll1|clk[0]} -group { altera_reserved_tck }
+  clk0|altpll_component|auto_generated|pll1|clk[0]} -group { altera_reserved_tck }
 
 # JTAG
 set_input_delay -clock altera_reserved_tck 20 [ get_ports altera_reserved_tdi ]

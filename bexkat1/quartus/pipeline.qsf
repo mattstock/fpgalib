@@ -890,6 +890,16 @@ set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[13] -
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[15] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[26] -to auto_signaltap_0|gnd -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[28] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
+set_location_assignment PIN_AA17 -to cts
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to cts
+set_location_assignment PIN_AB5 -to rxd
+set_location_assignment PIN_AB17 -to rts
+set_location_assignment PIN_AB6 -to txd
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rts
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rxd
+set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to txd
+set_global_assignment -name VERILOG_FILE ../buscontrol.v
+set_global_assignment -name VERILOG_FILE ../memwb.v
 set_global_assignment -name VERILOG_FILE ../../debounce/debounce.v
 set_global_assignment -name VERILOG_FILE ../fifo.v
 set_global_assignment -name VERILOG_FILE ../arbiter.v
@@ -908,13 +918,5 @@ set_global_assignment -name VERILOG_FILE ../execute.v
 set_global_assignment -name QIP_FILE sysclk.qip
 set_global_assignment -name SIGNALTAP_FILE stp1.stp
 set_global_assignment -name QIP_FILE mram.qip
-set_location_assignment PIN_AA17 -to cts
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to cts
-set_location_assignment PIN_AB5 -to rxd
-set_location_assignment PIN_AB17 -to rts
-set_location_assignment PIN_AB6 -to txd
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rts
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rxd
-set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to txd
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp

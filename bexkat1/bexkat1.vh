@@ -4,18 +4,57 @@
 `ifndef _BEXKAT1_VH
 `define _BEXKAT1_VH
 
-interface wb_bus;
-   logic [31:0]  adr;
-   logic [31:0]  dat_i;
-   logic [31:0]  dat_o;
-   logic 	 cyc;
-   logic 	 stall;
-   logic 	 we;
-   logic 	 ack;
-   logic [3:0] 	 sel;
-   logic 	 stb;
+interface if_wb;
+
+  parameter AWIDTH = 32;
+  parameter DWIDTH = 32;
+  
+  logic [AWIDTH-1:0] adr;
+  logic [DWIDTH-1:0] dat_m;
+  logic [DWIDTH-1:0] dat_s;
+  logic 	     cyc;
+  logic 	     stall;
+  logic 	     we;
+  logic 	     ack;
+  logic [3:0] 	     sel;
+  logic 	     stb;
+
+  modport master
+    (input  ack,
+     output adr,
+     output cyc,
+     input  stall,
+     output stb,
+     output sel,
+     output we,
+`ifdef NO_MODPORT_EXPRESSIONS
+     input  dat_s,
+     output dat_m
+`else
+     input  .dat_i(dat_s),
+     output .dat_o(dat_m)
+`endif
+     );
+
+  modport slave
+    (output  ack,
+     input  adr,
+     input  cyc,
+     output stall,
+     input  stb,
+     input  sel,
+     input  we,
+`ifdef NO_MODPORT_EXPRESSIONS
+     input  dat_m,
+     output dat_s
+`else
+     output .dat_o(dat_s),
+     input  .dat_i(dat_m)
+`endif
+     );
+  
 endinterface
-		  
+
 // verilator lint_off DECLFILENAME
 package bexkat1Def;
 //  verilator lint_on DECLFILENAME

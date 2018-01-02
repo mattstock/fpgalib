@@ -8,7 +8,7 @@ module ifetch(input               clk_i,
 	      input 		  rst_i,
 	      output [63:0] 	  ir,
 	      output logic [31:0] pc,
-	      wb_bus              bus,
+	      if_wb.master        bus,
 	      input 		  pc_set,
 	      input 		  stall_i,
 	      input [31:0] 	  pc_in);
@@ -21,12 +21,25 @@ module ifetch(input               clk_i,
   typedef enum bit [1:0] { S_RESET, S_FETCH, S_FETCH2 } state_t;
   
   state_t 			  state, state_next;
+  
+  logic [31:0] dat_i, dat_o;
+  
+`ifdef NO_MODPORT_EXPRESSIONS
+  assign dat_i = bus.dat_s;
+  assign bus.dat_m = dat_o;
+`else
+  assign dat_i = bus.dat_i;
+  assign bus.dat_o = dat_o;
+`endif
 
   assign bus.cyc = (state != S_RESET && !pc_set);
   assign bus.stb = bus.cyc;
-
+  assign bus.sel = 4'hf;
+  assign bus.we = 1'b0;
+  assign dat_o = 32'h0;
+  
   fifo #(.AWIDTH(4), .DWIDTH(32)) ffifo(.clk_i(clk_i), .rst_i(rst_i|pc_set),
-					.push(bus.ack), .in(bus.dat_i),
+					.push(bus.ack), .in(dat_i),
 					.pop(!(bus.stall|stall_i)), .out(val),
 					.full(full), .empty(empty));
   

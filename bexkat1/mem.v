@@ -21,7 +21,17 @@ module mem(input               clk_i,
 	   output logic        pc_set_o,
 	   input [63:0]        ir_i,
 	   input 	       exc_i,
-	   wb_bus              bus);
+	   if_wb.master        bus);
+
+  logic [31:0] 		       dat_i, dat_o;
+  
+`ifdef NO_MODPORT_EXPRESSIONS
+  assign dat_i = bus.dat_s;
+  assign bus.dat_m = dat_o;
+`else
+  assign dat_i = bus.dat_i;
+  assign bus.dat_o = dat_o;
+`endif
 
   wire [3:0] 		       ir_type  = ir_i[31:28];
   wire [3:0] 		       ir_op    = ir_i[27:24];
@@ -48,12 +58,6 @@ module mem(input               clk_i,
 					   } state_t;
   state_t state, state_next;
 
-/*
-  fifo #(.AWIDTH(4), .DWIDTH(32)) memfifo(.clk_i(clk_i), .rst_i(rst_i),
-					  .push(bus.ack), .in(bus.dat_i),
-					  .pop(!(bus.stall|stall_i)), .out(val),
-					  .full(full), .empty(empty));
-  */
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
@@ -64,7 +68,7 @@ module mem(input               clk_i,
 	  sp_write_o <= 2'h0;
 	  state <= S_IDLE;
 	  bus.cyc <= 1'h0;
-	  bus.dat_o <= 32'h0;
+	  dat_o <= 32'h0;
 	  bus.sel <= 4'h0;
 	  bus.adr <= 32'h0;
 	  bus.we <= 1'b0;
@@ -79,7 +83,7 @@ module mem(input               clk_i,
 	  state <= state_next;
 	  bus.cyc <= bus_cyc_next;
 	  bus.stb <= bus_stb_next;
-	  bus.dat_o <= bus_dat_next;
+	  dat_o <= bus_dat_next;
 	  bus.sel <= bus_sel_next;
 	  bus.adr <= bus_adr_next;
 	  bus.we <= bus_we_next;
@@ -110,7 +114,7 @@ module mem(input               clk_i,
       state_next = state;
       bus_cyc_next = bus.cyc;
       bus_adr_next = bus.adr;
-      bus_dat_next = bus.dat_o;
+      bus_dat_next = dat_o;
       bus_sel_next = bus.sel; 
       bus_stb_next = bus.stb;
       bus_we_next = bus.we;
@@ -242,7 +246,7 @@ module mem(input               clk_i,
 	      begin
 		state_next = S_IDLE;
 		bus_cyc_next = 1'b0;
-		result_next = bus.dat_i;
+		result_next = dat_i;
 	      end
 	  end
 	S_RTS:
@@ -252,7 +256,7 @@ module mem(input               clk_i,
 	      begin
 		state_next = S_IDLE;
 		bus_cyc_next = 1'b0;
-		pc_next = bus.dat_i;
+		pc_next = dat_i;
 		pc_set_next = 1'h1;
 	      end
 	  end
@@ -263,7 +267,7 @@ module mem(input               clk_i,
 	      begin
 		state_next = S_IDLE;
 		bus_cyc_next = 1'b0;
-		result_next = bus.dat_i;
+		result_next = dat_i;
 	      end
 	  end
 	S_STORE:

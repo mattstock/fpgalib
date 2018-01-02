@@ -1,3 +1,4 @@
+`define NO_MODPORT_EXPRESSIONS
 `include "bexkat1.vh"
 
 module ram
@@ -5,7 +6,7 @@ module ram
     INITNAME="../ram0.hex")
    (input  clk_i,
     input  rst_i,
-    wb_bus bus);
+    if_wb.slave bus);
   
   localparam MSIZE = 2 ** (AWIDTH+2);
   
@@ -33,18 +34,18 @@ module ram
     if (rst_i)
       begin
 	state <= S_IDLE;
-	bus.dat_o <= 32'h0;
+	bus.dat_s <= 32'h0;
       end
     else
       begin
 	state <= state_next;
-	bus.dat_o <= dat_next;
+	bus.dat_s <= dat_next;
       end
 
   always_comb
     begin
       mem_next = mem;
-      dat_next = bus.dat_o;
+      dat_next = bus.dat_s;
       state_next = state;
       case (state)
 	S_IDLE:
@@ -54,13 +55,13 @@ module ram
 	      if (bus.we)
 		begin
 		  if (bus.sel[0])
-		    mem_next[idx] = bus.dat_i[31:24];
+		    mem_next[idx] = bus.dat_m[31:24];
 		  if (bus.sel[1])
-		    mem_next[idx+1] = bus.dat_i[23:16];
+		    mem_next[idx+1] = bus.dat_m[23:16];
 		  if (bus.sel[2])
-		    mem_next[idx+2] = bus.dat_i[15:8];
+		    mem_next[idx+2] = bus.dat_m[15:8];
 		  if (bus.sel[3])
-		    mem_next[idx+3] = bus.dat_i[7:0];
+		    mem_next[idx+3] = bus.dat_m[7:0];
 		end // if (cyc_i & stb_i & we_i)
 	      else
 		case (bus.sel)
@@ -84,13 +85,13 @@ module ram
 	      if (bus.we)
 		begin
 		  if (bus.sel[0])
-		    mem_next[idx] = bus.dat_i[31:24];
+		    mem_next[idx] = bus.dat_m[31:24];
 		  if (bus.sel[1])
-		    mem_next[idx+1] = bus.dat_i[23:16];
+		    mem_next[idx+1] = bus.dat_m[23:16];
 		  if (bus.sel[2])
-		    mem_next[idx+2] = bus.dat_i[15:8];
+		    mem_next[idx+2] = bus.dat_m[15:8];
 		  if (bus.sel[3])
-		    mem_next[idx+3] = bus.dat_i[7:0];
+		    mem_next[idx+3] = bus.dat_m[7:0];
 		end // if (cyc_i & stb_i & we_i)
 	      else
 		case (bus.sel)

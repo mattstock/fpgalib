@@ -525,7 +525,7 @@ alu_func: 2 alu1: 00000000 alu2: 00001001 alu_out: 00001001 int_func: 1 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 07
-Ins: adr: 00000044 cyc: 1 stb: 1 ack: 1 dat_i: 04000000 stall: 0 state: 2
+Ins: adr: 00000044 cyc: 1 stb: 1 ack: 1 dat_i: 04000000 stall: 1 state: 2
   fifo: cidx: 1 ridx: f widx: 0 value[idx]: 00001046
 Mem: adr: 00001044 cyc: 1 stb: 1 ack: 0 dat_i: 04000000 dat_o: 00000000 we: 0 sel: f stall: 0 state 2
 BusCtrl: adr: 00001044 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 dat_o: 04000000 we: 0 sel: f stall: 0
@@ -553,7 +553,7 @@ alu_func: 2 alu1: 00000000 alu2: 00001001 alu_out: 00001001 int_func: 1 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 07
-Ins: adr: 00000044 cyc: 1 stb: 1 ack: 0 dat_i: 0000101c stall: 0 state: 2
+Ins: adr: 00000044 cyc: 1 stb: 1 ack: 0 dat_i: 0000101c stall: 1 state: 2
   fifo: cidx: 2 ridx: f widx: 1 value[idx]: 00001046
 Mem: adr: 00001044 cyc: 1 stb: 0 ack: 1 dat_i: 0000101c dat_o: 00000000 we: 0 sel: f stall: 0 state 2
 BusCtrl: adr: 00001044 cyc: 1 stb: 0 ack: 1 dat_i: 00000000 dat_o: 0000101c we: 0 sel: f stall: 0
@@ -637,7 +637,7 @@ alu_func: 2 alu1: 00000000 alu2: 00001001 alu_out: 00001001 int_func: 2 int_out:
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 08
-Ins: adr: 0000004c cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 0000004c cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 1 ridx: 1 widx: 2 value[idx]: 00000000
 Mem: adr: 00001048 cyc: 1 stb: 1 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: c stall: 0 state 2
 BusCtrl: adr: 00001048 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 dat_o: 00000000 we: 0 sel: c stall: 0
@@ -665,7 +665,7 @@ alu_func: 2 alu1: 00000000 alu2: 00001001 alu_out: 00001001 int_func: 2 int_out:
   8: 00001048  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 08
-Ins: adr: 0000004c cyc: 1 stb: 1 ack: 0 dat_i: 00001000 stall: 0 state: 1
+Ins: adr: 0000004c cyc: 1 stb: 1 ack: 0 dat_i: 00001000 stall: 1 state: 1
   fifo: cidx: 2 ridx: 1 widx: 3 value[idx]: 00000000
 Mem: adr: 00001048 cyc: 1 stb: 0 ack: 1 dat_i: 00001000 dat_o: 00000000 we: 0 sel: c stall: 0 state 2
 BusCtrl: adr: 00001048 cyc: 1 stb: 0 ack: 1 dat_i: 00000000 dat_o: 00001000 we: 0 sel: c stall: 0
@@ -749,7 +749,7 @@ alu_func: 0 alu1: 00001001 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out:
   8: 00001000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 09
-Ins: adr: 00000054 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 00000054 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 stall: 1 state: 1
   fifo: cidx: 1 ridx: 3 widx: 4 value[idx]: 00000000
 Mem: adr: 00001046 cyc: 1 stb: 1 ack: 0 dat_i: 00000000 dat_o: 00000000 we: 0 sel: 2 stall: 0 state 2
 BusCtrl: adr: 00001046 cyc: 1 stb: 1 ack: 1 dat_i: 00000000 dat_o: 00000000 we: 0 sel: 2 stall: 0
@@ -777,7 +777,7 @@ alu_func: 0 alu1: 00001001 alu2: 00001001 alu_out: 00001001 int_func: 0 int_out:
   8: 00001000  9: 00001046 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000000
 vectoff: ffffffc0 inten:  0 interrupts:  1
 h1: 00 h2: 00 hsp: 00 hs:  0 es:  0 ms:  1 wad: 09
-Ins: adr: 00000054 cyc: 1 stb: 1 ack: 0 dat_i: 00000010 stall: 0 state: 1
+Ins: adr: 00000054 cyc: 1 stb: 1 ack: 0 dat_i: 00000010 stall: 1 state: 1
   fifo: cidx: 2 ridx: 3 widx: 5 value[idx]: 00000000
 Mem: adr: 00001046 cyc: 1 stb: 0 ack: 1 dat_i: 00000010 dat_o: 00000000 we: 0 sel: 2 stall: 0 state 2
 BusCtrl: adr: 00001046 cyc: 1 stb: 0 ack: 1 dat_i: 00000000 dat_o: 00000010 we: 0 sel: 2 stall: 0
