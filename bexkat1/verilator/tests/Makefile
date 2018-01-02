@@ -9,7 +9,7 @@ LD = bexkat1-elf-ld
 CC = bexkat1-elf-gcc
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load memops regrel mov alu pushpop misc math exceptions exceptions2 exceptions3 branch jump sub simple
+TESTS = load load2 memops regrel mov alu pushpop misc math exceptions exceptions2 exceptions3 branch jump sub simple
 
 
 TESTPROGS = $(addsuffix .hex, $(addprefix out/, $(TESTS)))
@@ -67,6 +67,9 @@ ram0: %.o
 	$(LD) -nostartfiles $< -o $@
 
 out/load: out/load.o
+	$(LD) -nostartfiles -o $@ $^
+
+out/load2: out/load2.o
 	$(LD) -nostartfiles -o $@ $^
 
 out/memops: out/memops.o

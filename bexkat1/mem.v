@@ -10,27 +10,17 @@ module mem(input               clk_i,
 	   input [31:0]        reg_data2_i,
 	   input 	       stall_i,
 	   output logic        stall_o,
-	   input 	       halt_i,
-	   output 	       halt_o,
 	   input [31:0]        result_i,
 	   output logic [31:0] result_o,
-	   input [1:0] 	       reg_write_i,
-	   output logic [1:0]  reg_write_o,
 	   input [1:0] 	       sp_write_i,
 	   output logic [1:0]  sp_write_o,
 	   input [31:0]        sp_data_i,
-	   output logic [31:0] sp_data_o,
 	   input [31:0]        pc_i,
 	   output logic [31:0] pc_o,
 	   input 	       pc_set_i,
 	   output logic        pc_set_o,
 	   input [63:0]        ir_i,
-	   output logic [63:0] ir_o,
-	   output logic [3:0]  reg_write_addr,
-	   input [3:0] 	       bank_i,
-	   output logic [3:0]  bank_o,
 	   input 	       exc_i,
-	   output logic        exc_o,
 	   wb_bus              bus);
 
   wire [3:0] 		       ir_type  = ir_i[31:28];
@@ -39,46 +29,41 @@ module mem(input               clk_i,
   
   logic [31:0] 		       result_next;
   logic [31:0] 		       pc_next;
-  logic [31:0] 		       sp_data_next;
   logic 		       pc_set_next;
-  logic [1:0] 		       reg_write_next;
   logic [1:0] 		       sp_write_next;
-  logic [3:0] 		       reg_write_addr_next;
-  logic 		       halt_next;
-  logic 		       exc_next;
-  logic [63:0] 		       ir_next;
-  logic [3:0] 		       bank_next;
 
+  logic 		       bus_cyc_next;
   logic [31:0] 		       bus_dat_next;
   logic [3:0] 		       bus_sel_next;
   logic [31:0] 		       bus_adr_next;
   logic 		       bus_we_next;
   logic 		       bus_stb_next;
+  logic 		       full, empty;
+  logic [31:0] 		       val;
   
-  assign bus.cyc = state != S_IDLE;
   assign stall_o = bus.cyc;
 
   typedef enum 		       bit [2:0] { S_IDLE, S_EXC, S_LOAD, S_STORE, 
 					   S_PUSH, S_POP, S_JSR, S_RTS 
 					   } state_t;
   state_t state, state_next;
-  
+
+/*
+  fifo #(.AWIDTH(4), .DWIDTH(32)) memfifo(.clk_i(clk_i), .rst_i(rst_i),
+					  .push(bus.ack), .in(bus.dat_i),
+					  .pop(!(bus.stall|stall_i)), .out(val),
+					  .full(full), .empty(empty));
+  */
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
 	begin
-	  reg_write_o <= 2'h0;
 	  result_o <= 32'h0;
 	  pc_o <= 32'h0;
 	  pc_set_o <= 1'h0;
-	  halt_o <= 1'h0;
-	  exc_o <= 1'h0;
-	  sp_data_o <= 32'h0;
 	  sp_write_o <= 2'h0;
-	  reg_write_addr <= 4'h0;
-	  ir_o <= 64'h0;
-	  bank_o <= 4'h0;
 	  state <= S_IDLE;
+	  bus.cyc <= 1'h0;
 	  bus.dat_o <= 32'h0;
 	  bus.sel <= 4'h0;
 	  bus.adr <= 32'h0;
@@ -87,18 +72,12 @@ module mem(input               clk_i,
 	end
       else
 	begin
-	  reg_write_o <= reg_write_next;
 	  result_o <= result_next;
 	  pc_o <= pc_next;
 	  pc_set_o <= pc_set_next;
-	  halt_o <= halt_next;
-	  sp_data_o <= sp_data_next;
 	  sp_write_o <= sp_write_next;
-	  exc_o <= exc_next;
-	  reg_write_addr <= reg_write_addr_next;
-	  ir_o <= ir_next;
-	  bank_o <= bank_next;
 	  state <= state_next;
+	  bus.cyc <= bus_cyc_next;
 	  bus.stb <= bus_stb_next;
 	  bus.dat_o <= bus_dat_next;
 	  bus.sel <= bus_sel_next;
@@ -129,12 +108,13 @@ module mem(input               clk_i,
   always_comb
     begin
       state_next = state;
+      bus_cyc_next = bus.cyc;
       bus_adr_next = bus.adr;
       bus_dat_next = bus.dat_o;
       bus_sel_next = bus.sel; 
       bus_stb_next = bus.stb;
       bus_we_next = bus.we;
-      if (stall_i)
+      if (stall_i || stall_o)
 	begin
 	  pc_next = pc_o;
 	  pc_set_next = pc_set_o;
@@ -153,6 +133,8 @@ module mem(input               clk_i,
 	  if (exc_i)
 	    begin
 	      state_next = S_EXC;
+	      pc_next = result_i;
+	      bus_cyc_next = 1'b1;
 	      bus_stb_next = 1'b1;
 	      bus_we_next = 1'b1;
 	      bus_sel_next = 4'hf;
@@ -165,6 +147,8 @@ module mem(input               clk_i,
 		if (ir_op == 4'h5 || (ir_op == 4'h1 && ~ir_size))
 		  begin
 		    state_next = S_EXC;
+		    pc_next = result_i;
+		    bus_cyc_next = 1'b1;
 		    bus_stb_next = 1'b1;
 		    bus_we_next = 1'b1;
 		    bus_sel_next = 4'hf;
@@ -174,6 +158,7 @@ module mem(input               clk_i,
 	      T_LOAD:
 		begin
 		  state_next = S_LOAD;
+		  bus_cyc_next = 1'b1;
 		  bus_stb_next = 1'b1;
 		  bus_adr_next = result_i;
 		  bus_dat_next = reg_data1_i;
@@ -183,6 +168,7 @@ module mem(input               clk_i,
 	      T_STORE:
 		begin
 		  state_next = S_STORE;
+		  bus_cyc_next = 1'b1;
 		  bus_stb_next = 1'b1;
 		  bus_adr_next = result_i;
 		  bus_dat_next = reg_data1_i;
@@ -192,6 +178,7 @@ module mem(input               clk_i,
 	      T_PUSH:
 		begin
 		  state_next = (ir_op == 4'h0 ? S_PUSH : S_JSR);
+		  bus_cyc_next = 1'b1;
 		  bus_stb_next = 1'b1;
 		  bus_we_next = 1'b1;
 		  bus_sel_next = 4'hf;
@@ -201,6 +188,7 @@ module mem(input               clk_i,
 	      T_POP:
 		begin
 		  state_next = (ir_op == 4'h0 ? S_POP : S_RTS);
+		  bus_cyc_next = 1'b1;
 		  bus_stb_next = 1'b1;
 		  bus_sel_next = 4'hf;
 		  bus_adr_next = reg_data1_i; // use pre-increment value
@@ -216,17 +204,20 @@ module mem(input               clk_i,
 	    bus_stb_next = 1'b0;
 	    if (bus.ack)
 	      begin
-		pc_next = result_i;
 		pc_set_next = 1'h1;
 		sp_write_next = 2'h3;
 		state_next = S_IDLE;
+		bus_cyc_next = 1'b0;
 	      end
 	  end
 	S_PUSH:
 	  begin
 	    bus_stb_next = 1'b0;
 	    if (bus.ack)
-	      state_next = S_IDLE;
+	      begin
+		bus_cyc_next = 1'b0;
+		state_next = S_IDLE;
+	      end
 	  end
 	S_JSR:
 	  begin
@@ -234,6 +225,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_cyc_next = 1'b0;
 		pc_next = result_i;
 		pc_set_next = 1'h1;
 	      end
@@ -244,6 +236,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_cyc_next = 1'b0;
 		result_next = bus.dat_i;
 	      end
 	  end
@@ -253,6 +246,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_cyc_next = 1'b0;
 		pc_next = bus.dat_i;
 		pc_set_next = 1'h1;
 	      end
@@ -263,6 +257,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_cyc_next = 1'b0;
 		result_next = bus.dat_i;
 	      end
 	  end
@@ -270,36 +265,14 @@ module mem(input               clk_i,
 	  begin
 	    bus_stb_next = 1'b0;
 	    if (bus.ack)
-	      state_next = S_IDLE;
+	      begin
+		bus_cyc_next = 1'b0;
+		state_next = S_IDLE;
+	      end
 	  end
 	default:
 	  state_next = S_IDLE;
       endcase // case (state)
     end
-  
-  // register write back
-  always_comb
-    begin
-      if (stall_i || stall_o)
-	begin
-	  halt_next = halt_o;
-	  reg_write_next = reg_write_o;
-	  exc_next = exc_o;
-	  bank_next = bank_o;
-	  sp_data_next = sp_data_o;
-	  reg_write_addr_next = reg_write_addr;
-	  ir_next = ir_o;
-	end // if (stall_i)
-      else
-	begin
-	  halt_next = halt_i;
-	  reg_write_next = reg_write_i;
-	  sp_data_next = sp_data_i;
-	  exc_next = exc_i;
-	  bank_next = bank_i;
-	  reg_write_addr_next = ir_i[23:20];
-	  ir_next = ir_i;
-	end // else: !if(stall_i)
-    end // always_comb
   
 endmodule // ifetch

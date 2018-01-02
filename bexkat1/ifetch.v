@@ -25,9 +25,9 @@ module ifetch(input               clk_i,
   assign bus.cyc = (state != S_RESET && !pc_set);
   assign bus.stb = bus.cyc;
 
-  fifo #(.AWIDTH(4), .DWIDTH(32)) fifo0(.clk_i(clk_i), .rst_i(rst_i|pc_set),
+  fifo #(.AWIDTH(4), .DWIDTH(32)) ffifo(.clk_i(clk_i), .rst_i(rst_i|pc_set),
 					.push(bus.ack), .in(bus.dat_i),
-					.pop(!bus.stall), .out(val),
+					.pop(!(bus.stall|stall_i)), .out(val),
 					.full(full), .empty(empty));
   
   always_ff @(posedge clk_i or posedge rst_i)
@@ -48,25 +48,22 @@ module ifetch(input               clk_i,
 	state <= state_next;
       end
 
-  // fill the instruction fifo from the bus
-  always_comb
-    begin
-      bus_adr_next = bus.adr;
-      if (!bus.stall && (state != S_RESET))
-	bus_adr_next = (pc_set ? pc_in : bus.adr + 32'h4);
-    end
-
   always_comb
     begin
       ir_next = ir;
       pc_next = pc;
       low_next = low;
       state_next = state;
+      bus_adr_next = bus.adr;
       if (state == S_RESET)
 	state_next = S_FETCH;
+      else
+	if (!bus.stall)
+	  bus_adr_next = bus.adr + 32'h4;
       if (pc_set)
 	begin
 	  pc_next = pc_in;
+	  bus_adr_next = pc_in;
 	  state_next = S_RESET;
 	end
       if (!stall_i)
