@@ -49,10 +49,11 @@ module cache
    logic [AWIDTH-1:0] 	  fifo_adr_i;
    logic [3:0] 		  fifo_sel_i;
    logic 		  fifo_we_i;
-   logic 		  mem_stb;
-   logic 		  fifo_read = (state == S_IDLE & ~fifo_empty);
-   logic [61:0] 	  fifo_out;
+  logic 		  mem_stb;
+  logic 		  fifo_read;
+  logic [61:0] 		  fifo_out;
 
+  assign fifo_read = (state == S_IDLE & ~fifo_empty);
    assign fifo_write = (bus_state == BS_IDLE) & ~fifo_full &
 		       sysbus.cyc & sysbus.stb & ~stats_stb_i;
    assign cache_status = hit;
