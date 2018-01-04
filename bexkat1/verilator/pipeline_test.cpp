@@ -34,7 +34,7 @@ int main(int argc, char **argv, char **env) {
     top->eval();
 
     if (top->clk_i) {
-      printf("-------------------- %03d --------------------\n", cycle);
+      printf("-------------------- %03ld --------------------\n", cycle);
       printf("--- PIPELINE STATE ---\n");
       printf("     % 16s % 16s % 33s % 16s\n",
 	     "ifetch",
@@ -52,17 +52,17 @@ int main(int argc, char **argv, char **env) {
 	     top->id_ir,
 	     top->exe_ir,
 	     top->mem_ir);
-      printf("ra:  % 16x % 16x % 33x % 16x\n",
+      printf("ra:  % 16lx % 16lx % 33lx % 16lx\n",
 	     INS_RA(top->if_ir),
 	     INS_RA(top->id_ir),
 	     INS_RA(top->exe_ir),
 	     INS_RA(top->mem_ir));
-      printf("rb:  % 16x % 16x % 33x % 16x\n",
+      printf("rb:  % 16lx % 16lx % 33lx % 16lx\n",
 	     INS_RB(top->if_ir),
 	     INS_RB(top->id_ir),
 	     INS_RB(top->exe_ir),
 	     INS_RB(top->mem_ir));
-      printf("rc:  % 16x % 16x % 33x % 16x\n",
+      printf("rc:  % 16lx % 16lx % 33lx % 16lx\n",
 	     INS_RC(top->if_ir),
 	     INS_RC(top->id_ir),
 	     INS_RC(top->exe_ir),
@@ -159,7 +159,7 @@ int main(int argc, char **argv, char **env) {
       printf("BusCtrl: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	     top->arb_adr_o, top->arb_cyc_o, top->arb_stb_o, top->arb_ack_i, top->arb_dat_i,
 	     top->arb_dat_o, top->arb_we_o, top->arb_sel_o, top->arb_stall_i);
-      printf("  busfifo: cidx: %x ridx: %x widx: %x adr[idx]: %08x, path[idx]: %d\n",
+      printf("  busfifo: cidx: %x ridx: %x widx: %x adr[idx]: %08lx, path[idx]: %ld\n",
 	     top->top__DOT__bus0__DOT__fifo0__DOT__cidx,
 	     top->top__DOT__bus0__DOT__fifo0__DOT__ridx,
 	     top->top__DOT__bus0__DOT__fifo0__DOT__widx,
