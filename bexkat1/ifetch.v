@@ -1,5 +1,6 @@
 `timescale 1ns / 1ns
 `include "bexkat1.vh"
+`include "../wb.vh"
 `include "exceptions.vh"
 
 import bexkat1Def::*;
