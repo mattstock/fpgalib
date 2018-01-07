@@ -48,10 +48,10 @@ module ifetch(input               clk_i,
   always_ff @(posedge clk_i or posedge rst_i)
     if (rst_i)
       begin
-	pc <= 32'h0;
+	pc <= 32'hfffffffc;
 	ir <= 64'h0;
 	low <= 32'h0;
-	bus.adr <= 32'h0;
+	bus.adr <= 32'hfffffffc;
 	state <= S_RESET;
       end
     else
