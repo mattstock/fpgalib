@@ -1,6 +1,7 @@
 `timescale 1ns / 1ns
 `define NO_MODPORT_EXPRESSIONS
 `include "bexkat1.vh"
+`include "wb.vh"
   
 module top(input         clk_i,
 	   input 	 rst_i,
