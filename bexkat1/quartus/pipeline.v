@@ -23,13 +23,15 @@ module pipeline(input              raw_clock_50,
   logic 			   clk_i;
   logic 			   int_en;
   
-  if_wb extbus();
-  
+  if_wb ins_bus();
+  if_wb dat_bus();
+
   assign txd = rxd;
   assign rts = cts;
   assign inter = 3'h0;
-  assign ledr = { 2'b1, rxd, cts, locked, supervisor, halt,
-		  extbus.cyc, extbus.ack, extbus.we};
+  assign ledr = { rxd, cts, locked, supervisor, halt,
+		  ins_bus.cyc, ins_bus.ack,
+		  dat_bus.cyc, dat_bus.ack, dat_bus.we};
   
   
   bexkat1p cpu0(.clk_i(clk_i), .rst_i(rst_i),
@@ -37,13 +39,16 @@ module pipeline(input              raw_clock_50,
 		.exception(exception),
 		.supervisor(supervisor),
 		.int_en(int_en),
-		.bus(extbus.master));
+		.ins_bus(ins_bus.master),
+		.dat_bus(dat_bus.master));
   
   logic 			   ddelay[2:0];
   logic 			   idelay[2:0];
   
-  assign extbus.ack = ddelay[2];
-  assign extbus.stall = 1'b0;
+  assign ins_bus.ack = idelay[2];
+  assign dat_bus.ack = ddelay[2];
+  assign ins_bus.stall = 1'b0;
+  assign dat_bus.stall = 1'b0;
   
   always_ff @(posedge clk_i or posedge rst_i)
     if (rst_i)
@@ -51,12 +56,18 @@ module pipeline(input              raw_clock_50,
 	ddelay[0] <= 1'b0;
 	ddelay[1] <= 1'b0;
 	ddelay[2] <= 1'b0;
+	idelay[0] <= 1'b0;
+	idelay[1] <= 1'b0;
+	idelay[2] <= 1'b0;
       end
     else
       begin
 	ddelay[2] <= ddelay[1];
 	ddelay[1] <= ddelay[0];
-	ddelay[0] <= extbus.cyc;
+	ddelay[0] <= dat_bus.cyc;
+	idelay[2] <= idelay[1];
+	idelay[1] <= idelay[0];
+	idelay[0] <= ins_bus.cyc;
       end // else: !if(rst_i)
   
   assign rst_i = ~locked;
@@ -67,15 +78,20 @@ module pipeline(input              raw_clock_50,
 	      .c0(clk_i), .areset(arst), .locked(locked));
   
   mram ram0(.clock(clk_i),
-	    .data(extbus.dat_m),
-	    .address(extbus.adr[16:2]),
-	    .wren(extbus.we),
-	    .byteena(extbus.sel),
-	    .q(extbus.dat_s));
+	    .data_a(ins_bus.dat_m),
+	    .address_a(ins_bus.adr[16:2]),
+	    .wren_a(ins_bus.we),
+	    .byteena_a(ins_bus.sel),
+	    .q_a(ins_bus.dat_s),
+	    .data_b(dat_bus.dat_m),
+	    .address_b(dat_bus.adr[16:2]),
+	    .wren_b(dat_bus.we),
+	    .byteena_b(dat_bus.sel),
+	    .q_b(dat_bus.dat_s));
   
   logic [24:0] display;
   
-  assign display = (key[1] ? extbus.adr[24:0] : extbus.dat_s[24:0]);
+  assign display = (key[1] ? ins_bus.adr[24:0] : ins_bus.dat_s[24:0]);
   
   debounce #(.WIDTH(1)) pb0(.clk(raw_clock_50), .reset_n(1'b1), .data_in(~key[0]), 
 			    .data_out(arst));

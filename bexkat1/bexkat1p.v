@@ -3,14 +3,16 @@
 `include "../wb.vh"
 
 import bexkat1Def::*;
-module bexkat1p(input 	            clk_i,
-		input 		    rst_i,
-		if_wb.master        bus,
-		output 		    halt,
-		input [2:0] 	    inter,
-		output 		    int_en,
-		output [3:0] 	    exception,
-		output logic 	    supervisor);
+
+module bexkat1p(input 	     clk_i,
+		input 	     rst_i,
+		if_wb.master ins_bus,
+		if_wb.master dat_bus,
+		output 	     halt,
+		input [2:0]  inter,
+		output 	     int_en,
+		output [3:0] exception,
+		output logic supervisor);
 
   logic [63:0] 			    if_ir, id_ir, exe_ir, mem_ir;
   logic [31:0] 			    if_pc, id_pc, exe_pc, mem_pc;
@@ -32,9 +34,6 @@ module bexkat1p(input 	            clk_i,
   logic [1:0] 			    sp_hazard;
   logic [2:0] 			    exe_ccr;
   logic [3:0] 			    id_bank, exe_bank, mem_bank;
-  
-  if_wb ins_bus();
-  if_wb dat_bus();
   
   assign halt = mem_halt;  
   assign exception = 4'h0;
@@ -176,9 +175,4 @@ module bexkat1p(input 	            clk_i,
 	   .exc_i(exe_exc),
 	   .bus(dat_bus.master));
 
-  buscontrol bus0(.clk_i(clk_i), .rst_i(rst_i),
-		  .ins_bus(ins_bus.slave),
-		  .dat_bus(dat_bus.slave),
-		  .mem_bus(bus.master));
-  
 endmodule // bexkat1p

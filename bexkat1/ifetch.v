@@ -42,7 +42,7 @@ module ifetch(input               clk_i,
   
   fifo #(.AWIDTH(4), .DWIDTH(32)) ffifo(.clk_i(clk_i), .rst_i(rst_i|pc_set),
 					.push(bus.ack), .in(dat_i),
-					.pop(!stall_i), .out(val),
+					.pop(!(bus.stall|stall_i)), .out(val),
 					.full(full), .empty(empty));
   
   always_ff @(posedge clk_i or posedge rst_i)

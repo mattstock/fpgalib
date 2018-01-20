@@ -245,26 +245,6 @@ set_location_assignment PIN_AB6 -to txd
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rts
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to rxd
 set_instance_assignment -name IO_STANDARD "3.3-V LVTTL" -to txd
-set_global_assignment -name VERILOG_FILE ../buscontrol.v
-set_global_assignment -name VERILOG_FILE ../memwb.v
-set_global_assignment -name VERILOG_FILE ../../debounce/debounce.v
-set_global_assignment -name VERILOG_FILE ../fifo.v
-set_global_assignment -name VERILOG_FILE ../arbiter.v
-set_global_assignment -name VERILOG_FILE ../../hexdisp.v
-set_global_assignment -name VERILOG_FILE pipeline.v
-set_global_assignment -name VERILOG_FILE ../bexkat1p.v
-set_global_assignment -name VERILOG_FILE ../verilator/ram2.v
-set_global_assignment -name VERILOG_FILE ../alu_comb.v
-set_global_assignment -name VERILOG_FILE ../registerfile.v
-set_global_assignment -name VERILOG_FILE ../mem.v
-set_global_assignment -name VERILOG_FILE ../intcalc.v
-set_global_assignment -name VERILOG_FILE ../ifetch.v
-set_global_assignment -name VERILOG_FILE ../idecode.v
-set_global_assignment -name VERILOG_FILE ../hazard.v
-set_global_assignment -name VERILOG_FILE ../execute.v
-set_global_assignment -name QIP_FILE sysclk.qip
-set_global_assignment -name SIGNALTAP_FILE stp1.stp
-set_global_assignment -name QIP_FILE mram.qip
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[0] -to "bexkat1p:cpu0|exception[0]" -section_id auto_signaltap_0
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[1] -to "bexkat1p:cpu0|exception[1]" -section_id auto_signaltap_0
 set_instance_assignment -name CONNECT_TO_SLD_NODE_ENTITY_PORT acq_trigger_in[2] -to "bexkat1p:cpu0|exception[2]" -section_id auto_signaltap_0
@@ -1198,5 +1178,26 @@ set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[10] -
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[12] -to auto_signaltap_0|vcc -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[20] -to auto_signaltap_0|gnd -section_id auto_signaltap_0
 set_instance_assignment -name POST_FIT_CONNECT_TO_SLD_NODE_ENTITY_PORT crc[24] -to auto_signaltap_0|gnd -section_id auto_signaltap_0
+set_global_assignment -name VERILOG_INCLUDE_FILE ../../wb.vh
+set_global_assignment -name VERILOG_FILE ../buscontrol.v
+set_global_assignment -name VERILOG_FILE ../memwb.v
+set_global_assignment -name VERILOG_FILE ../../debounce/debounce.v
+set_global_assignment -name VERILOG_FILE ../fifo.v
+set_global_assignment -name VERILOG_FILE ../arbiter.v
+set_global_assignment -name VERILOG_FILE ../../hexdisp.v
+set_global_assignment -name VERILOG_FILE pipeline.v
+set_global_assignment -name VERILOG_FILE ../bexkat1p.v
+set_global_assignment -name VERILOG_FILE ../verilator/ram2.v
+set_global_assignment -name VERILOG_FILE ../alu_comb.v
+set_global_assignment -name VERILOG_FILE ../registerfile.v
+set_global_assignment -name VERILOG_FILE ../mem.v
+set_global_assignment -name VERILOG_FILE ../intcalc.v
+set_global_assignment -name VERILOG_FILE ../ifetch.v
+set_global_assignment -name VERILOG_FILE ../idecode.v
+set_global_assignment -name VERILOG_FILE ../hazard.v
+set_global_assignment -name VERILOG_FILE ../execute.v
+set_global_assignment -name QIP_FILE sysclk.qip
+set_global_assignment -name SIGNALTAP_FILE stp1.stp
+set_global_assignment -name QIP_FILE mram.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
