@@ -76,18 +76,41 @@ module pipeline(input              raw_clock_50,
   
   sysclk clk0(.inclk0(raw_clock_50),
 	      .c0(clk_i), .areset(arst), .locked(locked));
+
+  vectrom rom0(.clock(clk_i),
+	       .data_a(ins_bus.dat_m),
+	       .address_a(ins_bus.adr[8:2]),
+	       .wren_a(ins_bus.we),
+	       .byteena_a(ins_bus.sel),
+	       .q_a(rom_q_a),
+	       .data_b(dat_bus.dat_m),
+	       .address_b(dat_bus.adr[8:2]),
+	       .wren_b(dat_bus.we),
+	       .byteena_b(dat_bus.sel),
+	       .q_b(rom_q_b));
   
   mram ram0(.clock(clk_i),
 	    .data_a(ins_bus.dat_m),
 	    .address_a(ins_bus.adr[16:2]),
 	    .wren_a(ins_bus.we),
 	    .byteena_a(ins_bus.sel),
-	    .q_a(ins_bus.dat_s),
+	    .q_a(ram0_q_a),
 	    .data_b(dat_bus.dat_m),
 	    .address_b(dat_bus.adr[16:2]),
 	    .wren_b(dat_bus.we),
 	    .byteena_b(dat_bus.sel),
-	    .q_b(dat_bus.dat_s));
+	    .q_b(ram0_q_b));
+  mram ram1(.clock(clk_i),
+	    .data_a(ins_bus.dat_m),
+	    .address_a(ins_bus.adr[16:2]),
+	    .wren_a(ins_bus.we),
+	    .byteena_a(ins_bus.sel),
+	    .q_a(ram1_q_a),
+	    .data_b(dat_bus.dat_m),
+	    .address_b(dat_bus.adr[16:2]),
+	    .wren_b(dat_bus.we),
+	    .byteena_b(dat_bus.sel),
+	    .q_b(ram1_q_b));
   
   logic [24:0] display;
   
