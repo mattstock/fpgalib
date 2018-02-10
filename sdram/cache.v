@@ -17,9 +17,13 @@ module cache
   // 2 bits for valid and lru
   localparam ROWSIZE = 'd2 + ROWWIDTH + TAGSIZE + ROWWIDTH*DWIDTH;
   
-  localparam LRU = 'd146, VALID = 'd145, 
-    DIRTY0 = 'd141, DIRTY1 = 'd142,
-    DIRTY2 = 'd143, DIRTY3 = 'd144;
+  localparam LRU = ROWSIZE-'d1;
+  localparam VALID = LRU-'d1;
+  localparam DIRTY3 = VALID-'d1;
+  localparam DIRTY2 = DIRTY3-'d1;
+  localparam DIRTY1 = DIRTY2-'d1;
+  localparam DIRTY0 = DIRTY1-'d1;
+  localparam TAGBASE = DIRTY0-TAGSIZE;
   
   typedef enum 	 bit [1:0] { BS_IDLE, BS_DONE,
 			     BS_READ_WAIT, BS_READ } bs_state_t;
@@ -79,7 +83,7 @@ module cache
 	  lru[i] = rowout[i][LRU];
 	  valid[i] = rowout[i][VALID];
 	  dirty[i] = rowout[i][DIRTY3:DIRTY0];
-	  tag_cache[i] = rowout[i][140:128];
+	  tag_cache[i] = rowout[i][TAGBASE+TAGSIZE:TAGBASE];
 	  word3[i] = rowout[i][127:96];
 	  word2[i] = rowout[i][95:64];
 	  word1[i] = rowout[i][63:32];
