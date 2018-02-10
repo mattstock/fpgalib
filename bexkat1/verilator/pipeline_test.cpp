@@ -36,83 +36,87 @@ int main(int argc, char **argv, char **env) {
     if (top->clk_i) {
       printf("-------------------- %03ld --------------------\n", cycle);
       printf("--- PIPELINE STATE ---\n");
-      printf("     % 16s % 16s % 33s % 16s\n",
-	     "ifetch",
-	     "idecode",
-	     "exec",
-	     "mem");
+      printf("     %*s %*s %*s %*s\n",
+	     16, "ifetch",
+	     16, "idecode",
+	     33, "exec",
+	     16, "mem");
 	     
-      printf("pc:  % 16x % 16x % 33x % 16x\n",
-	     top->if_pc,
-	     top->id_pc,
-	     top->exe_pc,
-	     top->mem_pc);
-      printf("ir:  %16lx %16lx %33lx %16lx\n",
-	     top->if_ir,
-	     top->id_ir,
-	     top->exe_ir,
-	     top->mem_ir);
-      printf("ra:  % 16lx % 16lx % 33lx % 16lx\n",
-	     INS_RA(top->if_ir),
-	     INS_RA(top->id_ir),
-	     INS_RA(top->exe_ir),
-	     INS_RA(top->mem_ir));
-      printf("rb:  % 16lx % 16lx % 33lx % 16lx\n",
-	     INS_RB(top->if_ir),
-	     INS_RB(top->id_ir),
-	     INS_RB(top->exe_ir),
-	     INS_RB(top->mem_ir));
-      printf("rc:  % 16lx % 16lx % 33lx % 16lx\n",
-	     INS_RC(top->if_ir),
-	     INS_RC(top->id_ir),
-	     INS_RC(top->exe_ir),
-	     INS_RC(top->mem_ir));
-      printf("spd: % 16s % 16x/% 16x % 16x % 16x\n",
-	     "",
-	     top->id_sp_data,
-	     top->exe_sp_in,
-	     top->exe_sp_data,
-	     top->mem_sp_data);
-      printf("spw: % 16s % 16x % 33x % 16x\n",
-	     "",
-	     top->id_sp_write,
-	     top->exe_sp_write,
-	     top->mem_sp_write);
+      printf("pc:  %*x %*x %*x %*x\n",
+	     16, top->if_pc,
+	     16, top->id_pc,
+	     33, top->exe_pc,
+	     16, top->mem_pc);
+      printf("ir:  %*lx %*lx %*lx %*lx\n",
+	     16, top->if_ir,
+	     16, top->id_ir,
+	     33, top->exe_ir,
+	     16, top->mem_ir);
+      printf("ra:  %*lx %*lx %*lx %*lx\n",
+	     16, INS_RA(top->if_ir),
+	     16, INS_RA(top->id_ir),
+	     33, INS_RA(top->exe_ir),
+	     16, INS_RA(top->mem_ir));
+      printf("rb:  %*lx %*lx %*lx %*lx\n",
+	     16, INS_RB(top->if_ir),
+	     16, INS_RB(top->id_ir),
+	     33, INS_RB(top->exe_ir),
+	     16, INS_RB(top->mem_ir));
+      printf("rc:  %*lx %*lx %*lx %*lx\n",
+	     16, INS_RC(top->if_ir),
+	     16, INS_RC(top->id_ir),
+	     33, INS_RC(top->exe_ir),
+	     16, INS_RC(top->mem_ir));
+      printf("spd: %*s %*x/%*x %*x %*x\n",
+	     16, "",
+	     16, top->id_sp_data,
+	     16, top->exe_sp_in,
+	     16, top->exe_sp_data,
+	     16, top->mem_sp_data);
+      printf("spw: %*s %*x %*x %*x\n",
+	     16, "",
+	     16, top->id_sp_write,
+	     33, top->exe_sp_write,
+	     16, top->mem_sp_write);
       /*      printf("bnk: % 16s % 16x % 16x % 16x\n",
 	     "",
 	     top->id_bank,
 	     top->exe_bank,
 	     top->mem_bank); */
-      printf("rd1: % 16s % 16x/% 16x % 16x\n",
-	     "",
-	     top->id_reg_data_out1,
-	     top->exe_data1,
-	     top->exe_reg_data_out1);
-      printf("rd2: % 16s % 16x/% 16x % 16x\n",
-	     "",
-	     top->id_reg_data_out2,
-	     top->exe_data2,
-	     top->exe_reg_data_out2);
-      printf("res: % 16s % 16s % 33x % 16x\n",
-	     "","",
-	     top->exe_result,
-	     top->mem_result);
-      printf("ccr: % 16s % 16s % 33x\n",
-	     "","",
-	     top->exe_ccr);
-      printf("rwr: % 16s % 16d % 33d % 16d\n",
-	     "",
-	     top->id_reg_write,
-	     top->exe_reg_write,
-	     top->mem_reg_write);
-      printf("pcs: % 16s % 16s % 33d % 16d\n",
-	     "", "",
-	     top->exe_pc_set,
-	     top->mem_pc_set);
-      printf("exc: % 16s % 16s % 33d % 16d\n",
-	     "", "",
-	     top->exe_exc,
-	     top->mem_exc);
+      printf("rd1: %*s %*x/%*x %*x\n",
+	     16, "",
+	     16, top->id_reg_data_out1,
+	     16, top->exe_data1,
+	     16, top->exe_reg_data_out1);
+      printf("rd2: %*s %*x/%*x %*x\n",
+	     16, "",
+	     16, top->id_reg_data_out2,
+	     16, top->exe_data2,
+	     16, top->exe_reg_data_out2);
+      printf("res: %*s %*s %*x %*x\n",
+	     16, "",
+	     16, "",
+	     16, top->exe_result,
+	     16, top->mem_result);
+      printf("ccr: %*s %*s %*x\n",
+	     16, "",
+	     16, "",
+	     33, top->exe_ccr);
+      printf("rwr: %*s %*d %*d %*d\n",
+	     16, "",
+	     16, top->id_reg_write,
+	     33, top->exe_reg_write,
+	     16, top->mem_reg_write);
+      printf("pcs: %*s %*s %*d %*d\n",
+	     16, "",
+	     16, "",
+	     33, top->exe_pc_set,
+	     16, top->mem_pc_set);
+      printf("exc: %*s %*s %*d %*d\n",
+	     16, "",
+	     16, "",
+	     33, top->exe_exc,
+	     16, top->mem_exc);
       printf("--- INTERNAL STATE ---\n");
       printf("alu_func: %d alu1: %08x alu2: %08x alu_out: %08x int_func: %d int_out: %08x\n",
 	     top->top__DOT__exe0__DOT__alu_func,
@@ -122,18 +126,18 @@ int main(int argc, char **argv, char **env) {
 	     top->top__DOT__exe0__DOT__int_func,
 	     top->top__DOT__exe0__DOT__int_out);
       for (int i=0; i < 8; i++)
-	printf("% 3d: %08x",
-	       i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	printf("%*d: %08x",
+	       3, i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       printf("\n");
       for (int i=8; i < 16; i++)
-	printf("% 3d: %08x",
-	       i+4*top->id_bank,
+	printf("%*d: %08x",
+	       3, i+4*top->id_bank,
 	       top->top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*top->id_bank]);
       printf("\n");
-      printf("vectoff: %08x inten: % 2d interrupts: % 2x\n",
+      printf("vectoff: %08x inten: %*d interrupts: %*x\n",
 	     top->top__DOT__exe0__DOT__vectoff,
-	     top->int_en,
-	     top->interrupts);
+	     2, top->int_en,
+	     2, top->interrupts);
       printf("h1: %02x h2: %02x hsp: %02x hs: % 2d es: % 2d ms: % 2d wad: %02d\n",
 	     top->hazard1, top->hazard2, top->sp_hazard,
 	     top->hazard_stall,
