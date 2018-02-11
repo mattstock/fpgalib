@@ -1,32 +1,30 @@
+`define NO_MODPORT_EXPRESSIONS
+`include "bexkat1.vh"
+
 module ram2
   #(AWIDTH=15,
     INITNAME="../ram0.hex")
-  (input	       clk_i,
-   input 	       rst_i,
-   input 	       cyc0_i,
-   input 	       stb0_i,
-   input [3:0] 	       sel0_i,
-   input 	       we0_i,
-   input [AWIDTH-1:0]  adr0_i,
-   input [31:0]        dat0_i,
-   output 	       ack0_o,
-   output logic [31:0] dat0_o,
-   input 	       cyc1_i,
-   input 	       stb1_i,
-   input [AWIDTH-1:0]  adr1_i,
-   output 	       ack1_o,
-   output logic [31:0] dat1_o);
+  (input       clk_i,
+   input       rst_i,
+   if_wb.slave bus0,
+   if_wb.slave bus1);
   
   localparam MSIZE = 2 ** (AWIDTH+2);
   
   logic [7:0] 	       mem[0:MSIZE-1], mem_next[0:MSIZE-1];
   logic [AWIDTH+1:0]   idx0, idx1;
+  logic state0, state1, state0_next, state1_next;
+  logic [31:0] dat0_next, dat1_next;
   
-  always idx0 = { adr0_i, 2'b0 };
-  always idx1 = { adr1_i, 2'b0 };
-  always dat1_o = { mem[idx1], mem[idx1+1], mem[idx1+2], mem[idx1+3] };
-  always ack0_o = (cyc0_i & stb0_i);
-  always ack1_o = (cyc1_i & stb1_i);
+  localparam S_IDLE = 1'b0;
+  localparam S_ACTIVE = 1'b1;
+  
+  always idx0 = { bus0.adr[AWIDTH+1:2], 2'b0 };
+  always idx1 = { bus1.adr[AWIDTH+1:2], 2'b0 };
+  always bus0.ack = (state0 == S_ACTIVE);
+  always bus1.ack = (state1 == S_ACTIVE);
+  always bus0.stall = 1'b0;
+  always bus1.stall = 1'b0;
   
   initial
     begin
@@ -35,35 +33,131 @@ module ram2
   
   always_ff @(posedge clk_i)
     mem <= mem_next;
-  
+  always_ff @(posedge clk_i or posedge rst_i)
+    if (rst_i)
+      begin
+	state0 <= S_IDLE;
+	bus0.dat_s <= 32'h0;
+	state1 <= S_IDLE;
+	bus1.dat_s <= 32'h0;
+      end
+    else
+      begin
+	state0 <= state0_next;
+	bus0.dat_s <= dat0_next;
+	state1 <= state1_next;
+	bus1.dat_s <= dat1_next;
+      end
+
+  // bus0 is read only
   always_comb
     begin
-      case (sel0_i)
-	4'b1111: dat0_o = { mem[idx0], mem[idx0+1], mem[idx0+2], mem[idx0+3] };
-	4'b0011: dat0_o = { 16'h0, mem[idx0+2], mem[idx0+3] };
-	4'b1100: dat0_o = { 16'h0, mem[idx0], mem[idx0+1] };
-	4'b0001: dat0_o = { 24'h0, mem[idx0+3] };
-	4'b0010: dat0_o = { 24'h0, mem[idx0+2] };
-	4'b0100: dat0_o = { 24'h0, mem[idx0+1] };
-	4'b1000: dat0_o = { 24'h0, mem[idx0] };
-	default: dat0_o = 32'hdeadbeef;
-      endcase // case (sel_i)
+      dat0_next = bus0.dat_s;
+      state0_next = state0;
+      case (state0)
+	S_IDLE:
+	  if (bus0.cyc & bus0.stb)
+	    begin
+	      state0_next = S_ACTIVE;
+	      case (bus0.sel)
+		4'b1111: dat0_next = { mem[idx0], mem[idx0+1],
+				       mem[idx0+2], mem[idx0+3] };
+		4'b0011: dat0_next = { 16'h0, mem[idx0+2], mem[idx0+3] };
+		4'b1100: dat0_next = { 16'h0, mem[idx0], mem[idx0+1] };
+		4'b0001: dat0_next = { 24'h0, mem[idx0+3] };
+		4'b0010: dat0_next = { 24'h0, mem[idx0+2] };
+		4'b0100: dat0_next = { 24'h0, mem[idx0+1] };
+		4'b1000: dat0_next = { 24'h0, mem[idx0] };
+		default: dat0_next = 32'hdeadbeef;
+	      endcase // case (sel_i)
+	    end // if (cyc_i & stb_i)
+	S_ACTIVE:
+	  if (!(bus0.cyc & bus0.stb))
+	    state0_next = S_IDLE;
+	  else
+	    begin
+	      state0_next = S_ACTIVE;
+	      case (bus0.sel)
+		4'b1111: dat0_next = { mem[idx0], mem[idx0+1],
+				       mem[idx0+2], mem[idx0+3] };
+		4'b0011: dat0_next = { 16'h0, mem[idx0+2], mem[idx0+3] };
+		4'b1100: dat0_next = { 16'h0, mem[idx0], mem[idx0+1] };
+		4'b0001: dat0_next = { 24'h0, mem[idx0+3] };
+		4'b0010: dat0_next = { 24'h0, mem[idx0+2] };
+		4'b0100: dat0_next = { 24'h0, mem[idx0+1] };
+		4'b1000: dat0_next = { 24'h0, mem[idx0] };
+		default: dat0_next = 32'hdeadbeef;
+	      endcase // case (sel_i)
+	    end // else: !if(!(cyc_i & stb_i))
+      endcase // case (state)
     end // always_comb
-  
+
+  // bus1 can do writes
   always_comb
     begin
       mem_next = mem;
-      if (cyc0_i & stb0_i & we0_i)
-	begin
-	  if (sel0_i[0])
-	    mem_next[idx0] = dat0_i[31:24];
-	  if (sel0_i[1])
-	    mem_next[idx0+1] = dat0_i[23:16];
-	  if (sel0_i[2])
-	    mem_next[idx0+2] = dat0_i[15:8];
-	  if (sel0_i[3])
-	    mem_next[idx0+3] = dat0_i[7:0];
-	end // if (cyc0_i & stb0_i & we0_i)
+      dat1_next = bus1.dat_s;
+      state1_next = state1;
+      case (state1)
+	S_IDLE:
+	  if (bus1.cyc & bus1.stb)
+	    begin
+	      state1_next = S_ACTIVE;
+	      if (bus1.we)
+		begin
+		  if (bus1.sel[0])
+		    mem_next[idx1] = bus1.dat_m[31:24];
+		  if (bus1.sel[1])
+		    mem_next[idx1+1] = bus1.dat_m[23:16];
+		  if (bus1.sel[2])
+		    mem_next[idx1+2] = bus1.dat_m[15:8];
+		  if (bus1.sel[3])
+		    mem_next[idx1+3] = bus1.dat_m[7:0];
+		end // if (cyc_i & stb_i & we_i)
+	      else
+		case (bus1.sel)
+		  4'b1111: dat1_next = { mem[idx1], mem[idx1+1],
+					 mem[idx1+2], mem[idx1+3] };
+		  4'b0011: dat1_next = { 16'h0, mem[idx1+2], mem[idx1+3] };
+		  4'b1100: dat1_next = { 16'h0, mem[idx1], mem[idx1+1] };
+		  4'b0001: dat1_next = { 24'h0, mem[idx1+3] };
+		  4'b0010: dat1_next = { 24'h0, mem[idx1+2] };
+		  4'b0100: dat1_next = { 24'h0, mem[idx1+1] };
+		  4'b1000: dat1_next = { 24'h0, mem[idx1] };
+		  default: dat1_next = 32'hdeadbeef;
+		endcase // case (sel_i)
+	    end // if (cyc_i & stb_i)
+	S_ACTIVE:
+	  if (!(bus1.cyc & bus1.stb))
+	    state1_next = S_IDLE;
+	  else
+	    begin
+	      state1_next = S_ACTIVE;
+	      if (bus1.we)
+		begin
+		  if (bus1.sel[0])
+		    mem_next[idx1] = bus1.dat_m[31:24];
+		  if (bus1.sel[1])
+		    mem_next[idx1+1] = bus1.dat_m[23:16];
+		  if (bus1.sel[2])
+		    mem_next[idx1+2] = bus1.dat_m[15:8];
+		  if (bus1.sel[3])
+		    mem_next[idx1+3] = bus1.dat_m[7:0];
+		end // if (cyc_i & stb_i & we_i)
+	      else
+		case (bus1.sel)
+		  4'b1111: dat1_next = { mem[idx1], mem[idx1+1],
+					 mem[idx1+2], mem[idx1+3] };
+		  4'b0011: dat1_next = { 16'h0, mem[idx1+2], mem[idx1+3] };
+		  4'b1100: dat1_next = { 16'h0, mem[idx1], mem[idx1+1] };
+		  4'b0001: dat1_next = { 24'h0, mem[idx1+3] };
+		  4'b0010: dat1_next = { 24'h0, mem[idx1+2] };
+		  4'b0100: dat1_next = { 24'h0, mem[idx1+1] };
+		  4'b1000: dat1_next = { 24'h0, mem[idx1] };
+		  default: dat1_next = 32'hdeadbeef;
+		endcase // case (sel_i)
+	    end // else: !if(!(cyc_i & stb_i))
+      endcase // case (state)
     end // always_comb
   
 endmodule // ram2

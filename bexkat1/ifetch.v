@@ -81,6 +81,7 @@ module ifetch
       req_count_next = req_count;
       ack_count_next = ack_count;
       bus_state_next = bus_state;
+      bus_adr_next = bus.adr;
       
       case (bus_state)
 	SB_IDLE:
@@ -91,6 +92,8 @@ module ifetch
 	  end
 	SB_FETCH:
 	  begin
+	    if (!bus.stall)
+	      bus_adr_next = bus.adr + 32'h4;
 	    if (bus.ack)
 	      ack_count_next = ack_count + 4'h1;
 	    if (!bus.stall)
@@ -100,7 +103,10 @@ module ifetch
 		  bus_state_next = SB_END;
 	      end
 	    if (pc_set)
-	      bus_state_next = SB_IDLE;
+	      begin
+		bus_adr_next = pc_in;
+		bus_state_next = SB_IDLE;
+	      end
 	  end
 	SB_END:
 	  begin
@@ -109,7 +115,10 @@ module ifetch
 	    if (req_count == ack_count)
 	      bus_state_next = SB_IDLE;
 	    if (pc_set)
-	      bus_state_next = SB_IDLE;
+	      begin
+		bus_adr_next = pc_in;
+		bus_state_next = SB_IDLE;
+	      end
 	  end
 	default:
 	  bus_state_next = SB_IDLE;
@@ -123,7 +132,6 @@ module ifetch
       pc_next = pc;
       low_next = low;
       state_next = state;
-      bus_adr_next = bus.adr;
        
       case (state)
 	S_RESET:
@@ -132,12 +140,9 @@ module ifetch
 	  state_next = S_HALT;
 	S_FETCH:
 	  begin
-	    if (!bus.stall)
-	      bus_adr_next = bus.adr + 32'h4;
 	    if (pc_set)
 	      begin
 		pc_next = pc_in;
-		bus_adr_next = pc_in;
 		state_next = S_RESET;
 	      end
 	    if (!stall_i)
@@ -155,7 +160,7 @@ module ifetch
 		  else
 		    begin
 		      ir_next = { 32'h0, val };
-		      state_next = S_RESET;
+		      state_next = S_FETCH;
 		    end
 		end // else: !if(empty || pc_set)
 	    if (halt)
@@ -163,12 +168,9 @@ module ifetch
 	  end
 	S_FETCH2:
 	  begin
-	    if (!bus.stall)
-	      bus_adr_next = bus.adr + 32'h4;
 	    if (pc_set)
 	      begin
 		pc_next = pc_in;
-		bus_adr_next = pc_in;
 		state_next = S_RESET;
 	      end
 	    if (!stall_i)
@@ -178,7 +180,7 @@ module ifetch
 		begin
 		  pc_next = pc + 32'h4;
 		  ir_next = { val, low };
-		  state_next = S_RESET;
+		  state_next = S_FETCH;
 		end
 	    if (halt)
 	      state_next = S_HALT;

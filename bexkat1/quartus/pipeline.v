@@ -22,6 +22,12 @@ module pipeline(input              raw_clock_50,
   logic [2:0] 			   inter;
   logic 			   clk_i;
   logic 			   int_en;
+  logic [31:0] 			   ram0_q_a;
+  logic [31:0] 			   ram0_q_b;
+  logic [31:0] 			   ram1_q_a;
+  logic [31:0] 			   ram1_q_b;
+  logic [31:0] 			   rom_q_a;
+  logic [31:0] 			   rom_q_b;
   
   if_wb ins_bus();
   if_wb dat_bus();
@@ -78,16 +84,13 @@ module pipeline(input              raw_clock_50,
 	      .c0(clk_i), .areset(arst), .locked(locked));
 
   vectrom rom0(.clock(clk_i),
-	       .data_a(ins_bus.dat_m),
 	       .address_a(ins_bus.adr[8:2]),
-	       .wren_a(ins_bus.we),
-	       .byteena_a(ins_bus.sel),
 	       .q_a(rom_q_a),
-	       .data_b(dat_bus.dat_m),
 	       .address_b(dat_bus.adr[8:2]),
-	       .wren_b(dat_bus.we),
-	       .byteena_b(dat_bus.sel),
 	       .q_b(rom_q_b));
+
+  assign ins_bus.dat_s = ram0_q_a;
+  assign dat_bus.dat_s = ram0_q_b;
   
   mram ram0(.clock(clk_i),
 	    .data_a(ins_bus.dat_m),

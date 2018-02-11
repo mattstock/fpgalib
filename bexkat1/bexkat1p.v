@@ -38,15 +38,15 @@ module bexkat1p(input 	     clk_i,
   assign halt = mem_halt;  
   assign exception = 4'h0;
   
-  ifetch fetch0(.clk_i(clk_i), .rst_i(rst_i),
-		.ir(if_ir),
-		.pc(if_pc),
-		.halt(exe_halt|mem_halt),
-		.stall_i(hazard_stall|exe_stall|
-			 mem_stall),
-		.bus(ins_bus.master),
-		.pc_set(mem_pc_set),
-		.pc_in(mem_pc));
+  ifetch #(.REQ_MAX(8)) fetch0(.clk_i(clk_i), .rst_i(rst_i),
+			       .ir(if_ir),
+			       .pc(if_pc),
+			       .halt(exe_halt|mem_halt),
+			       .stall_i(hazard_stall|exe_stall|
+					mem_stall),
+			       .bus(ins_bus.master),
+			       .pc_set(mem_pc_set),
+			       .pc_in(mem_pc));
 
   idecode decode0(.clk_i(clk_i), .rst_i(rst_i),
 		  .ir_i((hazard_stall|

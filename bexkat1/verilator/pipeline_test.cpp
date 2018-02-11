@@ -160,6 +160,7 @@ int main(int argc, char **argv, char **env) {
 	     top->dat_adr_o, top->dat_cyc_o, top->dat_stb_o, top->dat_ack_i, top->dat_dat_i,
 	     top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i,
 	     top->top__DOT__mem0__DOT__state);
+#if 0
       printf("BusCtrl: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	     top->arb_adr_o, top->arb_cyc_o, top->arb_stb_o, top->arb_ack_i, top->arb_dat_i,
 	     top->arb_dat_o, top->arb_we_o, top->arb_sel_o, top->arb_stall_i);
@@ -169,6 +170,7 @@ int main(int argc, char **argv, char **env) {
 	     top->top__DOT__bus0__DOT__fifo0__DOT__widx,
 	     top->top__DOT__bus0__DOT__fifo0__DOT__values[top->top__DOT__bus0__DOT__fifo0__DOT__ridx] >> 1,
 	     top->top__DOT__bus0__DOT__fifo0__DOT__values[top->top__DOT__bus0__DOT__fifo0__DOT__ridx] & 0x1);
+#endif
       cycle++;
     }
 
