@@ -34,7 +34,7 @@ tests: $(TESTPROGS)
 	@for t in $(TESTS); do \
 		echo -n $$t ; \
 		cp out/$$t.hex ../ram0.hex ; \
-		../obj_dir/Vpipeline_top > out/$$t.output ; \
+		../obj_dir/Vpipeline_top out/$$t.debug > out/$$t.output ; \
 		diff -u0 ref/$$t out/$$t.output > out/$$t.diff ; \
 		if [ -s out/$$t.diff ] ; \
 		then \

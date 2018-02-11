@@ -92,12 +92,11 @@ module ifetch
 	  end
 	SB_FETCH:
 	  begin
-	    if (!bus.stall)
-	      bus_adr_next = bus.adr + 32'h4;
 	    if (bus.ack)
 	      ack_count_next = ack_count + 4'h1;
 	    if (!bus.stall)
 	      begin
+		bus_adr_next = bus.adr + 32'h4;
 		req_count_next = req_count + 4'h1;
 		if (req_count == (REQ_MAX-4'h1))
 		  bus_state_next = SB_END;
