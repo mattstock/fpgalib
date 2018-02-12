@@ -388,7 +388,6 @@ set_global_assignment -name VERILOG_FILE ../arbiter.v
 set_global_assignment -name VERILOG_FILE ../../hexdisp.v
 set_global_assignment -name VERILOG_FILE pipeline.v
 set_global_assignment -name VERILOG_FILE ../bexkat1p.v
-set_global_assignment -name VERILOG_FILE ../verilator/ram2.v
 set_global_assignment -name VERILOG_FILE ../alu_comb.v
 set_global_assignment -name VERILOG_FILE ../registerfile.v
 set_global_assignment -name VERILOG_FILE ../mem.v
