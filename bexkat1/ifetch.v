@@ -24,8 +24,8 @@ module ifetch
   logic [3:0] 	       req_count, req_count_next;
   logic [3:0] 	       ack_count, ack_count_next;
 
-  typedef enum bit [1:0] { S_RESET, S_FETCH, S_FETCH2, S_HALT } state_t;
-  typedef enum bit [1:0] { SB_IDLE, SB_FETCH, SB_END } bus_state_t;
+  typedef enum bit [1:0] { S_RESET, S_FETCH, S_FETCH2 } state_t;
+  typedef enum bit [1:0] { SB_IDLE, SB_FETCH, SB_END, SB_HALT } bus_state_t;
   
   state_t 	       state, state_next;
   bus_state_t          bus_state, bus_state_next;
@@ -118,9 +118,11 @@ module ifetch
 		bus_adr_next = pc_in;
 		bus_state_next = SB_IDLE;
 	      end
-	  end
-	default:
-	  bus_state_next = SB_IDLE;
+	    if (halt)
+	      bus_state_next = SB_HALT;
+	  end // case: SB_END
+	SB_HALT:
+	  bus_state_next = SB_HALT;
       endcase // case (bus_state)
     end // always_comb
 
@@ -135,8 +137,6 @@ module ifetch
       case (state)
 	S_RESET:
 	  state_next = S_FETCH;
-	S_HALT:
-	  state_next = S_HALT;
 	S_FETCH:
 	  begin
 	    if (pc_set)
@@ -162,8 +162,6 @@ module ifetch
 		      state_next = S_FETCH;
 		    end
 		end // else: !if(empty || pc_set)
-	    if (halt)
-	      state_next = S_HALT;
 	  end
 	S_FETCH2:
 	  begin
@@ -181,9 +179,9 @@ module ifetch
 		  ir_next = { val, low };
 		  state_next = S_FETCH;
 		end
-	    if (halt)
-	      state_next = S_HALT;
-	  end
+	  end // case: S_FETCH2
+	default:
+	  state_next = S_RESET;
       endcase // case (state)
     end // always_comb
   
