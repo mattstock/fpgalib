@@ -83,7 +83,7 @@ module cache
 	  lru[i] = rowout[i][LRU];
 	  valid[i] = rowout[i][VALID];
 	  dirty[i] = rowout[i][DIRTY3:DIRTY0];
-	  tag_cache[i] = rowout[i][TAGBASE+TAGSIZE:TAGBASE];
+	  tag_cache[i] = rowout[i][TAGBASE+TAGSIZE-1:TAGBASE];
 	  word3[i] = rowout[i][127:96];
 	  word2[i] = rowout[i][95:64];
 	  word1[i] = rowout[i][63:32];
@@ -174,7 +174,7 @@ module cache
 	S_IDLE:
 	  if (sysbus.cyc & sysbus.stb & stats_stb_i)
 	    begin
-	      case (sysbus.adr[3:0])
+	      case (sysbus.adr[5:2])
 		'h0: s_dat_o_next = hitreg;
 		'h1: s_dat_o_next = flushreg;
 		'h2: s_dat_o_next = fillreg;

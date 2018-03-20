@@ -89,6 +89,11 @@ module ifetch
 	    ack_count_next = 4'h0;
 	    req_count_next = 4'h0;
 	    bus_state_next = SB_FETCH;
+	    if (pc_set)
+	      begin
+		bus_adr_next = pc_in;
+		bus_state_next = SB_IDLE;
+	      end
 	  end
 	SB_FETCH:
 	  begin
