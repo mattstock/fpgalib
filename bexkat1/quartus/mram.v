@@ -49,8 +49,8 @@ module mram (
 	q_a,
 	q_b);
 
-	input	[14:0]  address_a;
-	input	[14:0]  address_b;
+	input	[13:0]  address_a;
+	input	[13:0]  address_b;
 	input	[3:0]  byteena_a;
 	input	[3:0]  byteena_b;
 	input	  clock;
@@ -113,8 +113,8 @@ module mram (
 		altsyncram_component.init_file = "../tests.mif",
 		altsyncram_component.intended_device_family = "MAX 10",
 		altsyncram_component.lpm_type = "altsyncram",
-		altsyncram_component.numwords_a = 32768,
-		altsyncram_component.numwords_b = 32768,
+		altsyncram_component.numwords_a = 16384,
+		altsyncram_component.numwords_b = 16384,
 		altsyncram_component.operation_mode = "BIDIR_DUAL_PORT",
 		altsyncram_component.outdata_aclr_a = "NONE",
 		altsyncram_component.outdata_aclr_b = "NONE",
@@ -124,8 +124,8 @@ module mram (
 		altsyncram_component.read_during_write_mode_mixed_ports = "DONT_CARE",
 		altsyncram_component.read_during_write_mode_port_a = "NEW_DATA_WITH_NBE_READ",
 		altsyncram_component.read_during_write_mode_port_b = "NEW_DATA_WITH_NBE_READ",
-		altsyncram_component.widthad_a = 15,
-		altsyncram_component.widthad_b = 15,
+		altsyncram_component.widthad_a = 14,
+		altsyncram_component.widthad_b = 14,
 		altsyncram_component.width_a = 32,
 		altsyncram_component.width_b = 32,
 		altsyncram_component.width_byteena_a = 4,
@@ -168,7 +168,7 @@ endmodule
 // Retrieval info: PRIVATE: JTAG_ENABLED NUMERIC "0"
 // Retrieval info: PRIVATE: JTAG_ID STRING "NONE"
 // Retrieval info: PRIVATE: MAXIMUM_DEPTH NUMERIC "0"
-// Retrieval info: PRIVATE: MEMSIZE NUMERIC "1048576"
+// Retrieval info: PRIVATE: MEMSIZE NUMERIC "524288"
 // Retrieval info: PRIVATE: MEM_IN_BITS NUMERIC "0"
 // Retrieval info: PRIVATE: MIFfilename STRING "../tests.mif"
 // Retrieval info: PRIVATE: OPERATION_MODE NUMERIC "3"
@@ -209,8 +209,8 @@ endmodule
 // Retrieval info: CONSTANT: INIT_FILE STRING "../tests.mif"
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "MAX 10"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "altsyncram"
-// Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "32768"
-// Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "32768"
+// Retrieval info: CONSTANT: NUMWORDS_A NUMERIC "16384"
+// Retrieval info: CONSTANT: NUMWORDS_B NUMERIC "16384"
 // Retrieval info: CONSTANT: OPERATION_MODE STRING "BIDIR_DUAL_PORT"
 // Retrieval info: CONSTANT: OUTDATA_ACLR_A STRING "NONE"
 // Retrieval info: CONSTANT: OUTDATA_ACLR_B STRING "NONE"
@@ -220,15 +220,15 @@ endmodule
 // Retrieval info: CONSTANT: READ_DURING_WRITE_MODE_MIXED_PORTS STRING "DONT_CARE"
 // Retrieval info: CONSTANT: READ_DURING_WRITE_MODE_PORT_A STRING "NEW_DATA_WITH_NBE_READ"
 // Retrieval info: CONSTANT: READ_DURING_WRITE_MODE_PORT_B STRING "NEW_DATA_WITH_NBE_READ"
-// Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "15"
-// Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "15"
+// Retrieval info: CONSTANT: WIDTHAD_A NUMERIC "14"
+// Retrieval info: CONSTANT: WIDTHAD_B NUMERIC "14"
 // Retrieval info: CONSTANT: WIDTH_A NUMERIC "32"
 // Retrieval info: CONSTANT: WIDTH_B NUMERIC "32"
 // Retrieval info: CONSTANT: WIDTH_BYTEENA_A NUMERIC "4"
 // Retrieval info: CONSTANT: WIDTH_BYTEENA_B NUMERIC "4"
 // Retrieval info: CONSTANT: WRCONTROL_WRADDRESS_REG_B STRING "CLOCK0"
-// Retrieval info: USED_PORT: address_a 0 0 15 0 INPUT NODEFVAL "address_a[14..0]"
-// Retrieval info: USED_PORT: address_b 0 0 15 0 INPUT NODEFVAL "address_b[14..0]"
+// Retrieval info: USED_PORT: address_a 0 0 14 0 INPUT NODEFVAL "address_a[13..0]"
+// Retrieval info: USED_PORT: address_b 0 0 14 0 INPUT NODEFVAL "address_b[13..0]"
 // Retrieval info: USED_PORT: byteena_a 0 0 4 0 INPUT VCC "byteena_a[3..0]"
 // Retrieval info: USED_PORT: byteena_b 0 0 4 0 INPUT VCC "byteena_b[3..0]"
 // Retrieval info: USED_PORT: clock 0 0 0 0 INPUT VCC "clock"
@@ -238,8 +238,8 @@ endmodule
 // Retrieval info: USED_PORT: q_b 0 0 32 0 OUTPUT NODEFVAL "q_b[31..0]"
 // Retrieval info: USED_PORT: wren_a 0 0 0 0 INPUT GND "wren_a"
 // Retrieval info: USED_PORT: wren_b 0 0 0 0 INPUT GND "wren_b"
-// Retrieval info: CONNECT: @address_a 0 0 15 0 address_a 0 0 15 0
-// Retrieval info: CONNECT: @address_b 0 0 15 0 address_b 0 0 15 0
+// Retrieval info: CONNECT: @address_a 0 0 14 0 address_a 0 0 14 0
+// Retrieval info: CONNECT: @address_b 0 0 14 0 address_b 0 0 14 0
 // Retrieval info: CONNECT: @byteena_a 0 0 4 0 byteena_a 0 0 4 0
 // Retrieval info: CONNECT: @byteena_b 0 0 4 0 byteena_b 0 0 4 0
 // Retrieval info: CONNECT: @clock0 0 0 0 0 clock 0 0 0 0
