@@ -91,24 +91,6 @@ module mem(input               clk_i,
 	end // else: !if(rst_i)
     end // always_ff @
 
-  function [3:0] databus_sel;
-    input [1:0] opcode;
-    input [1:0] addr;
-
-    databus_sel = 4'hf;
-    case (opcode)
-      2'h0: databus_sel = 4'hf;
-      2'h1: databus_sel = (addr[1] ? 4'b0011 : 4'b1100);
-      2'h2: case (addr)
-	      2'b00: databus_sel = 4'b1000;
-	      2'b01: databus_sel = 4'b0100;
-	      2'b10: databus_sel = 4'b0010;
-	      2'b11: databus_sel = 4'b0001;
-	    endcase // case (result_i[1:0])
-      2'h3: databus_sel = 4'hf;
-    endcase // case (ir_op[1:0])
-  endfunction
-
   // bus stuff that's opcode dependent
   always_comb
     begin
@@ -166,8 +148,19 @@ module mem(input               clk_i,
 		  bus_cyc_next = 1'b1;
 		  bus_stb_next = 1'b1;
 		  bus_adr_next = result_i;
-		  bus_dat_next = reg_data1_i;
-		  bus_sel_next = databus_sel(ir_op[1:0], result_i[1:0]);
+		  bus_dat_next = 32'h0;
+		  case (ir_op[1:0])
+		    2'h0: bus_sel_next = 4'hf;
+		    2'h1: bus_sel_next = (result_i[1] ? 4'b0011 : 4'b1100);
+		    2'h2:
+		      case (result_i[1:0])
+			2'b00: bus_sel_next = 4'b1000;
+			2'b01: bus_sel_next = 4'b0100;
+			2'b10: bus_sel_next = 4'b0010;
+			2'b11: bus_sel_next = 4'b0001;
+		      endcase // case (result_i[1:0])
+		    2'h3: bus_sel_next = 4'hf;
+		  endcase // case (ir_op[1:0])
 		  bus_we_next = 1'b0;
 		end
 	      T_STORE:
@@ -177,7 +170,44 @@ module mem(input               clk_i,
 		  bus_stb_next = 1'b1;
 		  bus_adr_next = result_i;
 		  bus_dat_next = reg_data1_i;
-		  bus_sel_next = databus_sel(ir_op[1:0], result_i[1:0]);
+		  case (ir_op[1:0])
+		    2'h0: bus_sel_next = 4'hf;
+		    2'h1:
+		      if (result_i[1])
+			begin
+			  bus_sel_next = 4'b0011;
+			  bus_dat_next = { 16'h0, reg_data1_i[15:0] };
+			end
+		      else
+			begin
+			  bus_sel_next = 4'b1100;
+			  bus_dat_next = { reg_data1_i[15:0], 16'h0 };
+			end
+		    2'h2:
+		      case (result_i[1:0])
+			2'b00: 
+			  begin
+			    bus_sel_next = 4'b1000;
+			    bus_dat_next = { reg_data1_i[7:0], 24'h0 };
+			  end
+			2'b01: 
+			  begin
+			    bus_sel_next = 4'b0100;
+			    bus_dat_next = { 8'h0, reg_data1_i[7:0], 16'h0 };
+			  end
+			2'b10:
+			  begin
+			    bus_sel_next = 4'b0010;
+			    bus_dat_next = { 16'h0, reg_data1_i[7:0], 8'h0 };
+			  end
+			2'b11:
+			  begin
+			    bus_sel_next = 4'b0001;
+			    bus_dat_next = { 24'h0, reg_data1_i[7:0] };
+			  end
+		      endcase // case (result_i[1:0])
+		    2'h3: bus_sel_next = 4'hf;
+		  endcase // case (ir_op[1:0])
 		  bus_we_next = 1'b1;
 		end
 	      T_PUSH:
@@ -218,6 +248,7 @@ module mem(input               clk_i,
 		pc_set_next = 1'h1;
 		sp_write_next = 2'h3;
 		state_next = S_IDLE;
+		bus_we_next = 1'b0;
 		bus_cyc_next = 1'b0;
 	      end
 	  end
@@ -227,6 +258,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		bus_cyc_next = 1'b0;
+		bus_we_next = 1'b0;
 		state_next = S_IDLE;
 	      end
 	  end
@@ -236,6 +268,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_we_next = 1'b0;
 		bus_cyc_next = 1'b0;
 		pc_set_next = 1'h1;
 	      end
@@ -246,6 +279,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_we_next = 1'b0;
 		bus_cyc_next = 1'b0;
 		result_next = dat_i;
 	      end
@@ -256,6 +290,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_we_next = 1'b0;
 		bus_cyc_next = 1'b0;
 		pc_next = dat_i;
 		pc_set_next = 1'h1;
@@ -267,8 +302,18 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		state_next = S_IDLE;
+		bus_we_next = 1'b0;
 		bus_cyc_next = 1'b0;
-		result_next = dat_i;
+		case (bus.sel)
+		  4'b1111: result_next = dat_i;
+		  4'b0011: result_next = { 16'h0, dat_i[15:0] };
+		  4'b1100: result_next = { 16'h0, dat_i[31:16] };
+		  4'b0001: result_next = { 24'h0, dat_i[7:0] };
+		  4'b0010: result_next = { 24'h0, dat_i[15:8] };
+		  4'b0100: result_next = { 24'h0, dat_i[23:16] };
+		  4'b1000: result_next = { 24'h0, dat_i[31:24] };
+		  default: result_next = dat_i;
+		endcase
 	      end
 	  end
 	S_STORE:
@@ -277,6 +322,7 @@ module mem(input               clk_i,
 	    if (bus.ack)
 	      begin
 		bus_cyc_next = 1'b0;
+		bus_we_next = 1'b0;
 		state_next = S_IDLE;
 	      end
 	  end
