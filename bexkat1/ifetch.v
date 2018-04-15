@@ -48,7 +48,7 @@ module ifetch
   assign dat_o = 32'h0;
   
   fifo #(.AWIDTH(4), .DWIDTH(32)) ffifo(.clk_i(clk_i), .rst_i(rst_i|pc_set),
-					.push(bus.ack), .in(dat_i),
+					.push(bus.ack&bus.cyc), .in(dat_i),
 					.pop(!(bus.stall|stall_i)), .out(val),
 					.full(full), .empty(empty));
 
