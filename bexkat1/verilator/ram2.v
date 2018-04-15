@@ -87,13 +87,13 @@ module ram2
 	      state1_next = S_ACTIVE;
 	      if (bus1.we)
 		begin
-		  if (bus1.sel[0])
-		    mem_next[idx1] = bus1.dat_m[31:24];
-		  if (bus1.sel[1])
-		    mem_next[idx1+1] = bus1.dat_m[23:16];
-		  if (bus1.sel[2])
-		    mem_next[idx1+2] = bus1.dat_m[15:8];
 		  if (bus1.sel[3])
+		    mem_next[idx1] = bus1.dat_m[31:24];
+		  if (bus1.sel[2])
+		    mem_next[idx1+1] = bus1.dat_m[23:16];
+		  if (bus1.sel[1])
+		    mem_next[idx1+2] = bus1.dat_m[15:8];
+		  if (bus1.sel[0])
 		    mem_next[idx1+3] = bus1.dat_m[7:0];
 		end // if (cyc_i & stb_i & we_i)
 	      else
@@ -108,13 +108,13 @@ module ram2
 	      state1_next = S_ACTIVE;
 	      if (bus1.we)
 		begin
-		  if (bus1.sel[0])
-		    mem_next[idx1] = bus1.dat_m[31:24];
-		  if (bus1.sel[1])
-		    mem_next[idx1+1] = bus1.dat_m[23:16];
-		  if (bus1.sel[2])
-		    mem_next[idx1+2] = bus1.dat_m[15:8];
 		  if (bus1.sel[3])
+		    mem_next[idx1] = bus1.dat_m[31:24];
+		  if (bus1.sel[2])
+		    mem_next[idx1+1] = bus1.dat_m[23:16];
+		  if (bus1.sel[1])
+		    mem_next[idx1+2] = bus1.dat_m[15:8];
+		  if (bus1.sel[0])
 		    mem_next[idx1+3] = bus1.dat_m[7:0];
 		end // if (cyc_i & stb_i & we_i)
 	      else
