@@ -6,12 +6,13 @@
 import bexkat1Def::*;
 
 module ifetch
-  #(REQ_MAX=1)
+  #(REQ_MAX=1,
+    START_ADDR=32'h70000000)
   (input               clk_i,
    input 	       rst_i,
    output [63:0]       ir,
    output logic [31:0] pc,
-		       if_wb.master bus,
+   if_wb.master        bus,
    input 	       pc_set,
    input 	       halt,
    input 	       stall_i,
@@ -54,12 +55,12 @@ module ifetch
   always_ff @(posedge clk_i or posedge rst_i)
     if (rst_i)
       begin
-	pc <= 32'hfffffff8;
+	pc <= START_ADDR;
 	req_count <= 4'h0;
 	ack_count <= 4'h0;
 	ir <= 64'h0;
 	low <= 32'h0;
-	bus.adr <= 32'hfffffff8;
+	bus.adr <= START_ADDR;
 	state <= S_RESET;
 	bus_state <= SB_IDLE;
       end

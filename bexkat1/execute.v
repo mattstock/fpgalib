@@ -461,7 +461,7 @@ module execute(input               clk_i,
 	  begin
 	    alu_func = ALU_ADD;
 	    alu_in1 = {ir_sval[29:0], 2'b00};
-	    alu_in2 = pc_i-3'h4;
+	    alu_in2 = pc_i-32'h4;
 	  end
 	T_JUMP:
 	  begin
