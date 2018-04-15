@@ -118,7 +118,7 @@ int main(int argc, char **argv, char **env) {
       emit(D_DEBUG, "res: %*s %*s %*x %*x\n",
 	   16, "",
 	   16, "",
-	   16, top->exe_result,
+	   33, top->exe_result,
 	   16, top->mem_result);
       emit(D_DEBUG, "ccr: %*s %*s %*x\n",
 	   16, "",
