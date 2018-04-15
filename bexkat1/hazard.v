@@ -112,6 +112,11 @@ module hazard(input              clk_i,
 	    hazard1 = 3'h0;
 	    hazard2 = (id_size ? 3'h0 : hazard(id_rb));
 	  end
+	T_JUMP:
+	  begin
+	    hazard1 = 3'h0;
+	    hazard2 = (id_size ? 3'h0 : hazard(id_rb));
+	  end
 	default:
 	  begin
 	    hazard1 = 3'h0;
