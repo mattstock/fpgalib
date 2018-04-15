@@ -13,7 +13,7 @@ all: obj_dir/Vpipeline tests
 tests:
 	cd tests; make
 
-obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.v ram.v
+obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.v ram2.v
 	verilator -I.. -I../.. --unroll-count 256 --unroll-stmts 10000 -cc pipeline_top.v -exe pipeline_test.cpp
 
 obj_dir/Vpipeline: obj_dir/Vpipeline_top.cpp pipeline_test.cpp
@@ -32,7 +32,7 @@ obj_dir/Vifetch: obj_dir/Vifetch.cpp ifetch_test.cpp
 	cd obj_dir; make -f Vifetch.mk
 
 clean:
-	rm -f *.o *.hex *.bin *.mif *.gkd *.expand ram0
+	rm -f *.o *.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
 	rm -rf obj_dir
 
 %.o: %.c

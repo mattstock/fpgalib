@@ -59,17 +59,8 @@ module ram2
 	  if (bus0.cyc & bus0.stb)
 	    begin
 	      state0_next = S_ACTIVE;
-	      case (bus0.sel)
-		4'b1111: dat0_next = { mem[idx0], mem[idx0+1],
-				       mem[idx0+2], mem[idx0+3] };
-		4'b0011: dat0_next = { 16'h0, mem[idx0+2], mem[idx0+3] };
-		4'b1100: dat0_next = { 16'h0, mem[idx0], mem[idx0+1] };
-		4'b0001: dat0_next = { 24'h0, mem[idx0+3] };
-		4'b0010: dat0_next = { 24'h0, mem[idx0+2] };
-		4'b0100: dat0_next = { 24'h0, mem[idx0+1] };
-		4'b1000: dat0_next = { 24'h0, mem[idx0] };
-		default: dat0_next = 32'hdeadbeef;
-	      endcase // case (sel_i)
+	      dat0_next = { mem[idx0], mem[idx0+1],
+			    mem[idx0+2], mem[idx0+3] };
 	    end // if (cyc_i & stb_i)
 	S_ACTIVE:
 	  if (!(bus0.cyc & bus0.stb))
@@ -77,17 +68,8 @@ module ram2
 	  else
 	    begin
 	      state0_next = S_ACTIVE;
-	      case (bus0.sel)
-		4'b1111: dat0_next = { mem[idx0], mem[idx0+1],
-				       mem[idx0+2], mem[idx0+3] };
-		4'b0011: dat0_next = { 16'h0, mem[idx0+2], mem[idx0+3] };
-		4'b1100: dat0_next = { 16'h0, mem[idx0], mem[idx0+1] };
-		4'b0001: dat0_next = { 24'h0, mem[idx0+3] };
-		4'b0010: dat0_next = { 24'h0, mem[idx0+2] };
-		4'b0100: dat0_next = { 24'h0, mem[idx0+1] };
-		4'b1000: dat0_next = { 24'h0, mem[idx0] };
-		default: dat0_next = 32'hdeadbeef;
-	      endcase // case (sel_i)
+	      dat0_next = { mem[idx0], mem[idx0+1],
+			    mem[idx0+2], mem[idx0+3] };
 	    end // else: !if(!(cyc_i & stb_i))
       endcase // case (state)
     end // always_comb
@@ -115,17 +97,8 @@ module ram2
 		    mem_next[idx1+3] = bus1.dat_m[7:0];
 		end // if (cyc_i & stb_i & we_i)
 	      else
-		case (bus1.sel)
-		  4'b1111: dat1_next = { mem[idx1], mem[idx1+1],
-					 mem[idx1+2], mem[idx1+3] };
-		  4'b0011: dat1_next = { 16'h0, mem[idx1+2], mem[idx1+3] };
-		  4'b1100: dat1_next = { 16'h0, mem[idx1], mem[idx1+1] };
-		  4'b0001: dat1_next = { 24'h0, mem[idx1+3] };
-		  4'b0010: dat1_next = { 24'h0, mem[idx1+2] };
-		  4'b0100: dat1_next = { 24'h0, mem[idx1+1] };
-		  4'b1000: dat1_next = { 24'h0, mem[idx1] };
-		  default: dat1_next = 32'hdeadbeef;
-		endcase // case (sel_i)
+		dat1_next = { mem[idx1], mem[idx1+1],
+			      mem[idx1+2], mem[idx1+3] };
 	    end // if (cyc_i & stb_i)
 	S_ACTIVE:
 	  if (!(bus1.cyc & bus1.stb))
@@ -145,17 +118,8 @@ module ram2
 		    mem_next[idx1+3] = bus1.dat_m[7:0];
 		end // if (cyc_i & stb_i & we_i)
 	      else
-		case (bus1.sel)
-		  4'b1111: dat1_next = { mem[idx1], mem[idx1+1],
-					 mem[idx1+2], mem[idx1+3] };
-		  4'b0011: dat1_next = { 16'h0, mem[idx1+2], mem[idx1+3] };
-		  4'b1100: dat1_next = { 16'h0, mem[idx1], mem[idx1+1] };
-		  4'b0001: dat1_next = { 24'h0, mem[idx1+3] };
-		  4'b0010: dat1_next = { 24'h0, mem[idx1+2] };
-		  4'b0100: dat1_next = { 24'h0, mem[idx1+1] };
-		  4'b1000: dat1_next = { 24'h0, mem[idx1] };
-		  default: dat1_next = 32'hdeadbeef;
-		endcase // case (sel_i)
+		dat1_next = { mem[idx1], mem[idx1+1],
+			      mem[idx1+2], mem[idx1+3] };
 	    end // else: !if(!(cyc_i & stb_i))
       endcase // case (state)
     end // always_comb
