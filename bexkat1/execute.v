@@ -215,8 +215,6 @@ module execute(input               clk_i,
 		      end
 		  end
 		T_LOAD:
-		  result_next = (ir_size ? ir_extaddr : alu_out);
-		T_STORE:
 		  begin
 		    result_next = (ir_size ? ir_extaddr : alu_out);
 		    if (ir_ra == 4'd15)
@@ -225,6 +223,8 @@ module execute(input               clk_i,
 			sp_write_next = 2'd3;
 		      end
 		  end
+		T_STORE:
+		  result_next = (ir_size ? ir_extaddr : alu_out);
 		T_LDI:
 		  begin
 		    result_next = (ir_size ? ir_extaddr : ir_uval);
