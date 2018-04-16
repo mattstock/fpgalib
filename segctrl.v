@@ -16,7 +16,8 @@ module segctrl
 
   assign bus.stall = 1'b0;
   assign bus.ack = state;
-  assign bus.dat_o = { 27'h0, vals[bus.adr[4:2]][4:0] };
+  assign bus.dat_o = result;
+
   assign out0 = hexed[0][SEG-1:0];
   assign out1 = hexed[1][SEG-1:0];
   assign out2 = hexed[2][SEG-1:0];
@@ -30,6 +31,7 @@ module segctrl
   logic [7:0] 	    hexed[7:0];
   
   logic 	    state, state_next;
+  logic [31:0] 	    result, result_next;
   
   always_ff @(posedge clk_i or posedge rst_i)
     if (rst_i)
@@ -37,18 +39,21 @@ module segctrl
 	state <= 1'b0;
 	for (int i=0; i < 8; i = i + 1)
 	  vals[i] <= 5'h0;
+	result <= 32'h0;
       end
     else
       begin
 	state <= state_next;
 	for (int i=0; i < 8; i = i + 1)
 	  vals[i] <= vals_next[i];
+	result <= result_next;
       end // else: !if(rst_i)
   
   always_comb
     begin
       state_next = state;
-
+      result_next = result;
+      
       for (int i=0; i < 8; i = i + 1)
 	vals_next[i] = vals[i];
 
@@ -59,6 +64,8 @@ module segctrl
 	      state_next = 1'b1;
 	      if (bus.we)
 		vals_next[bus.adr[4:2]] = bus.dat_i[4:0];
+	      else
+		result_next = { 27'h0, vals[bus.adr[4:2]][4:0] };
 	    end
 	1'h1:
 	  state_next = 1'h0;
