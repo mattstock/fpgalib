@@ -14,9 +14,19 @@ module segctrl
    output [SEG-1:0] out6,
    output [SEG-1:0] out7);
 
+  logic [31:0] 	    dat_i, dat_o;
+  
+`ifdef NO_MODPORT_EXPRESSIONS
+  assign dat_i = bus.dat_m;
+  assign bus.dat_s = dat_o;
+`else
+  assign dat_i = bus.dat_i;
+  assign bus.dat_o = dat_o;
+`endif
+
   assign bus.stall = 1'b0;
   assign bus.ack = state;
-  assign bus.dat_o = result;
+  assign dat_o = result;
 
   assign out0 = hexed[0][SEG-1:0];
   assign out1 = hexed[1][SEG-1:0];
@@ -63,7 +73,7 @@ module segctrl
 	    begin
 	      state_next = 1'b1;
 	      if (bus.we)
-		vals_next[bus.adr[4:2]] = bus.dat_i[4:0];
+		vals_next[bus.adr[4:2]] = dat_i[4:0];
 	      else
 		result_next = { 27'h0, vals[bus.adr[4:2]][4:0] };
 	    end
