@@ -233,6 +233,7 @@ module top(input         clk_i,
 	   .exc_i(exe_exc),
 	   .bus(dat_bus.master));
 
+  if_wb                       p0_bus2();
   if_wb p1_bus0(), p1_bus1(), p1_bus2();
   if_wb p2_bus0(), p2_bus1(), p2_bus2();
   if_wb p3_bus0(),            p3_bus2();
@@ -318,7 +319,7 @@ module top(input         clk_i,
   
   mmu #(.BASE(12)) mmu_bus2(.clk_i(clk_i), .rst_i(rst_i),
 			    .mbus(io_dbus.slave),
-			    .p0(io_seg.master),
+			    .p0(p0_bus2.master),
 			    .p1(p1_bus2.master),
 			    .p2(p2_bus2.master),
 			    .p3(p3_bus2.master),
@@ -335,6 +336,7 @@ module top(input         clk_i,
 			    .pe(pe_bus2.master),
 			    .pf(pf_bus2.master));
   
+  bus_term bus2_p0(p0_bus2.slave);
   bus_term bus2_p1(p1_bus2.slave);
   bus_term bus2_p2(p2_bus2.slave);
   bus_term bus2_p3(p3_bus2.slave);
@@ -351,10 +353,10 @@ module top(input         clk_i,
   bus_term bus2_pe(pe_bus2.slave);
   bus_term bus2_pf(pf_bus2.slave);
   
-  ram2 #(.AWIDTH(10)) ram0(.clk_i(clk_i), .rst_i(rst_i),
+  ram2 #(.AWIDTH(11)) ram0(.clk_i(clk_i), .rst_i(rst_i),
 			   .bus0(ram0_ibus.slave),
 			   .bus1(ram0_dbus.slave));
-  ram2 #(.AWIDTH(10)) ram1(.clk_i(clk_i), .rst_i(rst_i),
+  ram2 #(.AWIDTH(11)) ram1(.clk_i(clk_i), .rst_i(rst_i),
 			   .bus0(ram1_ibus.slave),
 			   .bus1(ram1_dbus.slave));
   

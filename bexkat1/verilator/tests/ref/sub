@@ -86,19 +86,19 @@ Mem: adr: 00000ffc cyc: 1 stb: 0 ack: 1 dat_i: 00000000 dat_o: 70000018 we: 1 se
   0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
-Ins: adr: 0000002c cyc: 0 stb: 0 ack: 0 dat_i: deadbeef stall: 0 state: 1
+Ins: adr: 0000002c cyc: 0 stb: 0 ack: 0 dat_i: 00000000 stall: 0 state: 1
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 00000000 dat_o: 70000018 we: 0 sel: f stall: 0 state 0
 -------------------- 015 --------------------
   0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
-Ins: adr: 0000002c cyc: 0 stb: 0 ack: 0 dat_i: deadbeef stall: 0 state: 0
+Ins: adr: 0000002c cyc: 0 stb: 0 ack: 0 dat_i: 00000000 stall: 0 state: 0
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 00000000 dat_o: 70000018 we: 0 sel: f stall: 0 state 0
 -------------------- 016 --------------------
   0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00000ffc
 vectoff: ffffffc0 inten:  0 interrupts:  1
-Ins: adr: 0000002c cyc: 1 stb: 1 ack: 0 dat_i: deadbeef stall: 0 state: 1
+Ins: adr: 0000002c cyc: 1 stb: 1 ack: 0 dat_i: 00000000 stall: 0 state: 1
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 00000000 dat_o: 70000018 we: 0 sel: f stall: 0 state 0
 -------------------- 017 --------------------
   0: 11223344  1: 00000000  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
@@ -158,13 +158,13 @@ Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 70000018 dat_o: 00000ffc we: 0 se
   0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
-Ins: adr: 70000018 cyc: 0 stb: 0 ack: 0 dat_i: 00000000 stall: 0 state: 0
+Ins: adr: 70000018 cyc: 0 stb: 0 ack: 0 dat_i: deadbeef stall: 0 state: 0
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 70000018 dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
 -------------------- 027 --------------------
   0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000
   8: 00000000  9: 00000000 10: 00000000 11: 00000000 12: 00000000 13: 00000000 14: 00000000 15: 00001000
 vectoff: ffffffc0 inten:  0 interrupts:  1
-Ins: adr: 70000018 cyc: 1 stb: 1 ack: 0 dat_i: 00000000 stall: 0 state: 1
+Ins: adr: 70000018 cyc: 1 stb: 1 ack: 0 dat_i: deadbeef stall: 0 state: 1
 Mem: adr: 00000ffc cyc: 0 stb: 0 ack: 0 dat_i: 70000018 dat_o: 00000ffc we: 0 sel: f stall: 0 state 0
 -------------------- 028 --------------------
   0: 11223344  1: 00004567  2: 00000000  3: 00000000  4: 00000000  5: 00000000  6: 00000000  7: 00000000

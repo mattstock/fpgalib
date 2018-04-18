@@ -155,7 +155,6 @@ module ifetch
 		ir_next = 64'h0;
 	      else
 		begin
-		  pc_next = pc + 32'h4;
        		  if (val[0])
 		    begin
 		      ir_next = 64'h0;
@@ -165,6 +164,7 @@ module ifetch
 		  else
 		    begin
 		      ir_next = { 32'h0, val };
+		      pc_next = pc + 32'h4;
 		      state_next = S_FETCH;
 		    end
 		end // else: !if(empty || pc_set)
@@ -181,8 +181,8 @@ module ifetch
 		ir_next = 64'h0;
 	      else
 		begin
-		  pc_next = pc + 32'h4;
 		  ir_next = { val, low };
+		  pc_next = pc + 32'h8;
 		  state_next = S_FETCH;
 		end
 	  end // case: S_FETCH2
