@@ -147,6 +147,8 @@ module ifetch
 	  begin
 	    if (pc_set)
 	      begin
+		low_next = 32'h0;
+		ir_next = 64'h0;
 		pc_next = pc_in;
 		state_next = S_RESET;
 	      end
@@ -173,6 +175,8 @@ module ifetch
 	  begin
 	    if (pc_set)
 	      begin
+		low_next = 32'h0;
+		ir_next = 64'h0;
 		pc_next = pc_in;
 		state_next = S_RESET;
 	      end
