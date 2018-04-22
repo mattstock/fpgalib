@@ -142,7 +142,14 @@ module ifetch
        
       case (state)
 	S_RESET:
-	  state_next = S_FETCH;
+	  if (pc_set)
+	    begin
+	      low_next = 32'h0;
+	      ir_next = 64'h0;
+	      pc_next = pc_in;
+	    end
+	  else
+	    state_next = S_FETCH;
 	S_FETCH:
 	  begin
 	    if (pc_set)
