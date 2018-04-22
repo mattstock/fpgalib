@@ -1,10 +1,12 @@
 `include "wb.vh"
 
 module segctrl
-  #(SEG=7)
+  #(SEG=7,
+    SW=10)
   (input            clk_i,
    input 	    rst_i,
    if_wb.slave      bus,
+   input [SW-1:0]   sw,
    output [SEG-1:0] out0,
    output [SEG-1:0] out1,
    output [SEG-1:0] out2,
@@ -71,11 +73,17 @@ module segctrl
 	1'h0:
 	  if (bus.cyc && bus.stb)
 	    begin
+	      case (bus.adr[5])
+		1'h0:
+		  if (bus.we)
+		    vals_next[bus.adr[4:2]] = dat_i[4:0];
+		  else
+		    result_next = { 27'h0, vals[bus.adr[4:2]][4:0] };
+		1'h1:
+		  if (!bus.we)
+		    result_next = sw;
+	      endcase // case (bus.adr[5])
 	      state_next = 1'b1;
-	      if (bus.we)
-		vals_next[bus.adr[4:2]] = dat_i[4:0];
-	      else
-		result_next = { 27'h0, vals[bus.adr[4:2]][4:0] };
 	    end
 	1'h1:
 	  state_next = 1'h0;
