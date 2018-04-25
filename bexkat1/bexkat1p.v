@@ -34,9 +34,13 @@ module bexkat1p(input 	     clk_i,
   logic [1:0] 			    sp_hazard;
   logic [2:0] 			    exe_ccr;
   logic [3:0] 			    id_bank, exe_bank, mem_bank;
+  logic 			    mem_pc_set_last;
   
   assign halt = mem_halt;  
   assign exception = 4'h0;
+
+  always_ff @(posedge clk_i)
+    mem_pc_set_last <= mem_pc_set;
   
   ifetch #(.REQ_MAX(8)) fetch0(.clk_i(clk_i), .rst_i(rst_i),
 			       .ir(if_ir),
@@ -167,7 +171,7 @@ module bexkat1p(input 	     clk_i,
 	   .sp_write_i(exe_sp_write),
 	   .sp_write_o(mem_sp_write),
 	   .sp_data_i(exe_sp_data),
-	   .pc_i(exe_pc),
+	   .pc_i(mem_pc_set_last && exe_exc ? if_pc : exe_pc),
 	   .pc_o(mem_pc),
 	   .pc_set_i(exe_pc_set),
 	   .pc_set_o(mem_pc_set),

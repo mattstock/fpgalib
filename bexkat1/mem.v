@@ -126,7 +126,7 @@ module mem(input               clk_i,
 	      bus_we_next = 1'b1;
 	      bus_sel_next = 4'hf;
 	      bus_adr_next = sp_data_i;
-	      bus_dat_next = pc_i - (ir_size ? 32'h8 : 32'h4);
+	      bus_dat_next = pc_i;
 	    end
 	  else
 	    case (ir_type)
