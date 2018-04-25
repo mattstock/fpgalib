@@ -235,7 +235,11 @@ module execute(input               clk_i,
 		      end
 		  end
 		T_POP:
-		  sp_data_next = sp_data_i + 32'h4;
+		  begin
+		    sp_data_next = sp_data_i + 32'h4;
+		    if (ir_op == 4'h2) // rti
+		      interrupts_enabled_next = 1'b1; // TODO save/restore state
+		  end
 		T_MOV:
 		  case (ir_op)
 		    4'h0:
