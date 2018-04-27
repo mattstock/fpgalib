@@ -99,7 +99,7 @@ module registerfile
 	    data1 = align_val(sp_en, pass_val(read1));
 	  if (read2 == SPREG)
 	    data2 = align_val(sp_en, pass_val(read2));
-	  sp_data_o = write_data;
+	  sp_data_o = sp_data_i;
 	end
     end // always_comb
 endmodule // registerfile
