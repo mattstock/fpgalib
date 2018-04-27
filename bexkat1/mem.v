@@ -22,6 +22,7 @@ module mem(input               clk_i,
 	   output logic        pc_set_o,
 	   input [63:0]        ir_i,
 	   input 	       exc_i,
+	   output 	       exc_stall_o, 
 	   if_wb.master        bus);
 
   logic [31:0] 		       dat_i, dat_o;
@@ -53,9 +54,10 @@ module mem(input               clk_i,
   logic [31:0] 		       val;
   
   assign stall_o = bus.cyc;
-
+  assign exc_stall_o = (state_next != S_IDLE);
+  
   typedef enum 		       bit [2:0] { S_IDLE, S_EXC, S_LOAD, S_STORE, 
-					   S_PUSH, S_POP, S_JSR, S_RTS 
+					   S_PUSH, S_POP, S_JSR, S_RTS
 					   } state_t;
   state_t state, state_next;
 

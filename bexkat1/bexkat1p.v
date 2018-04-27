@@ -35,6 +35,7 @@ module bexkat1p(input 	     clk_i,
   logic [2:0] 			    exe_ccr;
   logic [3:0] 			    id_bank, exe_bank, mem_bank;
   logic 			    mem_pc_set_last;
+  logic 			    mem_exc_stall;
   
   assign halt = mem_halt;  
   assign exception = 4'h0;
@@ -140,6 +141,7 @@ module bexkat1p(input 	     clk_i,
 	       .supervisor(supervisor),
 	       .interrupts(inter),
 	       .interrupts_enabled(int_en),
+	       .exc_stall_i(mem_exc_stall),
 	       .exc_o(exe_exc),
 	       .ir_i((exe_exc|exe_pc_set ? 64'h0 : id_ir)),
 	       .ir_o(exe_ir),
@@ -177,6 +179,7 @@ module bexkat1p(input 	     clk_i,
 	   .pc_set_o(mem_pc_set),
 	   .ir_i((exe_halt ? 64'h0 : exe_ir)),
 	   .exc_i(exe_exc),
+	   .exc_stall_o(mem_exc_stall),
 	   .bus(dat_bus.master));
 
 endmodule // bexkat1p

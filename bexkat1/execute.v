@@ -30,6 +30,7 @@ module execute(input               clk_i,
 	       input [2:0] 	   interrupts,
 	       output logic 	   interrupts_enabled,
 	       output logic 	   exc_o,
+	       input 		   exc_stall_i,
 	       output [31:0] 	   pc_o,
 	       output 		   pc_set_o);
 
@@ -174,7 +175,7 @@ module execute(input               clk_i,
 	  sp_write_next = sp_write_i;
 	  sp_data_next = sp_data_i;
 	  result_next = alu_out;
-      	  if (|interrupts && interrupts_enabled)
+      	  if (|interrupts && interrupts_enabled && !exc_stall_i)
 	    begin
 	      interrupts_enabled_next = 1'b0;
 	      exc_next = 1'h1;
@@ -318,7 +319,7 @@ module execute(input               clk_i,
 	  pc_next = pc_i;
 	  pc_set_next = 1'h0;
 
-      	  if (|interrupts && interrupts_enabled)
+      	  if (|interrupts && interrupts_enabled && !exc_stall_i)
 	    pc_set_next = 1'h1;
 	  else
 	    case (ir_type)
