@@ -81,7 +81,7 @@ module segctrl
 		    result_next = { 27'h0, vals[bus.adr[4:2]][4:0] };
 		1'h1:
 		  if (!bus.we)
-		    result_next = sw;
+		    result_next = { 22'h0, sw};
 	      endcase // case (bus.adr[5])
 	      state_next = 1'b1;
 	    end
