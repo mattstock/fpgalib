@@ -27,8 +27,8 @@ module uart_rx
 	result <= 8'h0;
 	bit_spacing <= 3'h0;
 	rx_sync <= 2'h0;
-	rx_count <= 2'h0;
-	rx_bit <= 1'h0;
+	rx_count <= 2'h3;
+	rx_bit <= 1'h1;
       end
     else
       begin
