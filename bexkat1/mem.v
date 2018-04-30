@@ -22,7 +22,7 @@ module mem(input               clk_i,
 	   output logic        pc_set_o,
 	   input [63:0]        ir_i,
 	   input 	       exc_i,
-	   output 	       exc_stall_o, 
+	   output logic        exc_o,
 	   if_wb.master        bus);
 
   logic [31:0] 		       dat_i, dat_o;
@@ -52,15 +52,18 @@ module mem(input               clk_i,
   logic 		       bus_stb_next;
   logic 		       full, empty;
   logic [31:0] 		       val;
+  logic 		       exc_next;
   
   assign stall_o = bus.cyc;
-  assign exc_stall_o = (state_next != S_IDLE);
-  
+
   typedef enum 		       bit [2:0] { S_IDLE, S_EXC, S_LOAD, S_STORE, 
 					   S_PUSH, S_POP, S_JSR, S_RTS
 					   } state_t;
   state_t state, state_next;
 
+  logic [31:0] 		       pc_delay[1:0];
+  state_t  state_delay[1:0];
+  
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
@@ -76,6 +79,11 @@ module mem(input               clk_i,
 	  bus.adr <= 32'h0;
 	  bus.we <= 1'b0;
 	  bus.stb <= 1'b0;
+	  exc_o <= 1'h0;
+	  state_delay[0] <= S_IDLE;
+	  state_delay[0] <= S_IDLE;
+	  pc_delay[0] <= 32'h0;
+	  pc_delay[1] <= 32'h0;
 	end
       else
 	begin
@@ -90,6 +98,11 @@ module mem(input               clk_i,
 	  bus.sel <= bus_sel_next;
 	  bus.adr <= bus_adr_next;
 	  bus.we <= bus_we_next;
+	  exc_o <= exc_next;
+	  state_delay[0] <= state_delay[1];
+	  state_delay[1] <= state;
+	  pc_delay[0] <= pc_delay[1];
+	  pc_delay[1] <= pc_o;
 	end // else: !if(rst_i)
     end // always_ff @
 
@@ -109,6 +122,7 @@ module mem(input               clk_i,
 	  pc_set_next = pc_set_o;
 	  sp_write_next = sp_write_o;
 	  result_next = result_o;
+	  exc_next = exc_o;
 	end
       else
 	begin
@@ -116,6 +130,7 @@ module mem(input               clk_i,
 	  pc_set_next = pc_set_i;
 	  sp_write_next = sp_write_i;
 	  result_next = result_i;
+	  exc_next = exc_i;
 	end
       case (state)
 	S_IDLE:
@@ -128,7 +143,7 @@ module mem(input               clk_i,
 	      bus_we_next = 1'b1;
 	      bus_sel_next = 4'hf;
 	      bus_adr_next = sp_data_i;
-	      bus_dat_next = pc_i;
+	      bus_dat_next = (state_delay[0] == S_JSR ? pc_delay[0] : pc_i);
 	    end
 	  else
 	    case (ir_type)

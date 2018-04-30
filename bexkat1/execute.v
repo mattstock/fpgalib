@@ -29,8 +29,8 @@ module execute(input               clk_i,
 	       output logic 	   supervisor,
 	       input [2:0] 	   interrupts,
 	       output logic 	   interrupts_enabled,
+	       input 		   exc_i,
 	       output logic 	   exc_o,
-	       input 		   exc_stall_i,
 	       output [31:0] 	   pc_o,
 	       output 		   pc_set_o);
 
@@ -158,7 +158,7 @@ module execute(input               clk_i,
       interrupts_enabled_next = interrupts_enabled;
       vectoff_next = vectoff;
       supervisor_next = supervisor;
-      exc_next = 1'h0;
+      exc_next = exc_o;
       
       if (stall_i || stall_o)
 	begin
@@ -167,6 +167,8 @@ module execute(input               clk_i,
 	  sp_write_next = sp_write_o;
 	  sp_data_next = sp_data_o;
 	  result_next = result;
+	  if (exc_o && exc_i)
+	    exc_next = 1'b0;
 	end
       else
 	begin
@@ -175,134 +177,139 @@ module execute(input               clk_i,
 	  sp_write_next = sp_write_i;
 	  sp_data_next = sp_data_i;
 	  result_next = alu_out;
-      	  if (|interrupts && interrupts_enabled && !exc_stall_i)
+	  if (!exc_o)
 	    begin
-	      interrupts_enabled_next = 1'b0;
-	      exc_next = 1'h1;
-	      sp_data_next = sp_data_i - 32'h4;
-	      result_next = vectoff + { 26'h0, interrupts, 3'h0 };
-	      // bank_next = bank_i + 4'h1;
-	    end
-	  else
-	    begin
-	      case (ir_type)
-		T_PUSH:
-		  begin
-		    result_next = (ir_size ? ir_extaddr : alu_out);
-		    sp_data_next = sp_data_i - 32'h4;
-		  end
-		T_ALU:
-		  if (ir_ra == 4'd15)
-		    begin
-		      sp_data_next = alu_out;
-		      sp_write_next = 2'd3;
-		    end
-		T_INT:
-		  begin
-		    result_next = int_out;
-		    if (ir_ra == 4'd15)
+      	      if (|interrupts && interrupts_enabled)
+		begin
+		  interrupts_enabled_next = 1'b0;
+		  exc_next = 1'h1;
+		  sp_data_next = sp_data_i - 32'h4;
+		  result_next = vectoff + { 26'h0, interrupts, 3'h0 };
+		end
+	      else
+		begin
+		  case (ir_type)
+		    T_PUSH:
 		      begin
-			sp_data_next = int_out;
-			sp_write_next = 2'd3;
+			result_next = (ir_size ? ir_extaddr : alu_out);
+			sp_data_next = sp_data_i - 32'h4;
 		      end
-		  end
-		T_INTU:
-		  begin
-		    result_next = int_out;
-		    if (ir_ra == 4'd15)
+		    T_ALU:
+		      if (ir_ra == 4'd15)
+			begin
+			  sp_data_next = alu_out;
+			  sp_write_next = 2'd3;
+			end
+		    T_INT:
 		      begin
-			sp_data_next = int_out;
-			sp_write_next = 2'd3;
-		      end
-		  end
-		T_LOAD:
-		  begin
-		    result_next = (ir_size ? ir_extaddr : alu_out);
-		    if (ir_ra == 4'd15)
-		      begin
-			sp_data_next = (ir_size ? ir_extaddr : alu_out);
-			sp_write_next = 2'd3;
-		      end
-		  end
-		T_STORE:
-		  result_next = (ir_size ? ir_extaddr : alu_out);
-		T_LDI:
-		  begin
-		    result_next = (ir_size ? ir_extaddr : ir_uval);
-		    if (ir_ra == 4'd15)
-		      begin
-			sp_data_next = (ir_size ? ir_extaddr : ir_uval);
-			sp_write_next = 2'd3;
-		      end
-		  end
-		T_POP:
-		  begin
-		    sp_data_next = sp_data_i + 32'h4;
-		    if (ir_op == 4'h2) // rti
-		      interrupts_enabled_next = 1'b1; // TODO save/restore state
-		  end
-		T_MOV:
-		  case (ir_op)
-		    4'h0:
-		      result_next = { 28'h0, supervisor, ccr_o };
-		    4'h4:
-		      begin
-			result_next = reg_data1_i;
-			ccr_next = reg_data1_i[2:0];
-			supervisor_next = reg_data1_i[3];
-		      end
-		    default:
-		      begin
-			result_next = reg_data1_i;
+			result_next = int_out;
 			if (ir_ra == 4'd15)
 			  begin
-			    sp_data_next = reg_data1_i;
-			    sp_write_next = 2'h3;
+			    sp_data_next = int_out;
+			    sp_write_next = 2'd3;
 			  end
 		      end
-		  endcase // case (ir_op)
-		T_CMP:
-		  ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
-		T_INH:
-		  case (ir_op)
-		    4'h1: // trap/setint
-		      if (ir_size == 1'h1)
-			if (supervisor)
+		    T_INTU:
+		      begin
+			result_next = int_out;
+			if (ir_ra == 4'd15)
 			  begin
-			    result_next = alu_out;
-			    vectoff_next = ir_extaddr;
+			    sp_data_next = int_out;
+			    sp_write_next = 2'd3;
 			  end
-			else
+		      end
+		    T_LOAD:
+		      begin
+			result_next = (ir_size ? ir_extaddr : alu_out);
+			if (ir_ra == 4'd15)
+			  begin
+			    sp_data_next = (ir_size ? ir_extaddr : alu_out);
+			    sp_write_next = 2'd3;
+			  end
+		      end
+		    T_STORE:
+		      result_next = (ir_size ? ir_extaddr : alu_out);
+		    T_LDI:
+		      begin
+			result_next = (ir_size ? ir_extaddr : ir_uval);
+			if (ir_ra == 4'd15)
+			  begin
+			    sp_data_next = (ir_size ? ir_extaddr : ir_uval);
+			    sp_write_next = 2'd3;
+			  end
+		      end
+		    T_POP:
+		      begin
+			sp_data_next = sp_data_i + 32'h4;
+			if (ir_op == 4'h2) // rti
+			  interrupts_enabled_next = 1'b1; // TODO save/restore state
+		      end
+		    T_MOV:
+		      case (ir_op)
+			4'h0:
+			  result_next = { 28'h0, supervisor, ccr_o };
+			4'h4:
+			  begin
+			    result_next = reg_data1_i;
+			    ccr_next = reg_data1_i[2:0];
+			    supervisor_next = reg_data1_i[3];
+			  end
+			default:
+			  begin
+			    result_next = reg_data1_i;
+			    if (ir_ra == 4'd15)
+			      begin
+				sp_data_next = reg_data1_i;
+				sp_write_next = 2'h3;
+			      end
+			  end
+		      endcase // case (ir_op)
+		    T_CMP:
+		      ccr_next = { alu_c, alu_n ^ alu_v, alu_z };
+		    T_INH:
+		      case (ir_op)
+			4'h1: // trap/setint
+			  if (ir_size == 1'h1)
+			    if (supervisor)
+			      begin
+				result_next = alu_out;
+				vectoff_next = ir_extaddr;
+			      end
+			    else
+			      halt_next = 1'h1;
+			  else
+			    begin
+			      // bank_next = bank_i + 4'h1;
+			      result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
+			      interrupts_enabled_next = 1'b0;
+			      sp_data_next = sp_data_i - 32'h4;
+			    end
+			4'h2: // cli
+			  interrupts_enabled_next = 1'b0;
+			4'h3: // sti
+			  interrupts_enabled_next = 1'b1;
+			4'h4: // halt
 			  halt_next = 1'h1;
-		      else
-			begin
-			  // bank_next = bank_i + 4'h1;
-			  result_next = vectoff + { 27'h3, ir_uval[1:0], 3'h0 };
-			  interrupts_enabled_next = 1'b0;
-			  sp_data_next = sp_data_i - 32'h4;
-			end
-		    4'h2: // cli
-		      interrupts_enabled_next = 1'b0;
-		    4'h3: // sti
-		      interrupts_enabled_next = 1'b1;
-		    4'h4: // halt
-		      halt_next = 1'h1;
-		    4'h5: // reset
-		      if (supervisor)
-			begin
-			  // bank_next = bank_i + 4'h1;
-			  result_next = vectoff; // reset vector
-			  interrupts_enabled_next = 1'b0;
-			end
-		      else
-			halt_next = 1'h1;
+			4'h5: // reset
+			  if (supervisor)
+			    begin
+			      // bank_next = bank_i + 4'h1;
+			      result_next = vectoff; // reset vector
+			      interrupts_enabled_next = 1'b0;
+			    end
+			  else
+			    halt_next = 1'h1;
+			default:
+			  begin end
+		      endcase // case (ir_op)
 		    default:
 		      begin end
-		  endcase // case (ir_op)
-		default:
-		  begin end
-	      endcase // case (ir_type)
-	    end // else: !if(|interrupts && interrupts_enabled)
+		  endcase // case (ir_type)
+		end // else: !if(|interrupts && interrupts_enabled)
+	    end // if (!exc_o)
+	  else
+	    if (exc_i)
+	      exc_next = 1'b0;
 	end // else: !if(stall_i || stall_o)
     end // always_comb
   
@@ -319,93 +326,99 @@ module execute(input               clk_i,
 	  pc_next = pc_i;
 	  pc_set_next = 1'h0;
 
-      	  if (|interrupts && interrupts_enabled && !exc_stall_i)
-	    pc_set_next = 1'h1;
-	  else
-	    case (ir_type)
-	      T_INH:
-		case (ir_op)
-		  4'h1:
-		    pc_set_next = (!ir_size);
-		  4'h5:
-		    pc_set_next = 1'h1;
-		  default:
-		    pc_set_next = 1'h0;
-		endcase // case (ir_op)
-	      T_BRANCH:
+	  if (!exc_o)
+	    begin
+      	      if (|interrupts && interrupts_enabled)
 		begin
-		  case (ir_op)
-		    4'h0: 
-		      begin
-			pc_next = alu_out; // bra
-			pc_set_next = 1'b1;
-		      end
-		    4'h1: if (ccr_eq)
-		      begin
-			pc_next = alu_out;  // beq
-			pc_set_next = 1'b1;
-		      end
-		    4'h2: if (~ccr_eq)
-		      begin
-			pc_next = alu_out; // bne
-			pc_set_next = 1'b1;
-		      end
-		    4'h3: if (~(ccr_ltu | ccr_eq))
-		      begin
-			pc_next = alu_out; // bgtu
-			pc_set_next = 1'b1;
-		      end
-		    4'h4: if (~(ccr_lt | ccr_eq))
-		      begin
-			pc_next = alu_out; // bgt
-			pc_set_next = 1'b1;
-		      end
-		    4'h5: if (~ccr_lt) 
-		      begin
-			pc_next = alu_out; // bge
-			pc_set_next = 1'b1;
-		      end
-		    4'h6: if (ccr_lt | ccr_eq)
-		      begin
-			pc_next = alu_out; // ble
-			pc_set_next = 1'b1;
-		      end
-		    4'h7: if (ccr_lt)
-		      begin
-			pc_next = alu_out; // blt
-			pc_set_next = 1'b1;
-		      end
-		    4'h8: if (~ccr_ltu)
-		      begin
-			pc_next = alu_out; // bgeu
-			pc_set_next = 1'b1;
-		      end
-		    4'h9: if (ccr_ltu)
-		      begin
-			pc_next = alu_out; // bltu
-			pc_set_next = 1'b1;
-		      end
-		    4'ha: if (ccr_ltu | ccr_eq)
-		      begin
-			pc_next = alu_out; // bleu
-			pc_set_next = 1'b1;
-		      end
-		    default: begin end
-		  endcase // case (ir_op)
-		end // case: T_BRANCH
-	      T_PUSH:
-		if (ir_op != 4'h0)
-		  pc_set_next = 1'b1;
-	      T_POP:
-		if (ir_op != 4'h0)
-		  pc_set_next = 1'b1;
-	      T_JUMP:
-		begin
-		  pc_next = (ir_size ? ir_extaddr : alu_out);
-		  pc_set_next = 1'b1;
+		  pc_set_next = 1'h1;
+		  pc_next = pc_o;
 		end
-	      default: begin end
-	    endcase // case (ir_type)
+	      else
+		case (ir_type)
+		  T_INH:
+		    case (ir_op)
+		      4'h1:
+			pc_set_next = (!ir_size);
+		      4'h5:
+			pc_set_next = 1'h1;
+		      default:
+			pc_set_next = 1'h0;
+		    endcase // case (ir_op)
+		  T_BRANCH:
+		    begin
+		      case (ir_op)
+			4'h0: 
+			  begin
+			    pc_next = alu_out; // bra
+			    pc_set_next = 1'b1;
+			  end
+			4'h1: if (ccr_eq)
+			  begin
+			    pc_next = alu_out;  // beq
+			    pc_set_next = 1'b1;
+			  end
+			4'h2: if (~ccr_eq)
+			  begin
+			    pc_next = alu_out; // bne
+			    pc_set_next = 1'b1;
+			  end
+			4'h3: if (~(ccr_ltu | ccr_eq))
+			  begin
+			    pc_next = alu_out; // bgtu
+			    pc_set_next = 1'b1;
+			  end
+			4'h4: if (~(ccr_lt | ccr_eq))
+			  begin
+			    pc_next = alu_out; // bgt
+			    pc_set_next = 1'b1;
+			  end
+			4'h5: if (~ccr_lt) 
+			  begin
+			    pc_next = alu_out; // bge
+			    pc_set_next = 1'b1;
+			  end
+			4'h6: if (ccr_lt | ccr_eq)
+			  begin
+			    pc_next = alu_out; // ble
+			    pc_set_next = 1'b1;
+			  end
+			4'h7: if (ccr_lt)
+			  begin
+			    pc_next = alu_out; // blt
+			    pc_set_next = 1'b1;
+			  end
+			4'h8: if (~ccr_ltu)
+			  begin
+			    pc_next = alu_out; // bgeu
+			    pc_set_next = 1'b1;
+			  end
+			4'h9: if (ccr_ltu)
+			  begin
+			    pc_next = alu_out; // bltu
+			    pc_set_next = 1'b1;
+			  end
+			4'ha: if (ccr_ltu | ccr_eq)
+			  begin
+			    pc_next = alu_out; // bleu
+			    pc_set_next = 1'b1;
+			  end
+			default: begin end
+		      endcase // case (ir_op)
+		    end // case: T_BRANCH
+		  T_PUSH:
+		    if (ir_op != 4'h0)
+		      pc_set_next = 1'b1;
+		  T_POP:
+		    if (ir_op != 4'h0)
+		      pc_set_next = 1'b1;
+		  T_JUMP:
+		    begin
+		      pc_next = (ir_size ? ir_extaddr : alu_out);
+		      pc_set_next = 1'b1;
+		    end
+		  default: begin end
+		endcase // case (ir_type)
+	    end // if (!exc_o)
 	end // else: !if(stall_o)
     end // always_comb
   
