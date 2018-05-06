@@ -31,7 +31,9 @@ module execute(input               clk_i,
 	       output logic 	   interrupts_enabled,
 	       input 		   exc_i,
 	       output logic 	   exc_o,
+	       input [31:0] 	   pc_mem_i,
 	       output [31:0] 	   pc_o,
+	       input 		   pc_set_i,
 	       output 		   pc_set_o);
 
   wire [31:0] 			   ir_extaddr = ir_i[63:32];
@@ -331,7 +333,11 @@ module execute(input               clk_i,
       	      if (|interrupts && interrupts_enabled)
 		begin
 		  pc_set_next = 1'h1;
-		  pc_next = pc_o;
+		  // If the last memory op was an rts, we need to save the
+		  // return location since it hasn't been propagated through
+		  // the pipeline yet.  There is probably a cleaner way to
+		  // refactor this.
+		  pc_next = (pc_set_i ? pc_mem_i : pc_o);
 		end
 	      else
 		case (ir_type)
