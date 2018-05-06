@@ -162,7 +162,7 @@ int main(int argc, char **argv, char **env) {
       emit(D_BOTH, "\n");
       emit(D_BOTH, "vectoff: %08x inten: %*d interrupts: %*x\n",
 	   top->top__DOT__exe0__DOT__vectoff,
-	   2, top->int_en,
+	   2, top->cpu_inter_en,
 	   2, top->interrupts);
       emit(D_BOTH, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %d\n",
 	   top->ins_adr_o,

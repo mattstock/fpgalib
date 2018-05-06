@@ -28,7 +28,7 @@ module top(input         clk_i,
 	   output 	 mem_stall,
 	   output 	 exe_exc,
 	   output 	 mem_exc,
-	   output 	 int_en,
+	   output 	 cpu_inter_en,
 	   output [31:0] mem_result,
 	   output [31:0] id_reg_data_out2,
 	   output [31:0] exe_reg_data_out2,
@@ -79,6 +79,11 @@ module top(input         clk_i,
   if_wb ram0_ibus(), ram0_dbus();
   if_wb ram1_ibus(), ram1_dbus();
   if_wb io_dbus(), io_seg();
+  if_wb io_timer(), io_uart();
+
+  logic [3:0] 		 timer_interrupts;
+  logic [1:0] 		 serial0_interrupts;
+  logic [3:0] 		 cpu_exception;
   
   assign ins_adr_o = ins_bus.adr;
   assign ins_ack_i = ins_bus.ack;
@@ -193,7 +198,8 @@ module top(input         clk_i,
 	       .pc_set_o(exe_pc_set),
 	       .supervisor(supervisor),
 	       .interrupts(interrupts),
-	       .interrupts_enabled(int_en),
+	       .interrupts_enabled(cpu_inter_en),
+	       .exc_i(mem_exc),
 	       .exc_o(exe_exc),
 	       .ir_i((exe_exc|exe_pc_set ? 64'h0 : id_ir)),
 	       .ir_o(exe_ir),
@@ -207,8 +213,6 @@ module top(input         clk_i,
 	     .bank_o(mem_bank),
 	     .reg_write_i(exe_reg_write),
 	     .reg_write_o(mem_reg_write),
-	     .exc_i(exe_exc),
-	     .exc_o(mem_exc),
 	     .sp_data_i(exe_sp_data),
 	     .sp_data_o(mem_sp_data),
 	     .reg_write_addr(mem_reg_write_addr),
@@ -231,7 +235,16 @@ module top(input         clk_i,
 	   .pc_set_o(mem_pc_set),
 	   .ir_i((exe_halt ? 64'h0 : exe_ir)),
 	   .exc_i(exe_exc),
+	   .exc_o(mem_exc),
 	   .bus(dat_bus.master));
+
+  interrupt_encoder intenc0(.clk_i(clk_i),
+			    .rst_i(rst_i),
+			    .timer_in(timer_interrupts),
+			    .serial0_in(serial0_interrupts),
+			    .enabled(cpu_inter_en),
+			    .cpu_exception(cpu_exception));
+  
 
   if_wb                       p0_bus2();
   if_wb p1_bus0(), p1_bus1(), p1_bus2();
@@ -327,7 +340,7 @@ module top(input         clk_i,
 			    .p5(p5_bus2.master),
 			    .p6(p6_bus2.master),
 			    .p7(p7_bus2.master),
-			    .p8(p8_bus2.master),
+			    .p8(io_timer.master),
 			    .p9(p9_bus2.master),
 			    .pa(pa_bus2.master),
 			    .pb(pb_bus2.master),
@@ -344,7 +357,6 @@ module top(input         clk_i,
   bus_term bus2_p5(p5_bus2.slave);
   bus_term bus2_p6(p6_bus2.slave);
   bus_term bus2_p7(p7_bus2.slave);
-  bus_term bus2_p8(p8_bus2.slave);
   bus_term bus2_p9(p9_bus2.slave);
   bus_term bus2_pa(pa_bus2.slave);
   bus_term bus2_pb(pb_bus2.slave);
@@ -362,6 +374,7 @@ module top(input         clk_i,
   
   segctrl #(.SEG(8)) io_seg0(.clk_i(clk_i), .rst_i(rst_i),
 			     .bus(io_seg.slave),
+			     .sw(10'h0),
 			     .out0(hex0),
 			     .out1(hex1),
 			     .out2(hex2),
@@ -371,5 +384,9 @@ module top(input         clk_i,
 			     .out6(hex6),
 			     .out7(hex7));
 
+  timerint timerint0(.clk_i(clk_i),
+		     .rst_i(rst_i),
+		     .bus(io_timer.slave),
+		     .interrupt(timer_interrupts));
   
 endmodule // top
