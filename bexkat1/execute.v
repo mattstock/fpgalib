@@ -131,14 +131,12 @@ module execute(input               clk_i,
 	ir_next = ir_o;
 	reg_data1_next = reg_data1_o;
 	reg_data2_next = reg_data2_o;
-	reg_write_next = reg_write_o;
       end
     else
       begin
 	ir_next = ir_i;
 	reg_data1_next = reg_data1_i;
 	reg_data2_next = reg_data2_i;
-	reg_write_next = reg_write_i;
       end
 
   // delay logic for multi-cycle ops
@@ -168,6 +166,7 @@ module execute(input               clk_i,
 	  bank_next = bank_o;
 	  sp_write_next = sp_write_o;
 	  sp_data_next = sp_data_o;
+	  reg_write_next = reg_write_o;
 	  result_next = result;
 	  if (exc_o && exc_i)
 	    exc_next = 1'b0;
@@ -179,12 +178,15 @@ module execute(input               clk_i,
 	  sp_write_next = sp_write_i;
 	  sp_data_next = sp_data_i;
 	  result_next = alu_out;
+	  reg_write_next = reg_write_i;
+	  
 	  if (!exc_o)
 	    begin
       	      if (|interrupts && interrupts_enabled)
 		begin
 		  interrupts_enabled_next = 1'b0;
 		  exc_next = 1'h1;
+		  reg_write_next = 1'b0;
 		  sp_data_next = sp_data_i - 32'h4;
 		  result_next = vectoff + { 26'h0, interrupts, 3'h0 };
 		end
@@ -278,7 +280,10 @@ module execute(input               clk_i,
 				vectoff_next = ir_extaddr;
 			      end
 			    else
-			      halt_next = 1'h1;
+			      begin
+				halt_next = 1'h1;
+				interrupts_enabled_next = 1'b0;
+			      end
 			  else
 			    begin
 			      // bank_next = bank_i + 4'h1;
@@ -291,16 +296,18 @@ module execute(input               clk_i,
 			4'h3: // sti
 			  interrupts_enabled_next = 1'b1;
 			4'h4: // halt
-			  halt_next = 1'h1;
-			4'h5: // reset
-			  if (supervisor)
-			    begin
-			      // bank_next = bank_i + 4'h1;
-			      result_next = vectoff; // reset vector
-			      interrupts_enabled_next = 1'b0;
-			    end
-			  else
+			  begin
 			    halt_next = 1'h1;
+			    interrupts_enabled_next = 1'b0;
+			  end
+			4'h5: // reset
+			  begin
+			    interrupts_enabled_next = 1'b0;
+			    if (supervisor)
+			      result_next = vectoff; // reset vector
+			    else
+			      halt_next = 1'h1;
+			  end
 			default:
 			  begin end
 		      endcase // case (ir_op)
