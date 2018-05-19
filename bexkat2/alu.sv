@@ -1,1 +1,1 @@
-../bexkat1/alu.sv
+../bexkat1/alu.v
