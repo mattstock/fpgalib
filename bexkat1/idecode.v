@@ -144,12 +144,9 @@ module idecode(input               clk_i,
 	  // stack ops
 	  case (ir_type)
 	    T_PUSH: 
-	      begin
-		sp_write_next = 2'h3;
-		reg_data_out1_next = regfile_out1;
-	      end
+	      sp_write_next = 2'h3;
 	    T_POP:
-		sp_write_next = 2'h3;
+	      sp_write_next = 2'h3;
 	    default:
 	      sp_write_next = 2'h0;
 	  endcase // case (ir_type)

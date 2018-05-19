@@ -42,7 +42,7 @@ module registerfile
   function [WIDTH-1:0] pass_val;
     input [COUNTP-1:0] addr;
 
-    return (supervisor && addr == SPREG ? sp_data_i : write_data);
+    return (addr == SPREG ? sp_data_i : write_data);
   endfunction  
   
   always_ff @(posedge clk_i or posedge rst_i)
