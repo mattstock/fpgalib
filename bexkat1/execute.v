@@ -186,7 +186,7 @@ module execute(input               clk_i,
 		begin
 		  interrupts_enabled_next = 1'b0;
 		  exc_next = 1'h1;
-		  reg_write_next = 1'b0;
+		  reg_write_next = 2'b0;
 		  sp_data_next = sp_data_i - 32'h4;
 		  result_next = vectoff + { 26'h0, interrupts, 3'h0 };
 		end
@@ -504,14 +504,14 @@ module execute(input               clk_i,
       endcase // case (ir_type)
     end // always_comb
   
-  alu_comb alu0(.in1(alu_in1),
-		.in2(alu_in2),
-		.func(alu_func),
-		.out(alu_out),
-		.c_out(alu_c),
-		.z_out(alu_z),
-		.n_out(alu_n),
-		.v_out(alu_v));
+  alu alu0(.in1(alu_in1),
+	   .in2(alu_in2),
+	   .func(alu_func),
+	   .out(alu_out),
+	   .c_out(alu_c),
+	   .z_out(alu_z),
+	   .n_out(alu_n),
+	   .v_out(alu_v));
   
   intcalc int0(.func(int_func),
 	       .uin1(alu_in1),

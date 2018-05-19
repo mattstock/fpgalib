@@ -213,8 +213,7 @@ module bexkat2(input 	     clk_i,
 	       .interrupt(inter),
 	       .int_en(int_en));
   
-  alu alu0(.clk_i(clk_i), .rst_i(rst_i),
-	   .in1(a),
+  alu alu0(.in1(a),
 	   .in2(alu_in2),
 	   .func(alu_func),
 	   .out(alu_out),

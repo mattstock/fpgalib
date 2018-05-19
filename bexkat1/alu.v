@@ -4,7 +4,7 @@
 `include "bexkat1.vh"
 import bexkat1Def::*;
 
-module alu_comb
+module alu
   #(WIDTH=32)
    (input [WIDTH-1:0] 	     in1,
     input [WIDTH-1:0] 	     in2,
