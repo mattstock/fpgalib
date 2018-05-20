@@ -1,5 +1,5 @@
 `define NO_MODPORT_EXPRESSIONS
-`include "bexkat1.vh"
+`include "wb.vh"
 
 module ram2
   #(AWIDTH=15,

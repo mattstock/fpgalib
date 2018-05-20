@@ -2,7 +2,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <cstdarg>
-#include "Vpipeline_top.h"
+#include "Vmicrocode_top.h"
 #include "verilated.h"
 
 #define INS_RA(x) (0xf & (x >> 20))
@@ -10,7 +10,7 @@
 #define INS_RC(x) (0xf & (x >> 12))
 
 using namespace std;
-Vpipeline_top* top;
+Vmicrocode_top* top;
 ofstream debugfile;
 
 #define D_DEBUG 0
@@ -43,7 +43,7 @@ int main(int argc, char **argv, char **env) {
   debugfile.open(argv[1]);
     
   Verilated::commandArgs(argc, argv);
-  top = new Vpipeline_top;
+  top = new Vmicrocode_top;
 
   top->rst_i = 1;
   top->clk_i = 0;
@@ -56,89 +56,17 @@ int main(int argc, char **argv, char **env) {
     // Drop reset
     if (tick == 2)
       top->rst_i = 0;
-    if (tick == 9)
-      top->interrupts = 1;
     
     top->eval();
 
     if (top->clk_i) {
       emit(D_BOTH, "-------------------- %03ld --------------------\n", cycle);
-      emit(D_DEBUG, "--- PIPELINE STATE ---\n");
-      emit(D_DEBUG, "     %*s %*s %*s %*s\n",
-	   16, "ifetch",
-	   16, "idecode",
-	   33, "exec",
-	   16, "mem");
-      emit(D_DEBUG, "pc:  %*x %*x %*x %*x\n",
-	   16, top->if_pc,
-	   16, top->id_pc,
-	   33, top->exe_pc,
-	   16, top->mem_pc);
-      emit(D_DEBUG, "ir:  %*lx %*lx %*lx %*lx\n",
-	   16, top->if_ir,
-	   16, top->id_ir,
-	   33, top->exe_ir,
-	   16, top->mem_ir);
-      emit(D_DEBUG, "ra:  %*lx %*lx %*lx %*lx\n",
-	   16, INS_RA(top->if_ir),
-	   16, INS_RA(top->id_ir),
-	   33, INS_RA(top->exe_ir),
-	   16, INS_RA(top->mem_ir));
-      emit(D_DEBUG, "rb:  %*lx %*lx %*lx %*lx\n",
-	   16, INS_RB(top->if_ir),
-	   16, INS_RB(top->id_ir),
-	   33, INS_RB(top->exe_ir),
-	   16, INS_RB(top->mem_ir));
-      emit(D_DEBUG, "rc:  %*lx %*lx %*lx %*lx\n",
-	   16, INS_RC(top->if_ir),
-	   16, INS_RC(top->id_ir),
-	   33, INS_RC(top->exe_ir),
-	   16, INS_RC(top->mem_ir));
-      emit(D_DEBUG, "spd: %*s %*x/%*x %*x %*x\n",
-	   16, "",
-	   16, top->id_sp_data,
-	   16, top->exe_sp_in,
-	   16, top->exe_sp_data,
-	   16, top->mem_sp_data);
-      emit(D_DEBUG, "spw: %*s %*x %*x %*x\n",
-	   16, "",
-	   16, top->id_sp_write,
-	   33, top->exe_sp_write,
-	   16, top->mem_sp_write);
-      emit(D_DEBUG, "rd1: %*s %*x/%*x %*x\n",
-	   16, "",
-	   16, top->id_reg_data_out1,
-	   16, top->exe_data1,
-	   16, top->exe_reg_data_out1);
-      emit(D_DEBUG, "rd2: %*s %*x/%*x %*x\n",
-	   16, "",
-	   16, top->id_reg_data_out2,
-	   16, top->exe_data2,
-	   16, top->exe_reg_data_out2);
-      emit(D_DEBUG, "res: %*s %*s %*x %*x\n",
-	   16, "",
-	   16, "",
-	   33, top->exe_result,
-	   16, top->mem_result);
-      emit(D_DEBUG, "ccr: %*s %*s %*x\n",
-	   16, "",
-	   16, "",
-	   33, top->exe_ccr);
-      emit(D_DEBUG, "rwr: %*s %*d %*d %*d\n",
-	   16, "",
-	   16, top->id_reg_write,
-	   33, top->exe_reg_write,
-	   16, top->mem_reg_write);
-      emit(D_DEBUG, "pcs: %*s %*s %*d %*d\n",
-	   16, "",
-	   16, "",
-	   33, top->exe_pc_set,
-	   16, top->mem_pc_set);
-      emit(D_DEBUG, "exc: %*s %*s %*d %*d\n",
-	   16, "",
-	   16, "",
-	   33, top->exe_exc,
-	   16, top->mem_exc);
+      emit(D_DEBUG, "pc:  %*x\n", 16, top->top__DOT__cpu0__DOT__pc);
+      emit(D_DEBUG, "ir:  %*lx\n", 16, top->top__DOT__cpu0__DOT__ir);
+      emit(D_DEBUG, "ra:  %*lx\n", 16, INS_RA(top->top__DOT__cpu0__DOT__ir));
+      emit(D_DEBUG, "rb:  %*lx\n", 16, INS_RB(top->top__DOT__cpu0__DOT__ir));
+      emit(D_DEBUG, "rc:  %*lx\n", 16, INS_RC(top->top__DOT__cpu0__DOT__ir));
+#if 0
       emit(D_DEBUG, "h1: %02x h2: %02x hsp: %02x hs: % 2d es: % 2d ms: % 2d wad: %02d\n",
 	   top->hazard1, top->hazard2, top->sp_hazard,
 	   top->hazard_stall,
@@ -160,31 +88,21 @@ int main(int argc, char **argv, char **env) {
 	     3, i+4*top->id_bank,
 	     top->top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*top->id_bank]);
       emit(D_BOTH, "\n");
-      emit(D_BOTH, "vectoff: %08x inten: %*d interrupts: %*x\n",
-	   top->top__DOT__exe0__DOT__vectoff,
-	   2, top->cpu_inter_en,
-	   2, top->interrupts);
-      emit(D_BOTH, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %d\n",
+#endif
+      emit(D_BOTH, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d\n",
 	   top->ins_adr_o,
 	   top->ins_cyc_o,
 	   top->ins_stb_o,
 	   top->ins_ack_i,
 	   top->ins_dat_i,
-	   top->ins_stall_i,
-	   top->top__DOT__fetch0__DOT__state);
-      emit(D_DEBUG, "  fifo: cidx: %x ridx: %x widx: %x value[idx]: %08x\n",
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__cidx,
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__ridx,
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__widx,
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__values[top->top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
-      emit(D_BOTH, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %x\n",
+	   top->ins_stall_i);
+      emit(D_BOTH, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	   top->dat_adr_o, top->dat_cyc_o, top->dat_stb_o, top->dat_ack_i, top->dat_dat_i,
-	   top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i,
-	   top->top__DOT__mem0__DOT__state);
+	   top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i);
       cycle++;
     }
 
-    if (top->mem_halt) {
+    if (top->halt) {
       emit(D_BOTH, "HALT\n");
       break;
     }

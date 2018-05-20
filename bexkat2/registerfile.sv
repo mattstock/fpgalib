@@ -1,4 +1,4 @@
-module registerfile2(clk_i, rst_i, supervisor, read1, read2, write_addr, write_data, write_en, data1, data2);
+module registerfile(clk_i, rst_i, supervisor, read1, read2, write_addr, write_data, write_en, data1, data2);
 
 input clk_i;
 input rst_i;

@@ -3,42 +3,42 @@
 `include "../bexkat1/exceptions.vh"
   
 module control(input clk_i,
-	       input 		rst_i,
-	       input [31:0] 	ir,
-	       output 		ir_write,
-	       input [2:0] 	ccr,
-	       output ccr_t     ccrsel,
-	       output alufunc_t alufunc,
-	       output alu_in_t  alu2sel,
-	       output reg_in_t  regsel,
-	       output [3:0] 	reg_read_addr1,
-	       output [3:0] 	reg_read_addr2,
-	       output [3:0] 	reg_write_addr,
-	       output [1:0] 	reg_write,
-	       output 		a_write,
-	       output 		b_write,
-	       output mdr_in_t  mdrsel,
-	       output mar_t     marsel,
-	       output status_t  statussel,
-	       output int2_t    int2sel,
-	       output intfunc_t int_func,
-	       output pc_t 	pcsel,
-	       output addr_t	addrsel,
-	       output [3:0] 	byteenable,
-	       output 		datbus_cyc,
-	       output 		datbus_write,
-	       input 		datbus_ack,
-	       output 		insbus_cyc,
-	       input 		datbus_ack,
-	       output 		halt,
-	       output 		int_en,
-	       output 		vectoff_write,
-	       input 		supervisor,
+	       input 		  rst_i,
+	       input [31:0] 	  ir,
+	       output 		  ir_write,
+	       input [2:0] 	  ccr,
+	       output 		  ccr_t ccrsel,
+	       output 		  alufunc_t alu_func,
+	       output 		  alu_in_t alu2sel,
+	       output 		  reg_in_t regsel,
+	       output [3:0] 	  reg_read_addr1,
+	       output [3:0] 	  reg_read_addr2,
+	       output [3:0] 	  reg_write_addr,
+	       output [1:0] 	  reg_write,
+	       output 		  a_write,
+	       output 		  b_write,
+	       output 		  mdr_in_t mdrsel,
+	       output 		  mar_t marsel,
+	       output 		  status_t statussel,
+	       output 		  int2_t int2sel,
+	       output 		  intfunc_t int_func,
+	       output 		  pc_t pcsel,
+	       output 		  addr_t addrsel,
+	       output [3:0] 	  byteenable,
+	       output 		  datbus_cyc,
+	       output 		  datbus_write,
+	       input 		  insbus_ack,
+	       output 		  insbus_cyc,
+	       input 		  datbus_ack,
+	       input [1:0] 	  datbus_align,
+	       output 		  halt,
+	       output 		  int_en,
+	       output 		  vectoff_write,
+	       input 		  supervisor,
 	       output logic [3:0] exception,
-	       output 		superintr,
-	       input [2:0] 	interrupt,
-	       input [1:0] 	bus_align);
-
+	       output 		  superintr,
+	       input [2:0] 	  interrupt);
+  
   assign halt = (state == S_HALT);
   assign int_en = interrupts_enabled;
   assign superintr = (state == S_EXC5 || state == S_EXC7);
@@ -198,9 +198,9 @@ module control(input clk_i,
 	  end
 	S_FETCH:
 	  begin
-	    intbus_cyc = 1'b1;
+	    insbus_cyc = 1'b1;
 	    ir_write = 1'b1; // latch bus into ir
-	    if (intbus_ack)
+	    if (insbus_ack)
 	      begin
 		pcsel = PC_NEXT;
 		state_next = S_EVAL;
@@ -229,8 +229,6 @@ module control(input clk_i,
 		T_MOV: state_next = S_MOV;
 		T_INTU: state_next = S_INTU;
 		T_INT: state_next = S_INT;
-		T_FPU: state_next = S_FPU;
-		T_FP: state_next = S_FP;
 		T_ALU: state_next = S_ALU;
 		T_LDI: state_next = S_LDIU;
 		T_LOAD: state_next = S_LOAD;
@@ -247,10 +245,10 @@ module control(input clk_i,
 	S_TERM: state_next = S_FETCH;
 	S_ARG:
 	  begin
-	    intbus_cyc = 1'b1;
+	    insbus_cyc = 1'b1;
 	    marsel = MAR_BUS;
 	    mdrsel = MDR_BUS;
-	    if (intbus_ack)
+	    if (insbus_ack)
 	      begin
 		pcsel = PC_NEXT;
 		case (ir_type)
@@ -348,7 +346,7 @@ module control(input clk_i,
 	  end
 	S_PUSH2:
 	  begin
-	    casex ({ir_size,ir_op})
+	    case ({ir_size,ir_op})
               5'h11: // jsrd
 		begin 
 		  mdrsel = MDR_PC;
@@ -366,7 +364,7 @@ module control(input clk_i,
 		end
               default:
 		mdrsel = MDR_B;
-	    endcase // casex ({ir_size,ir_op})
+	    endcase // case ({ir_size,ir_op})
 	    a_write = 1'b1; // A <= SP
 	    reg_read_addr1 = REG_SP; // SP
 	    state_next = S_PUSH3;
@@ -647,9 +645,9 @@ module control(input clk_i,
 	    datbus_cyc = 1'b1;
 	    mdrsel = MDR_BUS;
 	    if (ir_op[1:0] == 2'h1)
-              byteenable = (bus_align[1] ? 4'b0011 : 4'b1100);
+              byteenable = (datbus_align[1] ? 4'b0011 : 4'b1100);
 	    else if (ir_op[1:0] == 2'h2)
-              case (bus_align[1:0])
+              case (datbus_align[1:0])
 		2'b00: byteenable = 4'b1000;
 		2'b01: byteenable = 4'b0100;
 		2'b10: byteenable = 4'b0010;
@@ -692,9 +690,9 @@ module control(input clk_i,
 	    datbus_cyc = 1'b1;
 	    datbus_write = 1'b1;
 	    if (ir_op[1:0] == 2'h1)
-              byteenable = (bus_align[1] ? 4'b0011 : 4'b1100);
+              byteenable = (datbus_align[1] ? 4'b0011 : 4'b1100);
 	    else if (ir_op[1:0] == 2'h2)
-              case (bus_align[1:0])
+              case (datbus_align[1:0])
 		2'b00: byteenable = 4'b1000;
 		2'b01: byteenable = 4'b0100;
 		2'b10: byteenable = 4'b0010;
@@ -704,6 +702,7 @@ module control(input clk_i,
               state_next = S_TERM;
 	  end
 	S_HALT: state_next = S_HALT;
+	default: state_next = S_HALT;
       endcase // case (state)
     end
   

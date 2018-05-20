@@ -59,8 +59,9 @@ module bexkat2(input 	     clk_i,
   
   // Special registers
   logic [31:0] 		     mdr, mdr_next, mar, a, b;
-  logic [31:0] 		     pc, ir, busin_be, vectoff;
-  logic [32:0] 		     pc_next, mar_next;
+  logic [31:0] 		     pc, ir;
+  logic [31:0] 		     busin_be, vectoff;
+  logic [31:0] 		     pc_next, mar_next;
   logic [31:0] 		     reg_data_in, alu_in2, int_in1, int_in2, intval;
   logic [2:0] 		     ccr;
   logic [3:0] 		     status, status_next;
@@ -75,7 +76,7 @@ module bexkat2(input 	     clk_i,
 
   assign ir_sval = { {17{ir[15]}}, ir[15:1] };
   assign ir_uval = { 17'h0000, ir[15:1] };
-  assign exceptionval = vectoff + { exception, 2'b00 };
+  assign exceptionval = vectoff + { 26'h0, exception, 2'b00 };
   // allows us to force supervisor mode w/o changing the bit
   assign supervisor = (superintr ? 1'b1 : status[3]);
   
@@ -94,10 +95,10 @@ module bexkat2(input 	     clk_i,
 	end
       else
 	begin
-	  pc <= pc_next[31:0];
+	  pc <= pc_next;
 	  ir <= ir_next;
 	  mdr <= mdr_next;
-	  mar <= mar_next[31:0];
+	  mar <= mar_next;
 	  ccr <= ccr_next;
 	  vectoff <= vectoff_next;
 	  status <= status_next;
@@ -113,15 +114,15 @@ module bexkat2(input 	     clk_i,
       case (pcsel)
 	PC_PC:   pc_next = pc;
 	PC_NEXT: pc_next = pc + 'h4;
-	PC_MAR:  pc_next = { 1'b0, mar };
-	PC_REL:  pc_next = { 1'b0, pc } + { ir_sval[29:0], 2'b00 };
-	PC_ALU:  pc_next = { 1'b0, alu_out }; // reg offset
-	PC_EXC:  pc_next = { 1'b0, exceptionval };
+	PC_MAR:  pc_next = mar ;
+	PC_REL:  pc_next = pc + { ir_sval[29:0], 2'b00 };
+	PC_ALU:  pc_next = alu_out; // reg offset
+	PC_EXC:  pc_next = exceptionval;
 	default: pc_next = pc;
       endcase // case (pcsel)
       case (marsel)
 	MAR_MAR: mar_next = mar;
-	MAR_BUS: mar_next = dat_i;
+	MAR_BUS: mar_next = datdat_i;
 	MAR_ALU: mar_next = alu_out;
 	MAR_A:   mar_next = a;
       endcase // case (marsel)
@@ -245,7 +246,9 @@ module bexkat2(input 	     clk_i,
 	       .interrupt(inter),
 	       .int_en(int_en));
   
-  alu alu0(.in1(a),
+  alu alu0(.clk_i(clk_i),
+	   .rst_i(rst_i),
+	   .in1(a),
 	   .in2(alu_in2),
 	   .func(alu_func),
 	   .out(alu_out),
