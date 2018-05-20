@@ -28,8 +28,10 @@ module control(input clk_i,
 	       output 		  datbus_cyc,
 	       output 		  datbus_write,
 	       input 		  insbus_ack,
+	       output logic 	  insbus_stb, 
 	       output 		  insbus_cyc,
 	       input 		  datbus_ack,
+	       output logic 	  datbus_stb,
 	       input [1:0] 	  datbus_align,
 	       output 		  halt,
 	       output 		  int_en,
@@ -99,7 +101,9 @@ module control(input clk_i,
       addrsel = ADDR_PC;
       pcsel = PC_PC;
       insbus_cyc = 1'b0;
+      insbus_stb = 1'b0;
       datbus_cyc = 1'b0;
+      datbus_stb = 1'b0;
       datbus_write = 1'b0;
       byteenable = 4'b1111;
       vectoff_write = 1'b0;
@@ -111,7 +115,7 @@ module control(input clk_i,
 	  begin
 	    exception_next = 4'h0;
 	    interrupts_enabled_next = 1'b0;
-	    state_next = S_EXC;
+	    state_next = S_FETCH;
 	  end
 	S_EXC:
 	  begin
@@ -144,7 +148,8 @@ module control(input clk_i,
 	  begin
 	    addrsel = ADDR_MAR;
 	    datbus_cyc = 1'b1;
-	    datbus_write = 1'b1;       
+	    datbus_stb = 1'b1;
+	    datbus_write = 1'b1;
 	    if (datbus_ack)
               state_next = S_EXC5;
 	  end
@@ -172,6 +177,7 @@ module control(input clk_i,
 	  begin
 	    addrsel = ADDR_MAR;
 	    datbus_cyc = 1'b1;
+	    datbus_stb = 1'b1;
 	    datbus_write = 1'b1;       
 	    if (datbus_ack)
               state_next = S_EXC9;
@@ -187,6 +193,7 @@ module control(input clk_i,
 	S_EXC10:
 	  begin
 	    datbus_cyc = 1'b1;
+	    datbus_stb = 1'b1;
 	    marsel = MAR_BUS;
 	    if (datbus_ack)
               state_next = S_EXC11;
@@ -199,6 +206,7 @@ module control(input clk_i,
 	S_FETCH:
 	  begin
 	    insbus_cyc = 1'b1;
+	    insbus_stb = 1'b1;
 	    ir_write = 1'b1; // latch bus into ir
 	    if (insbus_ack)
 	      begin
@@ -246,6 +254,7 @@ module control(input clk_i,
 	S_ARG:
 	  begin
 	    insbus_cyc = 1'b1;
+	    insbus_stb = 1'b1;
 	    marsel = MAR_BUS;
 	    mdrsel = MDR_BUS;
 	    if (insbus_ack)
@@ -386,7 +395,8 @@ module control(input clk_i,
 	  begin
 	    addrsel = ADDR_MAR;
 	    datbus_cyc = 1'b1;
-	    datbus_write = 1'b1;            
+	    datbus_stb = 1'b1;
+	    datbus_write = 1'b1;
 	    if (datbus_ack)
               state_next = S_TERM;
 	  end
@@ -426,6 +436,7 @@ module control(input clk_i,
 	  begin
 	    addrsel = ADDR_MAR;
 	    datbus_cyc = 1'b1;
+	    datbus_stb = 1'b1;
 	    mdrsel = MDR_BUS;
 	    if (datbus_ack)
               state_next = S_MDR2RA;
@@ -435,6 +446,7 @@ module control(input clk_i,
 	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_BUS;
 	    datbus_cyc = 1'b1;
+	    datbus_stb = 1'b1;
 	    if (datbus_ack)
               state_next = S_RTI2;
 	  end
@@ -473,6 +485,7 @@ module control(input clk_i,
 	  begin
 	    marsel = MAR_BUS;
 	    datbus_cyc = 1'b1;
+	    datbus_stb = 1'b1;
 	    if (datbus_ack)
               state_next = S_RTS3;
 	  end
@@ -643,6 +656,7 @@ module control(input clk_i,
 	  begin
 	    addrsel = ADDR_MAR;
 	    datbus_cyc = 1'b1;
+	    datbus_stb = 1'b1;
 	    mdrsel = MDR_BUS;
 	    if (ir_op[1:0] == 2'h1)
               byteenable = (datbus_align[1] ? 4'b0011 : 4'b1100);
@@ -688,6 +702,7 @@ module control(input clk_i,
 	  begin // MAR has address, MDR value
 	    addrsel = ADDR_MAR;
 	    datbus_cyc = 1'b1;
+	    datbus_stb = 1'b1;
 	    datbus_write = 1'b1;
 	    if (ir_op[1:0] == 2'h1)
               byteenable = (datbus_align[1] ? 4'b0011 : 4'b1100);

@@ -5,18 +5,20 @@
 
 import bexkat1Def::*;
 
-module bexkat2(input 	     clk_i,
-	       input 	     rst_i,
-	       if_wb.master  ins_bus,
-	       if_wb.master  dat_bus,
-	       output 	     halt,
-	       input [2:0]   inter,
-	       output 	     int_en,
-	       output [3:0]  exception,
-               output 	     supervisor);
+module bexkat2
+  #(START_ADDR=32'h7000_0000)
+  (input 	clk_i,
+   input 	rst_i,
+   if_wb.master ins_bus,
+   if_wb.master dat_bus,
+   output 	halt,
+   input [2:0] 	inter,
+   output 	int_en,
+   output [3:0] exception,
+   output 	supervisor);
 
-  logic [31:0] 		     insdat_i, insdat_o;
-  logic [31:0] 		     datdat_i, datdat_o;
+  logic [31:0] 	insdat_i, insdat_o;
+  logic [31:0] 	datdat_i, datdat_o;
   
 `ifdef NO_MODPORT_EXPRESSIONS
   assign insdat_i = ins_bus.dat_s;
@@ -31,41 +33,41 @@ module bexkat2(input 	     clk_i,
 `endif
   
   // Control signals
-  logic [1:0] 		     reg_write;
-  alufunc_t                  alu_func;
-  addr_t 		     addrsel;
-  logic 		     ir_write;
-  logic 		     vectoff_write, a_write, b_write;
-  logic [3:0] 		     reg_read_addr1, reg_read_addr2, reg_write_addr;
-  mar_t                      marsel;
-  ccr_t                      ccrsel;
-  alu_in_t                   alu2sel;
-  pc_t                       pcsel;
-  int2_t                     int2sel;
-  intfunc_t                  int_func;
-  mdr_in_t                   mdrsel;
-  reg_in_t                   regsel;
-  status_t                   statussel;
-  logic 		     superintr;
+  logic [1:0] 	reg_write;
+  alufunc_t     alu_func;
+  addr_t 	addrsel;
+  logic 	ir_write;
+  logic 	vectoff_write, a_write, b_write;
+  logic [3:0] 	reg_read_addr1, reg_read_addr2, reg_write_addr;
+  mar_t         marsel;
+  ccr_t         ccrsel;
+  alu_in_t      alu2sel;
+  pc_t          pcsel;
+  int2_t        int2sel;
+  intfunc_t     int_func;
+  mdr_in_t      mdrsel;
+  reg_in_t      regsel;
+  status_t      statussel;
+  logic 	superintr;
   
   // Data paths
-  logic [31:0] 		     alu_out, reg_data_out1, reg_data_out2;
-  logic [31:0] 		     ir_next, vectoff_next;
-  logic [31:0] 		     dataout, a_next, b_next, int_out;
-  logic [2:0] 		     ccr_next;
-  logic 		     alu_carry, alu_negative, alu_overflow, alu_zero; 
-  logic [31:0] 		     exceptionval;
-  logic [31:0] 		     ir_sval, ir_uval;
+  logic [31:0] 	alu_out, reg_data_out1, reg_data_out2;
+  logic [31:0] 	ir_next, vectoff_next;
+  logic [31:0] 	dataout, a_next, b_next, int_out;
+  logic [2:0] 	ccr_next;
+  logic 	alu_carry, alu_negative, alu_overflow, alu_zero; 
+  logic [31:0] 	exceptionval;
+  logic [31:0] 	ir_sval, ir_uval;
   
   // Special registers
-  logic [31:0] 		     mdr, mdr_next, mar, a, b;
-  logic [31:0] 		     pc, ir;
-  logic [31:0] 		     busin_be, vectoff;
-  logic [31:0] 		     pc_next, mar_next;
-  logic [31:0] 		     reg_data_in, alu_in2, int_in1, int_in2, intval;
-  logic [2:0] 		     ccr;
-  logic [3:0] 		     status, status_next;
-
+  logic [31:0] 	mdr, mdr_next, mar, a, b;
+  logic [31:0] 	pc, ir;
+  logic [31:0] 	busin_be, vectoff;
+  logic [31:0] 	pc_next, mar_next;
+  logic [31:0] 	reg_data_in, alu_in2, int_in1, int_in2, intval;
+  logic [2:0] 	ccr;
+  logic [3:0] 	status, status_next;
+  
   // Data switching logic
   assign ins_bus.adr = pc;
   assign ins_bus.we = 1'b0;
@@ -83,7 +85,7 @@ module bexkat2(input 	     clk_i,
   always_ff @(posedge clk_i or posedge rst_i)
       if (rst_i)
 	begin
-	  pc <= 'h0;
+	  pc <= START_ADDR;
 	  ir <= 0;
 	  mdr <= 0;
 	  mar <= 0;
@@ -233,8 +235,10 @@ module bexkat2(input 	     clk_i,
 	       .addrsel(addrsel),
 	       .statussel(statussel),
 	       .insbus_cyc(ins_bus.cyc),
+	       .insbus_stb(ins_bus.stb),
 	       .insbus_ack(ins_bus.ack),
 	       .datbus_cyc(dat_bus.cyc),
+	       .datbus_stb(dat_bus.stb),
 	       .datbus_ack(dat_bus.ack),
 	       .byteenable(dat_bus.sel),
 	       .datbus_write(dat_bus.we),
