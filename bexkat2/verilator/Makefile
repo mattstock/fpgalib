@@ -5,35 +5,23 @@ LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
-CPUDEPS = ../bexkat1p.v ../alu_comb.v ../bankedregisterfile.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../registerfile.v ../arbiter.v ../fifo.v ../buscontrol.v ../memwb.v ../../interrupt_encoder.v ../../timerint.v ../../uart/uart.v
+CPUDEPS = ../bexkat2.sv ../alu.sv ../intcalc.sv ../control.sv ../registerfile.sv
 
 .PHONY: all clean tests
 
-all: obj_dir/Vpipeline tests
+all: obj_dir/Vmicrocode tests
 
 tests:
 	cd tests; make
 
-obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.v ram2.v
-	verilator -I.. -I../.. --unroll-count 256 --unroll-stmts 10000 -cc pipeline_top.v -exe pipeline_test.cpp
+obj_dir/Vmicrocode_top.cpp: ${CPUDEPS} microcode_top.sv ram2.sv
+	verilator -I.. -I../.. --unroll-count 256 --unroll-stmts 10000 -cc microcode_top.sv -exe microcode_test.cpp
 
-obj_dir/Vpipeline: obj_dir/Vpipeline_top.cpp pipeline_test.cpp
-	cd obj_dir; make -f Vpipeline_top.mk
-
-obj_dir/Varbiter.cpp: ../arbiter.v
-	verilator -I.. --unroll-count 256 --unroll-stmts 10000 -cc ../arbiter.v -exe arbiter_test.cpp
-
-obj_dir/Varbiter: obj_dir/Varbiter.cpp arbiter_test.cpp
-	cd obj_dir; make -f Varbiter.mk
-
-obj_dir/Vifetch.cpp: ../ifetch.v
-	verilator -I.. -cc ../ifetch.v -exe ifetch_test.cpp
-
-obj_dir/Vifetch: obj_dir/Vifetch.cpp ifetch_test.cpp
-	cd obj_dir; make -f Vifetch.mk
+obj_dir/Vmicrocode: obj_dir/Vmicrocode_top.cpp microcode_test.cpp
+	cd obj_dir; make -f Vmicrocode_top.mk
 
 clean:
-	rm -f *.o *.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
+	rm -f *.o *.hex *.bin *.mif *.gkd *.expand *~ *.bak
 	rm -rf obj_dir
 
 %.o: %.c
@@ -47,8 +35,3 @@ clean:
 
 %.bin: %.o
 	$(OBJCOPY) -O binary $< $@
-
-ram0: ram0.o
-	$(LD) -nostartfiles $< -o $@
-ram0.o: ram0.s
-	$(AS) -o $@ $^

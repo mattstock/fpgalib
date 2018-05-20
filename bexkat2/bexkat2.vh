@@ -65,7 +65,7 @@ package bexkat1Def;
 			      ALU_RSHIFTA, ALU_RSHIFTL, ALU_XOR } alufunc_t;
 
 // states for control
-  typedef enum but[6:0] { S_RESET, S_EXC, S_EXC2, S_EXC3,
+  typedef enum bit[6:0] { S_RESET, S_EXC, S_EXC2, S_EXC3,
 			  S_EXC4, S_EXC5, S_EXC6, S_EXC7,
 			  S_EXC8, S_EXC9, S_EXC10, S_EXC11,
 			  S_FETCH, S_LOADD2, S_EVAL, S_TERM,
@@ -80,7 +80,7 @@ package bexkat1Def;
 			  S_LOAD, S_LOAD2, S_LOAD3, S_LOADD,
 			  S_STORE, S_STORE2, S_STORE3, S_STORE4,
 			  S_STORED, S_STORED2, S_HALT, S_RTI,
-			  S_RTI2, S_RTI3, S_RTI4, S_RTI5 };
+			  S_RTI2, S_RTI3, S_RTI4, S_RTI5 } state_t;
   
 endpackage // bexkat1_pkg
   

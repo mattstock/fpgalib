@@ -1,6 +1,7 @@
 `timescale 1ns / 1ns
 `include "bexkat2.vh"
 `include "../wb.vh"
+`include "../bexkat1/exceptions.vh"
 
 import bexkat1Def::*;
 
@@ -13,18 +14,39 @@ module bexkat2(input 	     clk_i,
 	       output 	     int_en,
 	       output [3:0]  exception,
                output 	     supervisor);
+
+  logic [31:0] 		     insdat_i, insdat_o;
+  logic [31:0] 		     datdat_i, datdat_o;
+  
+`ifdef NO_MODPORT_EXPRESSIONS
+  assign insdat_i = ins_bus.dat_s;
+  assign ins_bus.dat_m = insdat_o;
+  assign datdat_i = dat_bus.dat_s;
+  assign dat_bus.dat_m = datdat_o;
+`else
+  assign insdat_i = ins_bus.dat_i;
+  assign ins_bus.dat_o = insdat_o;
+  assign datdat_i = dat_bus.dat_i;
+  assign dat_bus.dat_o = datdat_o;
+`endif
   
   // Control signals
   logic [1:0] 		     reg_write;
-  logic [2:0] 		     alu_func, fpu_func;
-  logic 		     addrsel, ir_write;
+  alufunc_t                  alu_func;
+  addr_t 		     addrsel;
+  logic 		     ir_write;
   logic 		     vectoff_write, a_write, b_write;
   logic [3:0] 		     reg_read_addr1, reg_read_addr2, reg_write_addr;
-  logic [1:0] 		     marsel, ccrsel, spsel;
-  logic [1:0] 		     sspsel, alu2sel, statussel;
-  logic [2:0] 		     pcsel, regsel;
-  logic [3:0] 		     mdrsel, int_func;
-  logic 		     int2sel, fpccr_write, superintr;
+  mar_t                      marsel;
+  ccr_t                      ccrsel;
+  alu_in_t                   alu2sel;
+  pc_t                       pcsel;
+  int2_t                     int2sel;
+  intfunc_t                  int_func;
+  mdr_in_t                   mdrsel;
+  reg_in_t                   regsel;
+  status_t                   statussel;
+  logic 		     superintr;
   
   // Data paths
   logic [31:0] 		     alu_out, reg_data_out1, reg_data_out2;
@@ -44,18 +66,18 @@ module bexkat2(input 	     clk_i,
   logic [3:0] 		     status, status_next;
 
   // Data switching logic
+  assign ins_bus.adr = pc;
+  assign ins_bus.we = 1'b0;
+  assign insdat_o = 32'h0;
+  assign ins_bus.sel = 4'hf;
 
-
-  
-  assign dat_o = (we_o ? dataout : 32'h0);
-  assign adr_o = (addrsel == ADDR_MAR ? mar : pc);
+  assign dat_bus.adr = mar;
 
   assign ir_sval = { {17{ir[15]}}, ir[15:1] };
   assign ir_uval = { 17'h0000, ir[15:1] };
   assign exceptionval = vectoff + { exception, 2'b00 };
   // allows us to force supervisor mode w/o changing the bit
   assign supervisor = (superintr ? 1'b1 : status[3]);
-
   
   always_ff @(posedge clk_i or posedge rst_i)
       if (rst_i)
@@ -85,7 +107,7 @@ module bexkat2(input 	     clk_i,
   
   always_comb
     begin
-      ir_next = (ir_write ? dat_i : ir);
+      ir_next = (ir_write ? insdat_i : ir);
       vectoff_next = (vectoff_write ? mdr : vectoff);
       
       case (pcsel)
@@ -109,39 +131,47 @@ module bexkat2(input 	     clk_i,
 	STATUS_B: status_next = b[3:0];
 	STATUS_POP: status_next = mdr[11:8];
       endcase // case (statussel)
-      case (sel_o)
-	4'b1111: begin
-	  dataout = mdr;
-	  busin_be = dat_i;
-	end
-	4'b0011: begin
-	  dataout = mdr;
-	  busin_be = { 16'h0000, dat_i[15:0] };
-	end 
-	4'b1100: begin
-	  dataout = { mdr[15:0], 16'h0000 };
-	  busin_be = { 16'h0000, dat_i[31:16] };
-	end
-	4'b0001: begin
-	  dataout = mdr;
-	  busin_be = { 24'h000000, dat_i[7:0] };
-	end
-	4'b0010: begin
-	  dataout = { 16'h0000, mdr[7:0], 8'h00 };
-	  busin_be = { 24'h000000, dat_i[15:8] };
-	end
-	4'b0100: begin
-	  dataout = { 8'h00, mdr[7:0], 16'h0000 };
-	  busin_be = { 24'h000000, dat_i[23:16] };
-	end
-	4'b1000: begin
-	  dataout = { mdr[7:0], 24'h000000 };
-	  busin_be = { 24'h000000, dat_i[31:24] };
-	end
-	default: begin // really these are invalid
-	  dataout = mdr;
-	  busin_be = dat_i;
-	end
+      case (dat_bus.sel)
+	4'b1111:
+	  begin
+	    datdat_o = mdr;
+	    busin_be = datdat_i;
+	  end
+	4'b0011:
+	  begin
+	    datdat_o = mdr;
+	    busin_be = { 16'h0000, datdat_i[15:0] };
+	  end 
+	4'b1100:
+	  begin
+	    datdat_o = { mdr[15:0], 16'h0000 };
+	    busin_be = { 16'h0000, datdat_i[31:16] };
+	  end
+	4'b0001:
+	  begin
+	    datdat_o = mdr;
+	    busin_be = { 24'h000000, datdat_i[7:0] };
+	  end
+	4'b0010:
+	  begin
+	    datdat_o = { 16'h0000, mdr[7:0], 8'h00 };
+	    busin_be = { 24'h000000, datdat_i[15:8] };
+	  end
+	4'b0100:
+	  begin
+	    datdat_o = { 8'h00, mdr[7:0], 16'h0000 };
+	    busin_be = { 24'h000000, datdat_i[23:16] };
+	  end
+	4'b1000:
+	  begin
+	    datdat_o = { mdr[7:0], 24'h000000 };
+	    busin_be = { 24'h000000, datdat_i[31:24] };
+	  end
+	default:
+	  begin // really these are invalid
+	    datdat_o = mdr;
+	    busin_be = datdat_i;
+	  end
       endcase // case (sel_o)
       case (mdrsel)
 	MDR_MDR: mdr_next = mdr;
@@ -200,12 +230,14 @@ module bexkat2(input 	     clk_i,
 	       .int_func(int_func),
 	       .supervisor(supervisor),
 	       .addrsel(addrsel),
-	       .byteenable(sel_o),
 	       .statussel(statussel),
-	       .bus_cyc(cyc_o),
-	       .bus_write(we_o),
-	       .bus_ack(ack_i),
-	       .bus_align(adr_o[1:0]),
+	       .insbus_cyc(ins_bus.cyc),
+	       .insbus_ack(ins_bus.ack),
+	       .datbus_cyc(dat_bus.cyc),
+	       .datbus_ack(dat_bus.ack),
+	       .byteenable(dat_bus.sel),
+	       .datbus_write(dat_bus.we),
+	       .datbus_align(dat_bus.adr[1:0]),
 	       .vectoff_write(vectoff_write),
 	       .halt(halt),
 	       .exception(exception),
