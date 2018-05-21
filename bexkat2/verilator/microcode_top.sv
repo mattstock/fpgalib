@@ -138,9 +138,10 @@ module top(input              clk_i,
   bus_term bus1_pe(pe_bus1.slave);
   bus_term bus1_pf(pf_bus1.slave);
   
-  ram2 #(.AWIDTH(11)) ram0(.clk_i(clk_i), .rst_i(rst_i),
-			   .bus0(ram0_ibus.slave),
-			   .bus1(ram0_dbus.slave));
+  ram2 #(.AWIDTH(11),
+	 .INITNAME("../clear.hex")) ram0(.clk_i(clk_i), .rst_i(rst_i),
+					 .bus0(ram0_ibus.slave),
+					 .bus1(ram0_dbus.slave));
   ram2 #(.AWIDTH(11)) ram1(.clk_i(clk_i), .rst_i(rst_i),
 			   .bus0(ram1_ibus.slave),
 			   .bus1(ram1_dbus.slave));
