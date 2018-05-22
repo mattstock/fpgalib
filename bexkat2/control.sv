@@ -135,17 +135,10 @@ module control(input clk_i,
 	  end
 	S_EXC:
 	  begin
-	    // for everyone except reset, we need to push the PC and SP,
-	    // CCR/status onto the stack
-	    if (exception == 4'h0)
-              state_next = S_EXC9;
-	    else 
-	      begin
-		a_write = 1'b1; // A <= SP
-		reg_read_addr1 = REG_SP;
-		mdrsel = MDR_PC;
-		state_next = S_EXC2;
-	      end
+	    a_write = 1'b1; // A <= SP
+	    reg_read_addr1 = REG_SP;
+	    mdrsel = MDR_PC;
+	    state_next = S_EXC2;
 	  end // case: S_EXC
 	S_EXC2: 
 	  begin
@@ -168,6 +161,16 @@ module control(input clk_i,
 	    byteenable_next = 4'f;
 	    datbus_write_next = 1'b1;
 	    state_next = S_EXC12;
+	  end
+	S_EXC12:
+	  begin
+	    datbus_stb_next = 1'b0;
+	    if (datbus_ack)
+	      begin
+		datbus_cyc_next = 1'b0;
+		datbus_write_next = 1'b0;
+		state_next = S_EXC5;
+	      end
 	  end
 	S_EXC5:
 	  begin // forced to use SSP
@@ -198,37 +201,6 @@ module control(input clk_i,
 	    byteenable_next = 4'hf;
 	    state_next = S_EXC13;
 	  end
-	S_EXC9:
-	  begin
-	    // load exception_next handler address into PC
-	    pcsel = PC_EXC;
-	    // change the register since we just saved it
-	    statussel = STATUS_SUPER; 
-	    state_next = S_EXC10;
-	  end
-	S_EXC10:
-	  begin
-	    datbus_cyc_next = 1'b1;
-	    datbus_stb_next = 1'b1;
-	    byteenable_next = 4'hf;
-	    marsel = MAR_DBUS;
-	    state_next = S_EXC14;
-	  end
-	S_EXC11:
-	  begin
-	    pcsel = PC_MAR;
-	    state_next = S_FETCH;
-	  end
-	S_EXC12:
-	  begin
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
-	      begin
-		datbus_cyc_next = 1'b0;
-		datbus_write_next = 1'b0;
-		state_next = S_EXC5;
-	      end
-	  end
 	S_EXC13:
 	  begin
 	    datbus_stb_next = 1'b0;
@@ -239,15 +211,13 @@ module control(input clk_i,
 		state_next = S_EXC9;
 	      end
 	  end
-	S_EXC14:
+	S_EXC9:
 	  begin
-	    marsel = MAR_DBUS;
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
-	      begin
-		datbus_cyc_next = 1'b0;
-		state_next = S_EXC11;
-	      end
+	    // load exception_next handler address into PC
+	    pcsel = PC_EXC;
+	    // change the register since we just saved it
+	    statussel = STATUS_SUPER; 
+	    state_next = S_FETCH;
 	  end
 	S_FETCH:
 	  begin
@@ -327,7 +297,7 @@ module control(input clk_i,
 		  T_PUSH: state_next = S_PUSH2;
 		  T_STORE: state_next = S_STORED;
 		  T_LOAD: state_next = S_LOADD;
-		  T_JUMP: state_next = S_EXC11;
+		  T_JUMP: state_next = S_JUMPD;
 		  T_LDI: state_next = S_MDR2RA;
 		  default:
 		    begin
@@ -534,6 +504,17 @@ module control(input clk_i,
 	    datbus_stb_next = 1'b1;
 	    state_next = S_RTI6;
 	  end
+	S_RTI6:
+	  begin
+	    addrsel = ADDR_MAR;
+	    mdrsel = MDR_DBUS;
+	    datbus_stb_next = 1'b0;
+	    if (datbus_ack)
+	      begin
+		datbus_cyc_next = 1'b0;
+		state_next = S_RTI2;
+	      end
+	  end
 	S_RTI2:
 	  begin
 	    ccrsel = CCR_MDR;
@@ -559,17 +540,6 @@ module control(input clk_i,
 	    reg_write = REG_WRITE_DW; // SP <= aluout
 	    reg_write_addr = REG_SP;
 	    state_next = S_RTS;
-	  end
-	S_RTI6:
-	  begin
-	    addrsel = ADDR_MAR;
-	    mdrsel = MDR_DBUS;
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
-	      begin
-		datbus_cyc_next = 1'b0;
-		state_next = S_RTI2;
-	      end
 	  end
 	S_RTS: // rts
 	  begin
@@ -721,6 +691,11 @@ module control(input clk_i,
 	  begin
 	    regsel = REG_UVAL;
 	    reg_write = REG_WRITE_DW;
+	    state_next = S_FETCH;
+	  end
+	S_JUMPD:
+	  begin
+	    pcsel = PC_MAR;
 	    state_next = S_FETCH;
 	  end
 	S_JUMP:

@@ -12,7 +12,7 @@
 static const char *statestr[] = {
   "RESET", "EXC", "EXC2", "EXC3",
   "EXC4", "EXC5", "EXC6", "EXC7",
-  "EXC8", "EXC9", "EXC10", "EXC11", "EXC12",
+  "EXC8", "EXC9", "EXC10", "JUMPD", "EXC12",
   "EXC13", "EXC14", "FETCH2", "ARG2",
   "FETCH", "LOADD2", "EVAL", "TERM",
   "ARG", "INH", "RELADDR", "PUSH",

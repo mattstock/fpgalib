@@ -78,7 +78,7 @@ module bexkat2
 
   assign ir_sval = { {17{ir[15]}}, ir[15:1] };
   assign ir_uval = { 17'h0000, ir[15:1] };
-  assign exceptionval = vectoff + { 26'h0, exception, 2'b00 };
+  assign exceptionval = vectoff + { 25'h0, exception, 3'h00 };
   // allows us to force supervisor mode w/o changing the bit
   assign supervisor = (superintr ? 1'b1 : status[3]);
   

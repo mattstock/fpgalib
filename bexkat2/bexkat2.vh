@@ -68,7 +68,7 @@ package bexkat1Def;
 // states for control
   typedef enum bit[6:0] { S_RESET, S_EXC, S_EXC2, S_EXC3,
 			  S_EXC4, S_EXC5, S_EXC6, S_EXC7,
-			  S_EXC8, S_EXC9, S_EXC10, S_EXC11, S_EXC12,
+			  S_EXC8, S_EXC9, S_EXC10, S_JUMPD, S_EXC12,
 			  S_EXC13, S_EXC14, S_FETCH2, S_ARG2,
 			  S_FETCH, S_LOADD2, S_EVAL, S_TERM,
 			  S_ARG, S_INH, S_RELADDR, S_PUSH,
