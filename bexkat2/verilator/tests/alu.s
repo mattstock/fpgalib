@@ -12,5 +12,4 @@ _start:
 	lsl %9, %2, %6
 	lsli %10, %0, 0x4
 	halt
-	halt
 	
