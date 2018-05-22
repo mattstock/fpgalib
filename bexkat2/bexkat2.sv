@@ -124,9 +124,11 @@ module bexkat2
       endcase // case (pcsel)
       case (marsel)
 	MAR_MAR: mar_next = mar;
-	MAR_BUS: mar_next = datdat_i;
+	MAR_DBUS: mar_next = datdat_i;
+	MAR_IBUS: mar_next = insdat_i;
 	MAR_ALU: mar_next = alu_out;
 	MAR_A:   mar_next = a;
+	default: mar_next = mar;
       endcase // case (marsel)
       case (statussel)
 	STATUS_STATUS: status_next = status;
@@ -178,7 +180,8 @@ module bexkat2
       endcase // case (sel_o)
       case (mdrsel)
 	MDR_MDR: mdr_next = mdr;
-	MDR_BUS: mdr_next = busin_be; // byte aligned
+	MDR_DBUS: mdr_next = busin_be; // byte aligned
+	MDR_IBUS: mdr_next = insdat_i;
 	MDR_B:   mdr_next = b;
 	MDR_A:   mdr_next = a;
 	MDR_PC:  mdr_next = pc;

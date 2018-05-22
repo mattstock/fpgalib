@@ -211,7 +211,7 @@ module control(input clk_i,
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
 	    byteenable_next = 4'hf;
-	    marsel = MAR_BUS;
+	    marsel = MAR_DBUS;
 	    state_next = S_EXC14;
 	  end
 	S_EXC11:
@@ -241,7 +241,7 @@ module control(input clk_i,
 	  end
 	S_EXC14:
 	  begin
-	    marsel = MAR_BUS;
+	    marsel = MAR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
 	      begin
@@ -309,15 +309,15 @@ module control(input clk_i,
 	  begin
 	    insbus_cyc_next = 1'b1;
 	    insbus_stb_next = 1'b1;
-	    marsel = MAR_BUS;
-	    mdrsel = MDR_BUS;
+	    marsel = MAR_IBUS;
+	    mdrsel = MDR_IBUS;
 	    state_next = S_ARG2;
 	  end // case: S_ARG
 	S_ARG2:
 	  begin
 	    insbus_stb_next = 1'b0;
-	    marsel = MAR_BUS;
-	    mdrsel = MDR_BUS;
+	    marsel = MAR_IBUS;
+	    mdrsel = MDR_IBUS;
 	    if (insbus_ack)
 	      begin
 		insbus_cyc_next = 1'b0;
@@ -508,7 +508,7 @@ module control(input clk_i,
 	S_POP4:
 	  begin
 	    addrsel = ADDR_MAR;
-	    mdrsel = MDR_BUS;
+	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    byteenable_next = 4'hf;
 	    datbus_stb_next = 1'b1;
@@ -517,7 +517,7 @@ module control(input clk_i,
 	S_POP5:
 	  begin
 	    addrsel = ADDR_MAR;
-	    mdrsel = MDR_BUS;
+	    mdrsel = MDR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
 	      begin
@@ -528,7 +528,7 @@ module control(input clk_i,
 	S_RTI: // rti - pop CCR off of stack
 	  begin
 	    addrsel = ADDR_MAR;
-	    mdrsel = MDR_BUS;
+	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    byteenable_next = 4'hf;
 	    datbus_stb_next = 1'b1;
@@ -563,7 +563,7 @@ module control(input clk_i,
 	S_RTI6:
 	  begin
 	    addrsel = ADDR_MAR;
-	    mdrsel = MDR_BUS;
+	    mdrsel = MDR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
 	      begin
@@ -578,7 +578,7 @@ module control(input clk_i,
 	  end
 	S_RTS2:
 	  begin
-	    marsel = MAR_BUS;
+	    marsel = MAR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
 	    byteenable_next = 4'hf;
@@ -596,7 +596,7 @@ module control(input clk_i,
 	  end
 	S_RTS4:
 	  begin
-	    marsel = MAR_BUS;
+	    marsel = MAR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
 	      begin
@@ -760,7 +760,7 @@ module control(input clk_i,
 	S_LOADD2:
 	  begin
 	    addrsel = ADDR_MAR;
-	    mdrsel = MDR_BUS;
+	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
 	    if (ir_op[1:0] == 2'h1)
@@ -777,7 +777,7 @@ module control(input clk_i,
 	S_LOADD3:
 	  begin
 	    addrsel = ADDR_MAR;
-	    mdrsel = MDR_BUS;
+	    mdrsel = MDR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
 	      begin

@@ -18,8 +18,8 @@ package bexkat1Def;
 			      T_INTU, T_FPU} op_t;
   
   // MDR input select
-  typedef enum 	  bit [3:0] { MDR_MDR, MDR_BUS, MDR_B, MDR_A, MDR_PC, 
-			      MDR_INT, MDR_FPU, MDR_ALU, MDR_CCR,
+  typedef enum 	  bit [3:0] { MDR_MDR, MDR_IBUS, MDR_DBUS, MDR_B, MDR_A,
+			      MDR_PC, MDR_INT, MDR_ALU, MDR_CCR,
 			      MDR_STATUS} mdr_in_t;
   
   // register input select
@@ -32,7 +32,8 @@ package bexkat1Def;
   typedef enum 	  bit [1:0] { CCR_CCR, CCR_ALU, CCR_FPU, CCR_MDR } ccr_t;
   
   // MAR select
-  typedef enum 	  bit [1:0] { MAR_MAR, MAR_BUS, MAR_ALU, MAR_A } mar_t;
+  typedef enum 	  bit [2:0] { MAR_MAR, MAR_DBUS, MAR_IBUS, 
+			      MAR_ALU, MAR_A } mar_t;
   
   // STATUS select
   typedef enum 	  bit [1:0] { STATUS_STATUS, STATUS_B,
