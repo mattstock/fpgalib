@@ -1,33 +1,17 @@
 .globl _start
 _start:
-	ldiu %0, 0x1000
+	ldiu %0, 0x100
 	ldi %1, 0x11223344
-	ldi %15, 0xffffffff
-	# basic relative write then read with a pipeline variants
 	st.l %1, (%0)
 	ld.l %2, (%0)
-	addi %3, %1, 1
-	st.l %1, (%0)
-	nop
-	ld.l %4, (%0)
-	nop
-	st.l %4, 4(%0)
-	nop
-	nop
-	ld.l %5, 4(%0)
-	addi %6, %3, 1
-	nop
-	nop
-	st.l %6, -4(%0)
-	ld.l %7, -4(%0)
-	nop
-	nop
-	nop
-	nop
-	st.l %15, -1(%0)
-	ld.l %8, -4(%0)
-	ld.l %9, (%0)
-	st.l %15, 2(%0)
-	ld.l %10, (%0)
-	ld.l %11, 4(%0)
+	ld.b %3, (%0)
+	ld.b %4, 1(%0)
+	ld.b %5, 2(%0)
+	ld.b %6, 3(%0)
+	st %1, 4(%0)
+	st.b %3, -1(%0)
+	st.b %4, -2(%0)
+	st.b %5, -3(%0)
+	st.b %6, -4(%0)
+	ld %7, -2(%0)
 	halt
