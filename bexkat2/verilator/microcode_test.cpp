@@ -82,9 +82,14 @@ int main(int argc, char **argv, char **env) {
 
     if (top->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
-      emit(D_DEBUG, "pc:  %*x  ir:  %*lx\n", 16, top->top__DOT__cpu0__DOT__pc,
-	   16, top->top__DOT__cpu0__DOT__ir);
-      emit(D_DEBUG, "state: %s\n", statestr[top->top__DOT__cpu0__DOT__con0__DOT__state]);
+      emit(D_DEBUG, "state: %s  ", statestr[top->top__DOT__cpu0__DOT__con0__DOT__state]);
+      emit(D_DEBUG, "pc: %08x  ir: %08x  mdr: %08x  mar: %08x  a: %08x  b: %08x\n",
+	   top->top__DOT__cpu0__DOT__pc,
+	   top->top__DOT__cpu0__DOT__ir,
+	   top->top__DOT__cpu0__DOT__mdr,
+	   top->top__DOT__cpu0__DOT__mar,
+	   top->top__DOT__cpu0__DOT__a,
+	   top->top__DOT__cpu0__DOT__b);
       for (int i=0; i < 8; i++)
 	emit(D_DEBUG, "%*d: %08x",
 	     3, i, top->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
