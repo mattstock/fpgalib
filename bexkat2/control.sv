@@ -762,6 +762,7 @@ module control(input clk_i,
 	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
+	    byteenable_next = 4'hf;
 	    datbus_stb_next = 1'b1;
 	    if (ir_op[1:0] == 2'h1)
               byteenable_next = (datbus_align[1] ? 4'b0011 : 4'b1100);
@@ -818,6 +819,7 @@ module control(input clk_i,
 	    addrsel = ADDR_MAR;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
+	    byteenable_next = 4'hf;
 	    datbus_write_next = 1'b1;
 	    if (ir_op[1:0] == 2'h1)
               byteenable_next = (datbus_align[1] ? 4'b0011 : 4'b1100);
