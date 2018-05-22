@@ -7,8 +7,7 @@ _start:
 	ldi %4, 0xfeefd00f
 	ldi %5, 0x10002000
 	ldiu %6, 0x3045
+	mov.l %7, %5
+	mov %8, %4
+	mov.b %9, %2
 	halt
-	
-#	ldd.l %7, a
-#	ldd %8, b
-#	ldd.b %9, a+2
