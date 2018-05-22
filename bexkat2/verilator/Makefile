@@ -21,7 +21,7 @@ obj_dir/Vmicrocode: obj_dir/Vmicrocode_top.cpp microcode_test.cpp
 	cd obj_dir; make -f Vmicrocode_top.mk
 
 clean:
-	rm -f *.o *.hex *.bin *.mif *.gkd *.expand *~ *.bak
+	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand *~ *.bak
 	rm -rf obj_dir
 
 %.o: %.c
