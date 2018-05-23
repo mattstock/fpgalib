@@ -35,7 +35,6 @@ module bexkat2
   // Control signals
   logic [1:0] 	reg_write;
   alufunc_t     alu_func;
-  addr_t 	addrsel;
   logic 	ir_write;
   logic 	vectoff_write, a_write, b_write;
   logic [3:0] 	reg_read_addr1, reg_read_addr2, reg_write_addr;
@@ -73,7 +72,6 @@ module bexkat2
   assign ins_bus.we = 1'b0;
   assign insdat_o = 32'h0;
   assign ins_bus.sel = 4'hf;
-
   assign dat_bus.adr = mar;
 
   assign ir_sval = { {17{ir[15]}}, ir[15:1] };
@@ -124,8 +122,7 @@ module bexkat2
       endcase // case (pcsel)
       case (marsel)
 	MAR_MAR: mar_next = mar;
-	MAR_DBUS: mar_next = datdat_i;
-	MAR_IBUS: mar_next = insdat_i;
+	MAR_MDR: mar_next = mdr;
 	MAR_ALU: mar_next = alu_out;
 	MAR_A:   mar_next = a;
 	default: mar_next = mar;
@@ -235,7 +232,6 @@ module bexkat2
 	       .int2sel(int2sel),
 	       .int_func(int_func),
 	       .supervisor(supervisor),
-	       .addrsel(addrsel),
 	       .statussel(statussel),
 	       .insbus_cyc(ins_bus.cyc),
 	       .insbus_stb(ins_bus.stb),

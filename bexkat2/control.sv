@@ -23,7 +23,6 @@ module control(input clk_i,
 	       output 		  int2_t int2sel,
 	       output 		  intfunc_t int_func,
 	       output 		  pc_t pcsel,
-	       output 		  addr_t addrsel,
 	       output logic 	  datbus_cyc,
 	       output logic 	  datbus_write,
 	       input 		  datbus_ack,
@@ -114,7 +113,6 @@ module control(input clk_i,
       marsel = MAR_MAR;
       statussel = STATUS_STATUS;
       int2sel = INT2_B;
-      addrsel = ADDR_PC;
       pcsel = PC_PC;
       datbus_cyc_next = datbus_cyc;
       datbus_stb_next = datbus_stb;
@@ -133,36 +131,35 @@ module control(input clk_i,
 	    interrupts_enabled_next = 1'b0;
 	    state_next = S_FETCH;
 	  end
-	S_EXC:
+	S_EXC: // predecrement SP
 	  begin
 	    a_write = 1'b1; // A <= SP
 	    reg_read_addr1 = REG_SP;
 	    mdrsel = MDR_PC;
 	    state_next = S_EXC2;
-	  end // case: S_EXC
-	S_EXC2: 
+	  end
+	S_EXC2: // predecrement SP
 	  begin
 	    alu2sel = ALU_4;
 	    alu_func = ALU_SUB;
 	    state_next = S_EXC3;
 	  end
-	S_EXC3:
+	S_EXC3: // assign new SP to MAR
 	  begin
 	    marsel = MAR_ALU;
 	    reg_write_addr = REG_SP;
 	    reg_write = REG_WRITE_DW;
 	    state_next = S_EXC4;
 	  end
-	S_EXC4:
+	S_EXC4: // push return val onto stack
 	  begin
-	    addrsel = ADDR_MAR;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
-	    byteenable_next = 4'f;
+	    byteenable_next = 4'hf;
 	    datbus_write_next = 1'b1;
 	    state_next = S_EXC12;
 	  end
-	S_EXC12:
+	S_EXC12: // push return val onto stack
 	  begin
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
@@ -172,36 +169,35 @@ module control(input clk_i,
 		state_next = S_EXC5;
 	      end
 	  end
-	S_EXC5:
+	S_EXC5: // predecrement SSP
 	  begin // forced to use SSP
 	    a_write = 1'b1; // A <= SP
 	    reg_read_addr1 = REG_SP;
 	    mdrsel = MDR_CCR;
 	    state_next = S_EXC6;
 	  end
-	S_EXC6:
+	S_EXC6: // predecrement SSP
 	  begin
 	    alu2sel = ALU_4;
 	    alu_func = ALU_SUB;
 	    state_next = S_EXC7;
 	  end
-	S_EXC7:
+	S_EXC7: // assign SSP to MAR
 	  begin // forced to use SSP
 	    marsel = MAR_ALU;
 	    reg_write_addr = REG_SP;
 	    reg_write = REG_WRITE_DW;
 	    state_next = S_EXC8;
 	  end
-	S_EXC8:
+	S_EXC8: // push CCR onto stack
 	  begin
-	    addrsel = ADDR_MAR;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
 	    datbus_write_next = 1'b1;
 	    byteenable_next = 4'hf;
 	    state_next = S_EXC13;
 	  end
-	S_EXC13:
+	S_EXC13: // push CCR onto stack
 	  begin
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
@@ -279,33 +275,36 @@ module control(input clk_i,
 	  begin
 	    insbus_cyc_next = 1'b1;
 	    insbus_stb_next = 1'b1;
-	    marsel = MAR_IBUS;
 	    mdrsel = MDR_IBUS;
 	    state_next = S_ARG2;
 	  end // case: S_ARG
 	S_ARG2:
 	  begin
 	    insbus_stb_next = 1'b0;
-	    marsel = MAR_IBUS;
 	    mdrsel = MDR_IBUS;
 	    if (insbus_ack)
 	      begin
 		insbus_cyc_next = 1'b0;
-		pcsel = PC_NEXT;
-		case (ir_type)
-		  T_INH: state_next = S_INH;
-		  T_PUSH: state_next = S_PUSH2;
-		  T_STORE: state_next = S_STORED;
-		  T_LOAD: state_next = S_LOADD;
-		  T_JUMP: state_next = S_JUMPD;
-		  T_LDI: state_next = S_MDR2RA;
-		  default:
-		    begin
-		      exception_next = EXC_ILLOP;
-		      state_next = S_EXC;
-		    end
-		endcase // case (ir_type)
+		state_next = S_ARG3;
 	      end
+	  end
+	S_ARG3:
+	  begin
+	    marsel = MAR_MDR;
+	    pcsel = PC_NEXT;
+	    case (ir_type)
+	      T_INH: state_next = S_INH;
+	      T_PUSH: state_next = S_PUSH2;
+	      T_STORE: state_next = S_STORED;
+	      T_LOAD: state_next = S_LOADD;
+	      T_JUMP: state_next = S_JUMPD;
+	      T_LDI: state_next = S_MDR2RA;
+	      default:
+		begin
+		  exception_next = EXC_ILLOP;
+		  state_next = S_EXC;
+		end
+	    endcase // case (ir_type)
 	  end
 	S_INH:
 	  begin
@@ -425,7 +424,6 @@ module control(input clk_i,
 	  end
 	S_PUSH5:
 	  begin
-	    addrsel = ADDR_MAR;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
 	    byteenable_next = 4'hf;
@@ -434,7 +432,6 @@ module control(input clk_i,
 	  end
 	S_PUSH6:
 	  begin
-	    addrsel = ADDR_MAR;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
 	      begin
@@ -477,7 +474,6 @@ module control(input clk_i,
 	  end
 	S_POP4:
 	  begin
-	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    byteenable_next = 4'hf;
@@ -486,7 +482,6 @@ module control(input clk_i,
 	  end
 	S_POP5:
 	  begin
-	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
@@ -497,7 +492,6 @@ module control(input clk_i,
 	  end
 	S_RTI: // rti - pop CCR off of stack
 	  begin
-	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    byteenable_next = 4'hf;
@@ -506,7 +500,6 @@ module control(input clk_i,
 	  end
 	S_RTI6:
 	  begin
-	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
@@ -543,16 +536,27 @@ module control(input clk_i,
 	  end
 	S_RTS: // rts
 	  begin
-	    pcsel = PC_MAR;
-	    state_next = S_RTS2;
-	  end
-	S_RTS2:
-	  begin
-	    marsel = MAR_DBUS;
+	    byteenable_next = 4'hf;
+	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
 	    byteenable_next = 4'hf;
             state_next = S_RTS4;
+	  end
+	S_RTS4:
+	  begin
+	    mdrsel = MDR_DBUS;
+	    datbus_stb_next = 1'b0;
+	    if (datbus_ack)
+	      begin
+		datbus_cyc_next = 1'b0;
+		state_next = S_RTS2;
+	      end
+	  end
+	S_RTS2:
+	  begin
+	    marsel = MAR_MDR;
+	    state_next = S_RTS3;
 	  end
 	S_RTS3:
 	  begin
@@ -563,16 +567,6 @@ module control(input clk_i,
 		exception_next = 4'h0;
 	      end
 	    state_next = S_FETCH;
-	  end
-	S_RTS4:
-	  begin
-	    marsel = MAR_DBUS;
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
-	      begin
-		datbus_cyc_next = 1'b0;
-		state_next = S_RTS3;
-	      end
 	  end
 	S_CMP:
 	  begin
@@ -734,7 +728,6 @@ module control(input clk_i,
 	S_LOADD: state_next = S_LOADD2;
 	S_LOADD2:
 	  begin
-	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    byteenable_next = 4'hf;
@@ -752,7 +745,6 @@ module control(input clk_i,
 	  end // case: S_LOADD2
 	S_LOADD3:
 	  begin
-	    addrsel = ADDR_MAR;
 	    mdrsel = MDR_DBUS;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
@@ -791,7 +783,6 @@ module control(input clk_i,
 	  end
 	S_STORE4:
 	  begin // MAR has address, MDR value
-	    addrsel = ADDR_MAR;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
 	    byteenable_next = 4'hf;
@@ -809,7 +800,6 @@ module control(input clk_i,
 	  end // case: S_STORE4
 	S_STORE5:
 	  begin // MAR has address, MDR value
-	    addrsel = ADDR_MAR;
 	    datbus_stb_next = 1'b0;
 	    if (datbus_ack)
 	      begin

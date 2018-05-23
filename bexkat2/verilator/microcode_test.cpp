@@ -28,7 +28,7 @@ static const char *statestr[] = {
   "STORED", "STORED2", "HALT", "RTI",
   "RTI2", "RTI3", "RTI4", "RTI5",
   "PUSH6", "POP5", "RTI6", "RTS4", "LOADD3",
-  "STORE5" };
+  "STORE5", "ARG3" };
 
 using namespace std;
 Vmicrocode_top* top;
@@ -82,7 +82,8 @@ int main(int argc, char **argv, char **env) {
 
     if (top->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
-      emit(D_DEBUG, "state: %s  ", statestr[top->top__DOT__cpu0__DOT__con0__DOT__state]);
+      emit(D_DEBUG, "state: %*s  ", 8,
+	   statestr[top->top__DOT__cpu0__DOT__con0__DOT__state]);
       emit(D_DEBUG, "pc: %08x  ir: %08x  mdr: %08x  mar: %08x  a: %08x  b: %08x\n",
 	   top->top__DOT__cpu0__DOT__pc,
 	   top->top__DOT__cpu0__DOT__ir,
@@ -90,6 +91,11 @@ int main(int argc, char **argv, char **env) {
 	   top->top__DOT__cpu0__DOT__mar,
 	   top->top__DOT__cpu0__DOT__a,
 	   top->top__DOT__cpu0__DOT__b);
+      emit(D_DEBUG, "ccr: %02x  status: %02x  ssp: %08x\n",
+	   top->top__DOT__cpu0__DOT__ccr,
+	   top->top__DOT__cpu0__DOT__status,
+	   top->top__DOT__cpu0__DOT__intreg__DOT__ssp);
+	   
       for (int i=0; i < 8; i++)
 	emit(D_DEBUG, "%*d: %08x",
 	     3, i, top->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);

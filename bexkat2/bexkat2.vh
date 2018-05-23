@@ -32,15 +32,11 @@ package bexkat1Def;
   typedef enum 	  bit [1:0] { CCR_CCR, CCR_ALU, CCR_FPU, CCR_MDR } ccr_t;
   
   // MAR select
-  typedef enum 	  bit [2:0] { MAR_MAR, MAR_DBUS, MAR_IBUS, 
-			      MAR_ALU, MAR_A } mar_t;
+  typedef enum 	  bit [2:0] { MAR_MAR, MAR_MDR, MAR_ALU, MAR_A } mar_t;
   
   // STATUS select
   typedef enum 	  bit [1:0] { STATUS_STATUS, STATUS_B,
 			      STATUS_POP, STATUS_SUPER } status_t;
-  
-  // ADDR select
-  typedef enum 	  bit { ADDR_PC, ADDR_MAR } addr_t;
   
   // PC select
   typedef enum 	  bit [2:0] { PC_PC, PC_NEXT, PC_MAR, PC_REL,
@@ -84,7 +80,7 @@ package bexkat1Def;
 			  S_STORED, S_STORED2, S_HALT, S_RTI,
 			  S_RTI2, S_RTI3, S_RTI4, S_RTI5,
 			  S_PUSH6, S_POP5, S_RTI6, S_RTS4, S_LOADD3,
-			  S_STORE5 } state_t;
+			  S_STORE5, S_ARG3 } state_t;
   
 endpackage // bexkat1_pkg
   
