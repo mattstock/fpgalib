@@ -1,7 +1,7 @@
 .globl _start
 _start:
 	ldi %0, 0x11225577
-	ldiu %1, 0x1000
+	ldi %1, 0x70001000
 	jmp (%1)
 done:	ldiu %0, 0x2ead
 	halt

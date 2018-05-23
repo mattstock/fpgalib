@@ -2,7 +2,7 @@
 OUTPUT_FORMAT("elf32-bexkat1-be", "elf32-bexkat1-be",
 	      "elf32-bexkat1-le")
 OUTPUT_ARCH(bexkat1)
-STARTUP(out/boot-verilator.o)
+/* STARTUP(out/boot-verilator.o) */
 ENTRY(_start)
 
 MEMORY

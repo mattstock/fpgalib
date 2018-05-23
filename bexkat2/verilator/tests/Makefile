@@ -1,15 +1,15 @@
 OBJCOPY = bexkat1-elf-objcopy
 OBJDUMP = bexkat1-elf-objdump
-CFLAGS = -T profile-verilator.ld -nostartfiles
+CFLAGS = -T profile-verilator.ld
 ASFLAGS = -nostartfiles
-LDFLAGS = -T profile-verilator.ld -nostartfiles
+LDFLAGS = -T profile-verilator.ld
 LDLIBS = -Lout -lvectors
 AS = bexkat1-elf-as
 LD = bexkat1-elf-ld
 CC = bexkat1-elf-gcc
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions exceptions2 exceptions3 branch jump sub simple
+TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions branch jump sub
 
 
 TESTPROGS = $(addsuffix .hex, $(addprefix out/, $(TESTS)))
@@ -33,7 +33,7 @@ rebase:
 tests: $(TESTPROGS)
 	@for t in $(TESTS); do \
 		echo -n $$t ; \
-		cp out/$$t.hex ../ram0.hex ; \
+		sed -e 's/^@70000000/@00000000/' out/$$t.hex > ../ram0.hex ; \
 		../obj_dir/Vmicrocode_top out/$$t.debug > out/$$t.output ; \
 		diff -u0 ref/$$t out/$$t.output > out/$$t.diff ; \
 		if [ -s out/$$t.diff ] ; \
@@ -103,21 +103,15 @@ out/math: out/math.o
 	$(LD) -nostartfiles -o $@ $^
 
 out/exceptions: out/exceptions.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/exceptions2: out/exceptions2.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/exceptions3: out/exceptions3.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 out/branch: out/branch.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 out/jump: out/jump.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 out/sub: out/sub.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 out/simple: out/simple.o
