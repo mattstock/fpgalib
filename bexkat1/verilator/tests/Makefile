@@ -33,7 +33,7 @@ rebase:
 tests: $(TESTPROGS)
 	@for t in $(TESTS); do \
 		echo -n $$t ; \
-		cp out/$$t.hex ../ram0.hex ; \
+		sed -e 's/^@70000000/@00000000/' out/$$t.hex > ../ram0.hex ; \
 		../obj_dir/Vpipeline_top out/$$t.debug > out/$$t.output ; \
 		diff -u0 ref/$$t out/$$t.output > out/$$t.diff ; \
 		if [ -s out/$$t.diff ] ; \
@@ -103,19 +103,13 @@ out/math: out/math.o
 	$(LD) -nostartfiles -o $@ $^
 
 out/exceptions: out/exceptions.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/exceptions2: out/exceptions2.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/exceptions3: out/exceptions3.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 out/branch: out/branch.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 out/jump: out/jump.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^
 
 out/sub: out/sub.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD) $(LDFLAGS) -o $@ $^

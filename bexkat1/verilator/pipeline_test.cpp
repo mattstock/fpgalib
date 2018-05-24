@@ -56,9 +56,7 @@ int main(int argc, char **argv, char **env) {
     // Drop reset
     if (tick == 2)
       top->rst_i = 0;
-    if (tick == 9)
-      top->interrupts = 1;
-    
+
     top->eval();
 
     if (top->clk_i) {
