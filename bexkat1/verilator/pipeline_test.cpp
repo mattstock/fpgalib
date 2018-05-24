@@ -62,7 +62,7 @@ int main(int argc, char **argv, char **env) {
     top->eval();
 
     if (top->clk_i) {
-      emit(D_BOTH, "-------------------- %03ld --------------------\n", cycle);
+      emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
       emit(D_DEBUG, "--- PIPELINE STATE ---\n");
       emit(D_DEBUG, "     %*s %*s %*s %*s\n",
 	   16, "ifetch",
@@ -152,19 +152,19 @@ int main(int argc, char **argv, char **env) {
 	   top->top__DOT__exe0__DOT__int_func,
 	   top->top__DOT__exe0__DOT__int_out);
       for (int i=0; i < 8; i++)
-	emit(D_BOTH, "%*d: %08x",
+	emit(D_DEBUG, "%*d: %08x",
 	     3, i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
-      emit(D_BOTH, "\n");
+      emit(D_DEBUG, "\n");
       for (int i=8; i < 16; i++)
-	emit(D_BOTH, "%*d: %08x",
+	emit(D_DEBUG, "%*d: %08x",
 	     3, i+4*top->id_bank,
 	     top->top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*top->id_bank]);
-      emit(D_BOTH, "\n");
-      emit(D_BOTH, "vectoff: %08x inten: %*d interrupts: %*x\n",
+      emit(D_DEBUG, "\n");
+      emit(D_DEBUG, "vectoff: %08x inten: %*d interrupts: %*x\n",
 	   top->top__DOT__exe0__DOT__vectoff,
 	   2, top->cpu_inter_en,
 	   2, top->interrupts);
-      emit(D_BOTH, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %d\n",
+      emit(D_DEBUG, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %d\n",
 	   top->ins_adr_o,
 	   top->ins_cyc_o,
 	   top->ins_stb_o,
@@ -177,7 +177,7 @@ int main(int argc, char **argv, char **env) {
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__ridx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__widx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__values[top->top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
-      emit(D_BOTH, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %x\n",
+      emit(D_DEBUG, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %x\n",
 	   top->dat_adr_o, top->dat_cyc_o, top->dat_stb_o, top->dat_ack_i, top->dat_dat_i,
 	   top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i,
 	   top->top__DOT__mem0__DOT__state);
@@ -185,7 +185,26 @@ int main(int argc, char **argv, char **env) {
     }
 
     if (top->mem_halt) {
-      emit(D_BOTH, "HALT\n");
+      emit(D_DEBUG, "HALT\n");
+      emit(D_BOTH, "Registers:\n");
+      for (int i=0; i < 8; i++)
+	emit(D_BOTH, "%*d: %08x",
+	     3, i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+      emit(D_BOTH, "\n");
+      for (int i=8; i < 16; i++)
+	emit(D_BOTH, "%*d: %08x",
+	     3, i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+      emit(D_BOTH, "\n");
+      emit(D_BOTH, "Memory:\n");
+      for (int i=0; i < 8*1024; i++) {
+	if (i%16==0) {
+	  if (i != 0)
+	    emit(D_BOTH, "\n");
+	  emit(D_BOTH, "%04x: ", i);
+	}
+	emit(D_BOTH, "%02x ", top->top__DOT__ram0__DOT__mem[i]);
+      }
+      
       break;
     }
     

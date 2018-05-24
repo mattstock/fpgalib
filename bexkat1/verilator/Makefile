@@ -33,7 +33,7 @@ obj_dir/Vifetch: obj_dir/Vifetch.cpp ifetch_test.cpp
 	cd obj_dir; make -f Vifetch.mk
 
 clean:
-	rm -f *.o *.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
+	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
 	rm -rf obj_dir
 
 %.o: %.c

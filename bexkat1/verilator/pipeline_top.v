@@ -84,6 +84,7 @@ module top(input         clk_i,
   logic [3:0] 		 timer_interrupts;
   logic [1:0] 		 serial0_interrupts;
   logic [3:0] 		 cpu_exception;
+  logic 		 bus0_error;
   
   assign ins_adr_o = ins_bus.adr;
   assign ins_ack_i = ins_bus.ack;
@@ -193,8 +194,10 @@ module top(input         clk_i,
 	       .sp_data_o(exe_sp_data),
 	       .bank_i(id_bank),
 	       .bank_o(exe_bank),
-	       .pc_i(id_pc),
+	       .pc_i(mem_pc_set ? mem_pc : id_pc),
 	       .pc_o(exe_pc),
+	       .pc_mem_i(mem_pc),
+	       .pc_set_i(mem_pc_set),
 	       .pc_set_o(exe_pc_set),
 	       .supervisor(supervisor),
 	       .interrupts(interrupts),
@@ -238,13 +241,15 @@ module top(input         clk_i,
 	   .exc_o(mem_exc),
 	   .bus(dat_bus.master));
 
+  assign bus0_error = (ins_bus.cyc & ins_bus.stb & !ram1_ibus.stb);
+
   interrupt_encoder intenc0(.clk_i(clk_i),
 			    .rst_i(rst_i),
+			    .mmu(bus0_error),
 			    .timer_in(timer_interrupts),
 			    .serial0_in(serial0_interrupts),
 			    .enabled(cpu_inter_en),
 			    .cpu_exception(cpu_exception));
-  
 
   if_wb                       p0_bus2();
   if_wb p1_bus0(), p1_bus1(), p1_bus2();
@@ -340,7 +345,7 @@ module top(input         clk_i,
 			    .p5(p5_bus2.master),
 			    .p6(p6_bus2.master),
 			    .p7(p7_bus2.master),
-			    .p8(io_timer.master),
+			    .p8(p8_bus2.master),
 			    .p9(p9_bus2.master),
 			    .pa(pa_bus2.master),
 			    .pb(pb_bus2.master),
@@ -357,6 +362,7 @@ module top(input         clk_i,
   bus_term bus2_p5(p5_bus2.slave);
   bus_term bus2_p6(p6_bus2.slave);
   bus_term bus2_p7(p7_bus2.slave);
+  bus_term bus2_p8(p8_bus2.slave);
   bus_term bus2_p9(p9_bus2.slave);
   bus_term bus2_pa(pa_bus2.slave);
   bus_term bus2_pb(pb_bus2.slave);
@@ -365,9 +371,10 @@ module top(input         clk_i,
   bus_term bus2_pe(pe_bus2.slave);
   bus_term bus2_pf(pf_bus2.slave);
   
-  ram2 #(.AWIDTH(11)) ram0(.clk_i(clk_i), .rst_i(rst_i),
-			   .bus0(ram0_ibus.slave),
-			   .bus1(ram0_dbus.slave));
+  ram2 #(.AWIDTH(11),
+	 .INITNAME("../clear.hex")) ram0(.clk_i(clk_i), .rst_i(rst_i),
+					 .bus0(ram0_ibus.slave),
+					 .bus1(ram0_dbus.slave));
   ram2 #(.AWIDTH(11)) ram1(.clk_i(clk_i), .rst_i(rst_i),
 			   .bus0(ram1_ibus.slave),
 			   .bus1(ram1_dbus.slave));

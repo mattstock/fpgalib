@@ -1,15 +1,15 @@
 OBJCOPY = bexkat1-elf-objcopy
 OBJDUMP = bexkat1-elf-objdump
-CFLAGS = -T profile-verilator.ld -nostartfiles
+CFLAGS = -T profile-verilator.ld
 ASFLAGS = -nostartfiles
-LDFLAGS = -T profile-verilator.ld -nostartfiles
+LDFLAGS = -T profile-verilator.ld
 LDLIBS = -Lout -lvectors
 AS = bexkat1-elf-as
 LD = bexkat1-elf-ld
 CC = bexkat1-elf-gcc
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions exceptions2 exceptions3 branch jump sub simple
+TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions branch jump sub
 
 
 TESTPROGS = $(addsuffix .hex, $(addprefix out/, $(TESTS)))
@@ -119,5 +119,3 @@ out/jump: out/jump.o
 
 out/sub: out/sub.o
 	$(LD) -nostartfiles -o $@ $^
-
-out/simple: out/simple.o
