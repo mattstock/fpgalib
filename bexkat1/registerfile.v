@@ -68,7 +68,10 @@ module registerfile
 	regfile_next[i] = regfile[i];
       ssp_next = ssp;
       if (|write_en)
-	regfile_next[write_addr] = align_val(write_en, write_data);
+	if (supervisor && write_addr == SPREG)
+	  ssp_next = align_val(sp_en, sp_data_i);
+	else
+	  regfile_next[write_addr] = align_val(write_en, write_data);
       if (|sp_en)
 	if (supervisor)
 	  ssp_next = align_val(sp_en, sp_data_i);
