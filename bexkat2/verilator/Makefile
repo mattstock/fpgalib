@@ -23,6 +23,7 @@ obj_dir/Vmicrocode: obj_dir/Vmicrocode_top.cpp microcode_test.cpp
 clean:
 	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand *~ *.bak
 	rm -rf obj_dir
+	cd tests; make clean
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $^

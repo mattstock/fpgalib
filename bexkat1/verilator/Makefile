@@ -35,6 +35,7 @@ obj_dir/Vifetch: obj_dir/Vifetch.cpp ifetch_test.cpp
 clean:
 	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
 	rm -rf obj_dir
+	cd tests; make clean
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $^
