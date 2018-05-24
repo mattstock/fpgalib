@@ -166,9 +166,10 @@ module control(input clk_i,
 	      begin
 		datbus_cyc_next = 1'b0;
 		datbus_write_next = 1'b0;
-		state_next = S_EXC5;
+		state_next = S_EXC9; // instead of EXC5
 	      end
 	  end
+`ifdef CCR_ON_STACK
 	S_EXC5: // predecrement SSP
 	  begin // forced to use SSP
 	    a_write = 1'b1; // A <= SP
@@ -207,6 +208,7 @@ module control(input clk_i,
 		state_next = S_EXC9;
 	      end
 	  end
+`endif
 	S_EXC9:
 	  begin
 	    // load exception_next handler address into PC
@@ -496,8 +498,9 @@ module control(input clk_i,
 	    datbus_cyc_next = 1'b1;
 	    byteenable_next = 4'hf;
 	    datbus_stb_next = 1'b1;
-	    state_next = S_RTI6;
+	    state_next = S_RTS4; // S_RTI6
 	  end
+`ifdef CCR_ON_STACK
 	S_RTI6:
 	  begin
 	    mdrsel = MDR_DBUS;
@@ -534,9 +537,9 @@ module control(input clk_i,
 	    reg_write_addr = REG_SP;
 	    state_next = S_RTS;
 	  end
+`endif
 	S_RTS: // rts
 	  begin
-	    byteenable_next = 4'hf;
 	    mdrsel = MDR_DBUS;
 	    datbus_cyc_next = 1'b1;
 	    datbus_stb_next = 1'b1;
