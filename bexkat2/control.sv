@@ -608,7 +608,7 @@ module control(input clk_i,
 	S_INTU:
 	  begin
 	    int2sel = INT2_B;
-	    int_func = ir_op;
+	    int_func = intfunc_t'(ir_op);
 	    mdrsel = MDR_INT;
 	    state_next = S_MDR2RA;
 	  end
@@ -628,12 +628,12 @@ module control(input clk_i,
 	  end
 	S_ALU2:
 	  begin
-	    alu_func = ir_op[2:0];
+	    alu_func = alufunc_t'(ir_op[2:0]);
 	    state_next = S_ALU4;
 	  end
 	S_ALU3:
 	  begin
-	    alu_func = ir_op[2:0];
+	    alu_func = alufunc_t'(ir_op[2:0]);
 	    alu2sel = ALU_SVAL;
 	    state_next = S_ALU4;
 	  end
@@ -653,7 +653,7 @@ module control(input clk_i,
 	  end
 	S_INT2:
 	  begin
-	    int_func = { 1'b0, ir_op[2:0] };
+	    int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
 	    mdrsel = MDR_INT;
 	    if (delay == 8'h00)
               state_next = S_MDR2RA;
@@ -661,7 +661,7 @@ module control(input clk_i,
 	S_INT3:
 	  begin
 	    int2sel = INT2_SVAL;
-	    int_func = { 1'b0, ir_op[2:0] };
+	    int_func = intfunc_t'({ 1'b0, ir_op[2:0] });
 	    mdrsel = MDR_INT;
 	    if (delay == 8'h00)
               state_next = S_MDR2RA;
