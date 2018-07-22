@@ -60,18 +60,18 @@ module uart_rx
 	    if (rx_count == 2'b11)
 	      rx_bit_next = 1'b1;
 	  case (state)
-	    4'b0000: if (~rx_bit) state_next <= 4'b1000;
-	    4'b0001: if (next_bit) state_next <= 4'b1000;
-	    4'b1000: if (next_bit) state_next <= 4'b1001;
-	    4'b1001: if (next_bit) state_next <= 4'b1010;
-	    4'b1010: if (next_bit) state_next <= 4'b1011;
-	    4'b1011: if (next_bit) state_next <= 4'b1100;
-	    4'b1100: if (next_bit) state_next <= 4'b1101;
-	    4'b1101: if (next_bit) state_next <= 4'b1110;
-	    4'b1110: if (next_bit) state_next <= 4'b1111;
-	    4'b1111: if (next_bit) state_next <= 4'b0010;
-	    4'b0010: if (next_bit) state_next <= 4'b0000;
-	    default: state_next <= 4'b0000;
+	    4'b0000: if (~rx_bit) state_next = 4'b1000;
+	    4'b0001: if (next_bit) state_next = 4'b1000;
+	    4'b1000: if (next_bit) state_next = 4'b1001;
+	    4'b1001: if (next_bit) state_next = 4'b1010;
+	    4'b1010: if (next_bit) state_next = 4'b1011;
+	    4'b1011: if (next_bit) state_next = 4'b1100;
+	    4'b1100: if (next_bit) state_next = 4'b1101;
+	    4'b1101: if (next_bit) state_next = 4'b1110;
+	    4'b1110: if (next_bit) state_next = 4'b1111;
+	    4'b1111: if (next_bit) state_next = 4'b0010;
+	    4'b0010: if (next_bit) state_next = 4'b0000;
+	    default: state_next = 4'b0000;
 	  endcase // case (state)
 	end // if (baud8clk)
       end // else: !if(rst_i)
