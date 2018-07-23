@@ -14,8 +14,8 @@ all: obj_dir/Vmicrocode tests
 tests:
 	cd tests; make
 
-obj_dir/Vmicrocode_top.cpp: ${CPUDEPS} microcode_top.sv ram2.sv
-	verilator -I.. -I../.. --unroll-count 256 --unroll-stmts 10000 -cc microcode_top.sv -exe microcode_test.cpp
+obj_dir/Vmicrocode_top.cpp: ${CPUDEPS} microcode_top.sv ram2.sv ../../cache/cache.sv ../../cache/cachemem.sv
+	verilator -I.. -I../.. -I../../cache --unroll-count 256 --unroll-stmts 10000 -cc microcode_top.sv -exe microcode_test.cpp
 
 obj_dir/Vmicrocode: obj_dir/Vmicrocode_top.cpp microcode_test.cpp
 	cd obj_dir; make -f Vmicrocode_top.mk

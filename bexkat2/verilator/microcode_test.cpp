@@ -30,6 +30,15 @@ static const char *statestr[] = {
   "PUSH6", "POP5", "RTI6", "RTS4", "LOADD3",
   "STORE5", "ARG3" };
 
+static const char *cachestatestr[] = {
+  "IDLE", "BUSY", "HIT", "MISS", "FILL",
+  "FILL2", "FILL3", "FILL4", "FILL5",
+  "FLUSH", "FLUSH2", "FLUSH3", "FLUSH4",
+  "FLUSH5", "DONE", "INIT", "BUSY2" };
+
+static const char *cachebusstatestr[] = {
+  "IDLE", "DONE", "READ_WAIT", "READ" };
+
 using namespace std;
 Vmicrocode_top* top;
 ofstream debugfile;
@@ -111,9 +120,20 @@ int main(int argc, char **argv, char **env) {
 	   top->ins_ack_i,
 	   top->ins_dat_i,
 	   top->ins_stall_i);
-      emit(D_DEBUG, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
+      emit(D_DEBUG, "Dat: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	   top->dat_adr_o, top->dat_cyc_o, top->dat_stb_o, top->dat_ack_i, top->dat_dat_i,
 	   top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i);
+
+      emit(D_DEBUG, "Cache: state: %*s bus state: %*s\n",
+	   6, cachestatestr[top->top__DOT__cache0__DOT__state],
+	   9, cachebusstatestr[top->top__DOT__cache0__DOT__bus_state]);
+      
+      emit(D_DEBUG, "Cache0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
+	   top->cache0_adr_o, top->cache0_cyc_o, top->cache0_stb_o, top->cache0_ack_i, top->cache0_dat_i,
+	   top->cache0_dat_o, top->cache0_we_o, top->cache0_sel_o, top->cache0_stall_i);
+      emit(D_DEBUG, "Ram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
+	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
+	   top->ram0_dat_o, top->ram0_we_o, top->ram0_sel_o, top->ram0_stall_i);
       cycle++;
     }
 
