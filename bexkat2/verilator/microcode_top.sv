@@ -179,8 +179,8 @@ module top(input              clk_i,
   bus_term bus1_pf(pf_bus1.slave);
 
   cache #(.AWIDTH(11), .TAGSIZE(5)) cache0(.clk_i(clk_i), .rst_i(rst_i),
-					   .sysbus(cache0_dbus.slave),
-					   .rambus(ram0_dbus.master),
+					   .inbus(cache0_dbus.slave),
+					   .outbus(ram0_dbus.master),
 					   .cache_status(cache_status),
 					   .stats_stb_i(1'h0));
   

@@ -1,31 +1,31 @@
 `include "../wb.vh"
 
+// pipeline and block support
 module cache
   #(AWIDTH=25,
     DWIDTH=32,
     ROWWIDTH=4,
     TAGSIZE=13)
-   (input        clk_i,
-    input 	 rst_i,
-    if_wb.slave  sysbus,
-    if_wb.master rambus,
-    output [1:0] cache_status,
-    input 	 stats_stb_i);
+  (input        clk_i,
+   input 	rst_i,
+		if_wb.slave inbus,
+		if_wb.master outbus,
+   output [1:0] cache_status,
+   input 	stats_stb_i);
 
-  logic [31:0] 	 ramdat_i, ramdat_o;
-  logic [31:0] 	 sysdat_i, sysdat_o;
-
+  logic [31:0] 	outbus_dat_i, outbus_dat_o;
+  logic [31:0] 	inbus_dat_i, inbus_dat_o;
   
 `ifdef NO_MODPORT_EXPRESSIONS
-  assign sysdat_i = sysbus.dat_m;
-  assign sysbus.dat_s = sysdat_o;
-  assign ramdat_i = rambus.dat_s;
-  assign rambus.dat_m = ramdat_o;
+  assign inbus_dat_i = inbus.dat_m;
+  assign inbus.dat_s = inbus_dat_o;
+  assign outbus_dat_i = outbus.dat_s;
+  assign outbus.dat_m = outbus_dat_o;
 `else
-  assign sysdat_i = sysbus.dat_i;
-  assign sysbus.dat_o = sysdat_o;
-  assign ramdat_i = rambus.dat_i;
-  assign rambus.dat_o = ramdat_o;
+  assign inbus_dat_i = inbus.dat_i;
+  assign inbus.dat_o = inbus_dat_o;
+  assign outbus_dat_i = outbus.dat_i;
+  assign outbus.dat_o = outbus_dat_o;
 `endif
   
   // for my own sanity
@@ -34,7 +34,7 @@ module cache
   
   // 2 bits for valid and lru
   localparam ROWSIZE = 'd2 + ROWWIDTH + TAGSIZE + ROWWIDTH*DWIDTH;
-
+  
   // index values into the cache rows
   localparam LRU = ROWSIZE-'d1;
   localparam VALID = LRU-'d1;
@@ -44,21 +44,82 @@ module cache
   localparam DIRTY0 = DIRTY1-'d1;
   localparam TAGBASE = DIRTY0-TAGSIZE;
   
-  typedef enum 	 bit [1:0] { BS_IDLE, BS_DONE,
-			     BS_READ_WAIT, BS_READ } bs_state_t;
-  typedef enum 	 bit [4:0] { S_IDLE, S_BUSY, S_HIT, S_MISS, 
+  // front of house
+  typedef enum 	bit [1:0] { BS_IDLE, BS_ACK,
+			    BS_READ_WAIT, BS_WAIT } bs_state_t;
+
+  bs_state_t    bus_state, bus_state_next;
+  
+  logic 	fifo_read, fifo_empty, fifo_full, fifo_write;
+  logic [FIFO_DWIDTH-1:0] fifo_out, fifo_in;
+  logic [DWIDTH-1:0] 	fifo_dat_i;
+  logic [AWIDTH-1:0] 	fifo_adr_i;
+  logic [3:0] 		fifo_sel_i;
+  logic 		fifo_we_i;
+
+  logic [DWIDTH-1:0] 	inbus_dat_next;
+
+  assign fifo_in = {inbus.we,
+		    inbus.adr[AWIDTH+1:2],
+		    inbus_dat_i,
+		    inbus.sel};
+  assign { fifo_we_i, fifo_adr_i, fifo_dat_i, fifo_sel_i } = fifo_out;
+  assign fifo_write = ~fifo_full & inbus.cyc & inbus.stb & ~stats_stb_i;
+  assign inbus.stall = fifo_full;
+  assign inbus.ack = (bus_state == BS_ACK);
+  
+  always_ff @(posedge clk_i or posedge rst_i)
+    if (rst_i)
+      begin
+	bus_state <= BS_IDLE;
+      end
+    else
+      begin
+	bus_state <= bus_state_next;
+      end
+  
+  always_comb
+    begin
+      bus_state_next = bus_state;
+      case (bus_state)
+	BS_IDLE:
+	  if (inbus.cyc & inbus.stb)
+	    if (~fifo_full | stats_stb_i)
+	      bus_state_next = (inbus.we ? BS_ACK : BS_READ_WAIT);
+	BS_READ_WAIT: // reads need to block until all transactions are complete
+	  if (fifo_empty && state == S_DONE)
+	    bus_state_next = BS_ACK;
+	BS_ACK:
+	  if (inbus.cyc)
+	    if (inbus.stb)
+	      begin
+		if (~fifo_full | stats_stb_i)
+		  bus_state_next = (inbus.we ? BS_ACK : BS_READ_WAIT);
+	      end
+	    else
+	      bus_state_next = BS_WAIT;
+	  else // might need to clear the fifo too
+	    bus_state_next = BS_IDLE;
+	BS_WAIT:
+	  if (~inbus.cyc)
+	    bus_state_next = BS_IDLE;
+      endcase
+    end
+  
+  // back of house
+  typedef enum 	 bit [5:0] { S_IDLE, S_BUSY, S_HIT, S_MISS, 
 			     S_FILL, S_FILL2, S_FILL3, S_FILL4, 
-			     S_FILL5, S_FLUSH, S_FLUSH2, S_FLUSH3, 
+			     S_FILL5, S_FLUSH, S_FLUSH2, S_FLUSH3,
 			     S_FLUSH4, S_FLUSH5, S_DONE,
+			     S_FILL_WAIT, S_FILL2_WAIT, S_FILL3_WAIT, S_FILL4_WAIT,
+			     S_FLUSH_WAIT, S_FLUSH2_WAIT, S_FLUSH3_WAIT, S_FLUSH4_WAIT,
 			     S_INIT, S_BUSY2 } state_t;
 
-  logic [DWIDTH-1:0] s_dat_o_next;
   state_t               state, state_next;
   logic [INDEXSIZE-1:0] initaddr, initaddr_next;
   logic [31:0] 		hitreg, hitreg_next;
   logic [31:0] 		flushreg, flushreg_next;
   logic [31:0] 		fillreg, fillreg_next;
-  bs_state_t            bus_state, bus_state_next;
   logic [ROWSIZE-1:0] 	rowin [1:0], rowin_next [1:0];
   logic 		lruset, lruset_next;
   logic 		hitset, hitset_next;
@@ -66,46 +127,39 @@ module cache
   logic [TAGSIZE-1:0] 	tag_in;
   logic [TAGSIZE-1:0] 	tag_cache [1:0];
   logic [ROWSIZE-1:0] 	rowout [1:0];
-  logic [INDEXSIZE-1:0] rowaddr;
+  logic [INDEXSIZE-1:0] rowaddr, rowaddr1, rowaddr2, rowaddr3;
   logic [1:0] 		wordsel;
   logic [ROWWIDTH-1:0] 	dirty [1:0];
   logic [1:0] 		valid, wren, hit, lru;
   logic 		anyhit;
   logic [DWIDTH-1:0] 	word0 [1:0], word1 [1:0], word2 [1:0], word3 [1:0];
-  logic 		fifo_empty, fifo_full, fifo_write;
-  logic [DWIDTH-1:0] 	fifo_dat_i;
-  logic [AWIDTH-1:0] 	fifo_adr_i;
-  logic [3:0] 		fifo_sel_i;
-  logic 		fifo_we_i;
   logic 		mem_stb;
-  logic 		fifo_read;
-  logic [FIFO_DWIDTH-1:0] fifo_out;
+  logic [AWIDTH-1:0] 	outbus_adr_next;
   
-  assign fifo_read = (state == S_IDLE & ~fifo_empty);
-  assign fifo_write = (bus_state == BS_IDLE) & ~fifo_full &
-		      sysbus.cyc & sysbus.stb & ~stats_stb_i;
   assign cache_status = hit;
   
+  assign fifo_read = (state == S_IDLE & ~fifo_empty);
   assign tag_in = fifo_adr_i[AWIDTH-1:INDEXSIZE+2];
   assign rowaddr = fifo_adr_i[INDEXSIZE+1:2];
+  assign rowaddr1 = rowaddr + {{INDEXSIZE-1{1'h0}}, 1'h1};
+  assign rowaddr2 = rowaddr << 1'h1;
+  assign rowaddr3 = rowaddr1 << 1'h1;
+ 
   assign wordsel = fifo_adr_i[1:0];
-  
-  assign { fifo_we_i, fifo_adr_i, fifo_dat_i, fifo_sel_i } = fifo_out;
-  assign rambus.sel = 4'hf;
-  assign sysbus.ack = (bus_state == BS_DONE);
   assign anyhit = |hit;
-  assign sysbus.stall = 1'b0;
 
-  // FILL
-  /* verilator lint_off WIDTH */
-  assign rambus.adr = { tag_in, rowaddr, 2'h0 };
-  /* verilator lint_on WIDTH */
+  assign outbus.stb = (state == S_FILL || state == S_FILL2 ||
+		       state == S_FILL3 || state == S_FILL4 ||
+		       state == S_FLUSH || state == S_FLUSH2 ||
+		       state == S_FLUSH3 || state == S_FLUSH4);
+  assign outbus.cyc = outbus.stb | (state == S_FILL_WAIT || state == S_FILL2_WAIT ||
+				    state == S_FILL3_WAIT || state == S_FILL4_WAIT ||
+				    state == S_FLUSH_WAIT || state == S_FLUSH2_WAIT ||
+				    state == S_FLUSH3_WAIT || state == S_FLUSH4_WAIT);
+  assign outbus.we = (state == S_FLUSH || state == S_FLUSH2 ||
+		      state == S_FLUSH3 || state == S_FLUSH4);
+  assign outbus.sel = 4'hf;
 
-  // FLUSH
-  /* verilator lint_off WIDTH */
-  rambus.adr = { tag_cache[lruset], rowaddr, 2'h0 };
-  /* verilator lint_on WIDTH */
-  
   always_comb
     begin
       for (int i=0; i < 2; i = i + 1)
@@ -126,51 +180,31 @@ module cache
     if (rst_i)
       begin
 	state <= S_INIT;
-	bus_state <= BS_IDLE;
 	for (int i=0; i < 2; i = i + 1)
 	  rowin[i] <= 'h0;
-	sysdat_o <= 32'h0;
+	inbus_dat_o <= 32'h0;
 	initaddr <= {INDEXSIZE{1'h1}};
 	hitreg <= 32'h0;
 	flushreg <= 32'h0;
 	fillreg <= 32'h0;
 	hitset <= 1'h0;
 	lruset <= 1'h0;
+	outbus.adr <= 32'h0;
       end
     else
       begin
-	bus_state <= bus_state_next;
 	state <= state_next;
 	for (int i=0; i < 2; i = i + 1)
 	  rowin[i] <= rowin_next[i];
-	sysdat_o <= s_dat_o_next;
+	inbus_dat_o <= inbus_dat_next;
 	initaddr <= initaddr_next;
 	hitreg <= hitreg_next;
 	flushreg <= flushreg_next;
 	fillreg <= fillreg_next;
 	hitset <= hitset_next;
 	lruset <= lruset_next;
+	outbus.adr <= { {6'd32-AWIDTH{1'h0}}, outbus_adr_next};
       end
-  
-  always_comb
-    begin
-      bus_state_next = bus_state;
-      case (bus_state)
-	BS_IDLE:
-	  begin
-	    if (sysbus.cyc & sysbus.stb)
-	      if (~fifo_full | stats_stb_i)
-		bus_state_next = (sysbus.we ? BS_DONE : BS_READ_WAIT);
-	  end
-	BS_READ_WAIT: // reads need to block until all transactions are complete
-	  if (fifo_empty & state == S_DONE)
-	    bus_state_next = BS_DONE;
-	BS_DONE: 
-	  bus_state_next = BS_IDLE;
-	default:
-	  bus_state_next = BS_IDLE;
-      endcase
-    end
   
   always_comb
     begin
@@ -180,17 +214,16 @@ module cache
 	wren[i] = 1'b0;
       end
       initaddr_next = initaddr;
-      s_dat_o_next = sysdat_o;
+      inbus_dat_next = inbus_dat_o;
       hitreg_next = hitreg;
       flushreg_next = flushreg;
       fillreg_next = fillreg;
       lruset_next = lruset;
       hitset_next = hitset;
-      rambus.we = 1'h0;
-      rambus.cyc = 1'h0;
-      rambus.stb = 1'h0;
-      ramdat_o = 32'h0;
-      rambus.adr = 32'h0;
+      outbus_adr_next = outbus.adr[AWIDTH-1:0];
+      outbus.we = 1'h0;
+      outbus.stb = 1'h0;
+      outbus_dat_o = 32'h0;
       
       case (state)
 	S_INIT: 
@@ -205,13 +238,13 @@ module cache
 	      state_next = S_IDLE;
 	  end
 	S_IDLE:
-	  if (sysbus.cyc & sysbus.stb & stats_stb_i)
+	  if (inbus.cyc & inbus.stb & stats_stb_i)
 	    begin
-	      case (sysbus.adr[5:2])
-		'h0: s_dat_o_next = hitreg;
-		'h1: s_dat_o_next = flushreg;
-		'h2: s_dat_o_next = fillreg;
-		default: s_dat_o_next = 32'h0;
+	      case (inbus.adr[5:2])
+		'h0: inbus_dat_next = hitreg;
+		'h1: inbus_dat_next = flushreg;
+		'h2: inbus_dat_next = fillreg;
+		default: inbus_dat_next = 32'h0;
 	      endcase
 	      state_next = S_DONE;
 	    end
@@ -279,10 +312,10 @@ module cache
 	    else
 	      begin
 		case (wordsel)
-		  2'h0: s_dat_o_next = word0[hitset];
-		  2'h1: s_dat_o_next = word1[hitset];
-		  2'h2: s_dat_o_next = word2[hitset];
-		  2'h3: s_dat_o_next = word3[hitset];
+		  2'h0: inbus_dat_next = word0[hitset];
+		  2'h1: inbus_dat_next = word1[hitset];
+		  2'h2: inbus_dat_next = word2[hitset];
+		  2'h3: inbus_dat_next = word3[hitset];
 		endcase
 	      end
 	    hitreg_next = hitreg + 1'h1;
@@ -314,36 +347,43 @@ module cache
 	      end
 	    rowin_next[lruset][VALID] = 1'b1;
 	    rowin_next[lruset][DIRTY0] = 1'b0; // clean
-	    rambus.cyc = 1'b1;
-	    rambus.stb = 1'b1;
-	    rowin_next[lruset][31:0] = ramdat_i;
-	    if (rambus.ack)
-	      state_next = S_FILL2;
-	  end
+	    rowin_next[lruset][31:0] = outbus_dat_i;
+	    outbus_adr_next = { tag_in, rowaddr, 2'h0 };
+	    state_next = S_FILL_WAIT;
+	  end // case: S_FILL
+	S_FILL_WAIT:
+	  if (outbus.ack)
+	    state_next = S_FILL2;
 	S_FILL2:
 	  begin
-	    rambus.cyc = 1'b1;
 	    rowin_next[lruset][DIRTY1] = 1'b0; // clean
-	    rowin_next[lruset][63:32] = ramdat_i;
-	    if (rambus.ack)
-	      state_next = S_FILL3;
+	    rowin_next[lruset][63:32] = outbus_dat_i;
+	    outbus_adr_next = { tag_in, rowaddr1, 2'h0 };
+	    state_next = S_FILL2_WAIT;
 	  end
+	S_FILL2_WAIT:
+	  if (outbus.ack)
+	    state_next = S_FILL3;
 	S_FILL3:
 	  begin
-	    rambus.cyc = 1'b1;
 	    rowin_next[lruset][DIRTY2] = 1'b0; // clean
-	    rowin_next[lruset][95:64] = ramdat_i;
-	    if (rambus.ack)
-	      state_next = S_FILL4;
+	    rowin_next[lruset][95:64] = outbus_dat_i;
+	    outbus_adr_next = { tag_in, rowaddr2, 2'h0 };
+	    state_next = S_FILL3_WAIT;
 	  end
+	S_FILL3_WAIT:
+	  if (outbus.ack)
+	    state_next = S_FILL4;
 	S_FILL4:
 	  begin
-	    rambus.cyc = 1'b1;
 	    rowin_next[lruset][DIRTY3] = 1'b0; // clean
-	    rowin_next[lruset][127:96] = ramdat_i;
-	    if (rambus.ack)
-	      state_next = S_FILL5;
+	    rowin_next[lruset][127:96] = outbus_dat_i;
+	    outbus_adr_next = { tag_in, rowaddr3, 2'h0 };
+	    state_next = S_FILL4_WAIT;
 	  end
+	S_FILL4_WAIT:
+	  if (outbus.ack)
+	    state_next = S_FILL5;
 	S_FILL5:
 	  begin
 	    for (int i=0; i < 2; i = i + 1)
@@ -352,33 +392,28 @@ module cache
 	    state_next = S_BUSY;
 	  end
 	S_FLUSH: begin
-	  ramdat_o = word0[lruset];
-	  rambus.cyc = 1'b1;
-	  rambus.we = 1'b1;
-	  if (rambus.ack)
+	  outbus_dat_o = word0[lruset];
+	  /* verilator lint_off WIDTH */
+	  assign outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h0 };
+	  /* verilator lint_on WIDTH */
+	  if (outbus.ack)
 	    state_next = S_FLUSH2;
 	end
 	S_FLUSH2:
 	  begin
-	    ramdat_o = word1[lruset];
-	    rambus.cyc = 1'b1;
-	    rambus.we = 1'b1;
-	    if (rambus.ack)
+	    outbus_dat_o = word1[lruset];
+	    if (outbus.ack)
 	      state_next = S_FLUSH3;
 	  end
 	S_FLUSH3: begin
-	  ramdat_o = word2[lruset];
-	  rambus.cyc = 1'b1;
-	  rambus.we = 1'b1;
-	  if (rambus.ack) 
+	  outbus_dat_o = word2[lruset];
+	  if (outbus.ack) 
 	    state_next = S_FLUSH4;
 	end
 	S_FLUSH4:
 	  begin
-	    ramdat_o = word3[lruset];
-	    rambus.cyc = 1'b1;
-	    rambus.we = 1'b1;
-	    if (rambus.ack)
+	    outbus_dat_o = word3[lruset];
+	    if (outbus.ack)
 	      state_next = S_FLUSH5;
 	  end
 	S_FLUSH5:
@@ -400,14 +435,13 @@ module cache
 	  .address((state == S_INIT ? initaddr : rowaddr)),
 	  .we(wren[1]), .in(rowin[1]), .out(rowout[1]));
 
-  fifo #(.DWIDTH(FIFO_DWIDTH))
-    cfifo0(.clk_i(clk_i), .rst_i(rst_i),
-	   .push(fifo_write), .pop(fifo_read),
-	   .in({sysbus.we,
-		sysbus.adr[AWIDTH+1:2],
-		sysdat_i,
-		sysbus.sel}),
-	   .out(fifo_out),
-	   .full(fifo_full), .empty(fifo_empty));
+  fifo #(.DWIDTH(FIFO_DWIDTH)) infifo0(.clk_i(clk_i),
+				       .rst_i(rst_i),
+				       .push(fifo_write),
+				       .pop(fifo_read),
+				       .in(fifo_in),
+				       .out(fifo_out),
+				       .full(fifo_full),
+				       .empty(fifo_empty));
   
 endmodule
