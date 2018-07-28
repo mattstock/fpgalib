@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include "Vmicrocode_top.h"
 #include "verilated.h"
+#include <verilated_vcd_c.h>
 
 #define INS_RA(x) (0xf & (x >> 20))
 #define INS_RB(x) (0xf & (x >> 16))
@@ -44,6 +45,7 @@ static const char *cachebusstatestr[] = {
 
 using namespace std;
 Vmicrocode_top* top;
+VerilatedVcdC* trace;
 ofstream debugfile;
 
 #define D_DEBUG 0
@@ -68,8 +70,8 @@ int main(int argc, char **argv, char **env) {
   uint8_t str_count = 0;
   vluint64_t tick = 0, cycle = 0;
 
-  if (argc != 2) {
-    printf("Need debug file on command line.\n");
+  if (argc != 3) {
+    printf("Need debug and trace files on command line.\n");
     exit(1);
   }
   
@@ -77,12 +79,16 @@ int main(int argc, char **argv, char **env) {
     
   Verilated::commandArgs(argc, argv);
   top = new Vmicrocode_top;
-
+  Verilated::traceEverOn(true);
+  trace = new VerilatedVcdC;
+  top->trace(trace, 99);
+  trace->open(argv[2]);
+  
   top->rst_i = 1;
   top->clk_i = 0;
   top->interrupts = 0;
   
-  while (!Verilated::gotFinish()) {
+  while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
     top->clk_i = ~top->clk_i;
     
@@ -92,6 +98,9 @@ int main(int argc, char **argv, char **env) {
     
     top->eval();
 
+    trace->dump(tick);
+    trace->flush();
+    
     if (top->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
       emit(D_DEBUG, "state: %*s  ", 8,
@@ -134,6 +143,50 @@ int main(int argc, char **argv, char **env) {
       emit(D_DEBUG, "Cache0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	   top->cache0_adr_o, top->cache0_cyc_o, top->cache0_stb_o, top->cache0_ack_i, top->cache0_dat_i,
 	   top->cache0_dat_o, top->cache0_we_o, top->cache0_sel_o, top->cache0_stall_i);
+      emit(D_DEBUG, "row0: in: %03x%08x%08x%08x%08x out: %03x%08x%08x%08x%08x\n",
+	   top->top__DOT__cache0__DOT__rowin[0][4],
+	   top->top__DOT__cache0__DOT__rowin[0][3],
+	   top->top__DOT__cache0__DOT__rowin[0][2],
+	   top->top__DOT__cache0__DOT__rowin[0][1],
+	   top->top__DOT__cache0__DOT__rowin[0][0],
+	   top->top__DOT__cache0__DOT__rowout[0][4],
+	   top->top__DOT__cache0__DOT__rowout[0][3],
+	   top->top__DOT__cache0__DOT__rowout[0][2],
+	   top->top__DOT__cache0__DOT__rowout[0][1],
+	   top->top__DOT__cache0__DOT__rowout[0][0]);
+      emit(D_DEBUG, "row1: in: %03x%08x%08x%08x%08x out: %03x%08x%08x%08x%08x\n",
+	   top->top__DOT__cache0__DOT__rowin[1][4],
+	   top->top__DOT__cache0__DOT__rowin[1][3],
+	   top->top__DOT__cache0__DOT__rowin[1][2],
+	   top->top__DOT__cache0__DOT__rowin[1][1],
+	   top->top__DOT__cache0__DOT__rowin[1][0],
+	   top->top__DOT__cache0__DOT__rowout[1][4],
+	   top->top__DOT__cache0__DOT__rowout[1][3],
+	   top->top__DOT__cache0__DOT__rowout[1][2],
+	   top->top__DOT__cache0__DOT__rowout[1][1],
+	   top->top__DOT__cache0__DOT__rowout[1][0]);
+
+      emit(D_DEBUG, "fifo: write: %d read: %d saved: %016lx\n",
+	   top->top__DOT__cache0__DOT__fifo_write,
+	   top->top__DOT__cache0__DOT__fifo_read,
+	   top->top__DOT__cache0__DOT__fifo_saved);
+      emit(D_DEBUG, "words0: 3: %08x 2: %08x 1: %08x 0: %08x\n",
+	   top->top__DOT__cache0__DOT__word3[0],
+	   top->top__DOT__cache0__DOT__word2[0],
+	   top->top__DOT__cache0__DOT__word1[0],
+	   top->top__DOT__cache0__DOT__word0[0]);
+      emit(D_DEBUG, "words1: 3: %08x 2: %08x 1: %08x 0: %08x\n",
+	   top->top__DOT__cache0__DOT__word3[1],
+	   top->top__DOT__cache0__DOT__word2[1],
+	   top->top__DOT__cache0__DOT__word1[1],
+	   top->top__DOT__cache0__DOT__word0[1]);
+	   
+      emit(D_DEBUG, "cmem0: adr: %08x we: %d hitset: %d lruset: %d\n",
+	   top->top__DOT__cache0__DOT____Vcellinp__cmem0__address,
+	   top->top__DOT__cache0__DOT__wren & 0x1,
+	   top->top__DOT__cache0__DOT__hitset,
+	   top->top__DOT__cache0__DOT__lruset);
+	   
       emit(D_DEBUG, "Ram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
 	   top->ram0_dat_o, top->ram0_we_o, top->ram0_sel_o, top->ram0_stall_i);
@@ -167,6 +220,7 @@ int main(int argc, char **argv, char **env) {
     tick++;
   }
   debugfile.close();
+  trace->close();
   top->final();
   delete top;
   exit(0);

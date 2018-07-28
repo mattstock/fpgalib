@@ -51,7 +51,7 @@ module cache
   bs_state_t    bus_state, bus_state_next;
   
   logic 	fifo_read, fifo_empty, fifo_full, fifo_write;
-  logic [FIFO_DWIDTH-1:0] fifo_out, fifo_in;
+  logic [FIFO_DWIDTH-1:0] fifo_out, fifo_in, fifo_saved, fifo_saved_next;
   logic [DWIDTH-1:0] 	fifo_dat_i;
   logic [AWIDTH-1:0] 	fifo_adr_i;
   logic [3:0] 		fifo_sel_i;
@@ -63,7 +63,8 @@ module cache
 		    inbus.adr[AWIDTH+1:2],
 		    inbus_dat_i,
 		    inbus.sel};
-  assign { fifo_we_i, fifo_adr_i, fifo_dat_i, fifo_sel_i } = fifo_out;
+  assign { fifo_we_i, fifo_adr_i, fifo_dat_i, fifo_sel_i } = fifo_saved;
+
   assign fifo_write = ~fifo_full & inbus.cyc & inbus.stb & ~stats_stb_i;
   assign inbus.stall = fifo_full;
   assign inbus.ack = (bus_state == BS_ACK);
@@ -190,6 +191,7 @@ module cache
 	hitset <= 1'h0;
 	lruset <= 1'h0;
 	outbus.adr <= 32'h0;
+	fifo_saved <= 'h0;
       end
     else
       begin
@@ -203,6 +205,7 @@ module cache
 	fillreg <= fillreg_next;
 	hitset <= hitset_next;
 	lruset <= lruset_next;
+	fifo_saved <= fifo_saved_next;
 	outbus.adr <= { {6'd32-AWIDTH{1'h0}}, outbus_adr_next};
       end
   
@@ -213,6 +216,7 @@ module cache
 	rowin_next[i] = rowin[i];
 	wren[i] = 1'b0;
       end
+      fifo_saved_next = fifo_saved;
       initaddr_next = initaddr;
       inbus_dat_next = inbus_dat_o;
       hitreg_next = hitreg;
@@ -249,7 +253,11 @@ module cache
 	      state_next = S_DONE;
 	    end
 	  else  
-	    if (~fifo_empty) state_next = S_BUSY;
+	    if (~fifo_empty)
+	      begin
+		fifo_saved_next = fifo_out;
+		state_next = S_BUSY;
+	      end
 	S_BUSY: 
 	  state_next = S_BUSY2;
 	S_BUSY2:
