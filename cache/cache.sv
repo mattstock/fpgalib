@@ -399,31 +399,39 @@ module cache
 	    fillreg_next = fillreg + 1'h1;
 	    state_next = S_BUSY;
 	  end
-	S_FLUSH: begin
-	  outbus_dat_o = word0[lruset];
-	  /* verilator lint_off WIDTH */
-	  assign outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h0 };
-	  /* verilator lint_on WIDTH */
+	S_FLUSH:
+	  begin
+	    outbus_dat_o = word0[lruset];
+	    assign outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h0 };
+	    state_next = S_FLUSH_WAIT;
+	  end
+	S_FLUSH_WAIT:
 	  if (outbus.ack)
 	    state_next = S_FLUSH2;
-	end
 	S_FLUSH2:
 	  begin
 	    outbus_dat_o = word1[lruset];
-	    if (outbus.ack)
-	      state_next = S_FLUSH3;
+	    state_next = S_FLUSH2_WAIT;
 	  end
-	S_FLUSH3: begin
-	  outbus_dat_o = word2[lruset];
+	S_FLUSH2_WAIT:
+	  if (outbus.ack)
+	    state_next = S_FLUSH3;
+	S_FLUSH3:
+	  begin
+	    outbus_dat_o = word2[lruset];
+	    state_next = S_FLUSH3_WAIT;
+	  end
+	S_FLUSH3_WAIT:
 	  if (outbus.ack) 
 	    state_next = S_FLUSH4;
-	end
 	S_FLUSH4:
 	  begin
 	    outbus_dat_o = word3[lruset];
-	    if (outbus.ack)
-	      state_next = S_FLUSH5;
+	    state_next = S_FLUSH4_WAIT;
 	  end
+	S_FLUSH4_WAIT:
+	  if (outbus.ack)
+	    state_next = S_FLUSH5;
 	S_FLUSH5:
 	  begin
 	    flushreg_next = flushreg + 1'h1;
