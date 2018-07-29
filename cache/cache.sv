@@ -135,6 +135,7 @@ module cache
   logic 		anyhit;
   logic [DWIDTH-1:0] 	word0 [1:0], word1 [1:0], word2 [1:0], word3 [1:0];
   logic 		mem_stb;
+  logic [DWIDTH-1:0] 	outbus_dat_next;
   logic [AWIDTH-1:0] 	outbus_adr_next;
   
   assign cache_status = hit;
@@ -191,6 +192,7 @@ module cache
 	hitset <= 1'h0;
 	lruset <= 1'h0;
 	outbus.adr <= 32'h0;
+	outbus_dat_o <= 32'h0;
 	fifo_saved <= 'h0;
       end
     else
@@ -206,6 +208,7 @@ module cache
 	hitset <= hitset_next;
 	lruset <= lruset_next;
 	fifo_saved <= fifo_saved_next;
+	outbus_dat_o <= outbus_dat_next;
 	outbus.adr <= { {6'd32-AWIDTH{1'h0}}, outbus_adr_next};
       end
   
@@ -216,6 +219,7 @@ module cache
 	rowin_next[i] = rowin[i];
 	wren[i] = 1'b0;
       end
+      outbus_dat_next = outbus_dat_o;
       fifo_saved_next = fifo_saved;
       initaddr_next = initaddr;
       inbus_dat_next = inbus_dat_o;
@@ -225,9 +229,6 @@ module cache
       lruset_next = lruset;
       hitset_next = hitset;
       outbus_adr_next = outbus.adr[AWIDTH-1:0];
-      outbus.we = 1'h0;
-      outbus.stb = 1'h0;
-      outbus_dat_o = 32'h0;
       
       case (state)
 	S_INIT: 
@@ -354,44 +355,52 @@ module cache
 		rowin_next[1][LRU] = 1'b1;
 	      end
 	    rowin_next[lruset][VALID] = 1'b1;
-	    rowin_next[lruset][DIRTY0] = 1'b0; // clean
-	    rowin_next[lruset][31:0] = outbus_dat_i;
+	    rowin_next[lruset][DIRTY3] = 1'b0; // clean
 	    outbus_adr_next = { tag_in, rowaddr, 2'h0 };
 	    state_next = S_FILL_WAIT;
 	  end // case: S_FILL
 	S_FILL_WAIT:
 	  if (outbus.ack)
-	    state_next = S_FILL2;
+	    begin
+	      rowin_next[lruset][127:96] = outbus_dat_i;
+	      state_next = S_FILL2;
+	    end
 	S_FILL2:
 	  begin
-	    rowin_next[lruset][DIRTY1] = 1'b0; // clean
-	    rowin_next[lruset][63:32] = outbus_dat_i;
+	    rowin_next[lruset][DIRTY2] = 1'b0; // clean
 	    outbus_adr_next = { tag_in, rowaddr1, 2'h0 };
 	    state_next = S_FILL2_WAIT;
 	  end
 	S_FILL2_WAIT:
 	  if (outbus.ack)
-	    state_next = S_FILL3;
+	    begin
+	      rowin_next[lruset][95:64] = outbus_dat_i;
+	      state_next = S_FILL3;
+	    end
 	S_FILL3:
 	  begin
-	    rowin_next[lruset][DIRTY2] = 1'b0; // clean
-	    rowin_next[lruset][95:64] = outbus_dat_i;
+	    rowin_next[lruset][DIRTY1] = 1'b0; // clean
 	    outbus_adr_next = { tag_in, rowaddr2, 2'h0 };
 	    state_next = S_FILL3_WAIT;
 	  end
 	S_FILL3_WAIT:
 	  if (outbus.ack)
-	    state_next = S_FILL4;
+	    begin
+	      rowin_next[lruset][63:32] = outbus_dat_i;
+	      state_next = S_FILL4;
+	    end
 	S_FILL4:
 	  begin
-	    rowin_next[lruset][DIRTY3] = 1'b0; // clean
-	    rowin_next[lruset][127:96] = outbus_dat_i;
+	    rowin_next[lruset][DIRTY0] = 1'b0; // clean
 	    outbus_adr_next = { tag_in, rowaddr3, 2'h0 };
 	    state_next = S_FILL4_WAIT;
 	  end
 	S_FILL4_WAIT:
 	  if (outbus.ack)
-	    state_next = S_FILL5;
+	    begin
+	      rowin_next[lruset][31:0] = outbus_dat_i;
+	      state_next = S_FILL5;
+	    end
 	S_FILL5:
 	  begin
 	    for (int i=0; i < 2; i = i + 1)
@@ -401,8 +410,8 @@ module cache
 	  end
 	S_FLUSH:
 	  begin
-	    outbus_dat_o = word0[lruset];
-	    assign outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h0 };
+	    outbus_dat_next = word3[lruset];
+	    outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h0 };
 	    state_next = S_FLUSH_WAIT;
 	  end
 	S_FLUSH_WAIT:
@@ -410,7 +419,8 @@ module cache
 	    state_next = S_FLUSH2;
 	S_FLUSH2:
 	  begin
-	    outbus_dat_o = word1[lruset];
+	    outbus_dat_next = word2[lruset];
+	    outbus_adr_next = { tag_cache[lruset], rowaddr1, 2'h0 };
 	    state_next = S_FLUSH2_WAIT;
 	  end
 	S_FLUSH2_WAIT:
@@ -418,7 +428,8 @@ module cache
 	    state_next = S_FLUSH3;
 	S_FLUSH3:
 	  begin
-	    outbus_dat_o = word2[lruset];
+	    outbus_dat_next = word1[lruset];
+	    outbus_adr_next = { tag_cache[lruset], rowaddr2, 2'h0 };
 	    state_next = S_FLUSH3_WAIT;
 	  end
 	S_FLUSH3_WAIT:
@@ -426,7 +437,8 @@ module cache
 	    state_next = S_FLUSH4;
 	S_FLUSH4:
 	  begin
-	    outbus_dat_o = word3[lruset];
+	    outbus_dat_next = word0[lruset];
+	    outbus_adr_next = { tag_cache[lruset], rowaddr3, 2'h0 };
 	    state_next = S_FLUSH4_WAIT;
 	  end
 	S_FLUSH4_WAIT:
