@@ -21,7 +21,7 @@ module cachemem
   always_comb
     begin
       for (int i=0; i < CACHESIZE; i = i + 1)
-	mem_next[i] = (i == { {EXT{1'b0}}, address} ? in : mem[i]);
+	mem_next[i] = (we && (i == { {EXT{1'b0}}, address}) ? in : mem[i]);
     end
   
 endmodule // cachemem

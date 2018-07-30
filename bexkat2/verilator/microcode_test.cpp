@@ -180,12 +180,26 @@ int main(int argc, char **argv, char **env) {
 	   top->top__DOT__cache0__DOT__word2[1],
 	   top->top__DOT__cache0__DOT__word1[1],
 	   top->top__DOT__cache0__DOT__word0[1]);
-	   
-      emit(D_DEBUG, "cmem0: adr: %08x we: %d hitset: %d lruset: %d\n",
-	   top->top__DOT__cache0__DOT____Vcellinp__cmem0__address,
-	   top->top__DOT__cache0__DOT__wren & 0x1,
+      emit(D_DEBUG, "wren1: %x lru1: %x valid1: %x dirty1: %x hit1: %x tagcache1: %02x\n",
+	   top->top__DOT__cache0__DOT__wren>>1,
+	   top->top__DOT__cache0__DOT__lru>>1,
+	   top->top__DOT__cache0__DOT__valid>>1,
+	   top->top__DOT__cache0__DOT__dirty[1],
+	   top->top__DOT__cache0__DOT__hit>>1,
+	   top->top__DOT__cache0__DOT__tag_cache[1]);
+      emit(D_DEBUG, "wren0: %x lru0: %x valid0: %x dirty0: %x hit0: %x tagcache0: %02x\n",
+	   top->top__DOT__cache0__DOT__wren&0x1,
+	   top->top__DOT__cache0__DOT__lru&0x1,
+	   top->top__DOT__cache0__DOT__valid&0x1,
+	   top->top__DOT__cache0__DOT__dirty[0],
+	   top->top__DOT__cache0__DOT__hit&0x1,
+	   top->top__DOT__cache0__DOT__tag_cache[0]);
+      
+      emit(D_DEBUG, "hitset: %d lruset: %d tagin: %02x rowaddr: %02x\n",
 	   top->top__DOT__cache0__DOT__hitset,
-	   top->top__DOT__cache0__DOT__lruset);
+	   top->top__DOT__cache0__DOT__lruset,
+	   (top->top__DOT__cache0__DOT__fifo_saved>>42)& 0x1f,
+	   (top->top__DOT__cache0__DOT__fifo_saved>>36)& 0x3f);
 	   
       emit(D_DEBUG, "Ram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
