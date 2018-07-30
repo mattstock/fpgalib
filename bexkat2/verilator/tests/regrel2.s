@@ -14,4 +14,9 @@ _start:
 	st %1, -2(%0)
 	ld.l %4, -4(%0)
 	ld %5, -2(%0)
+	# force cache flush
+	ldd.l %10, 0xf00
+	ldd.l %10, 0x1100
+	ldd.l %10, 0x2f0
+	ldd.l %10, 0x11f0
 	halt

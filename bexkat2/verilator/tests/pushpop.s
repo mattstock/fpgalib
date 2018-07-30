@@ -8,5 +8,8 @@ _start:	ldi %sp, 0x0000100
 	push %1
 	pop %3
 	pop %4
+	# force cache flush
+	ldd.l %10, 0x1f0
+	ldd.l %10, 0x2f0
 	halt
 	

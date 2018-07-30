@@ -27,9 +27,9 @@ module cache
   assign outbus_dat_i = outbus.dat_i;
   assign outbus.dat_o = outbus_dat_o;
 `endif
-  
-  // for my own sanity
-  localparam INDEXSIZE=AWIDTH-TAGSIZE;
+
+  localparam WORDBITS = $clog2(ROWWIDTH);
+  localparam INDEXSIZE=AWIDTH-TAGSIZE-WORDBITS;
   localparam FIFO_DWIDTH=AWIDTH+DWIDTH+'d4+'d1;  
   
   // 2 bits for valid and lru
@@ -131,7 +131,7 @@ module cache
   logic [TAGSIZE-1:0] 	tag_in;
   logic [TAGSIZE-1:0] 	tag_cache [1:0];
   logic [ROWSIZE-1:0] 	rowout [1:0];
-  logic [INDEXSIZE-1:0] rowaddr, rowaddr1, rowaddr2, rowaddr3;
+  logic [INDEXSIZE-1:0] rowaddr;
   logic [1:0] 		wordsel;
   logic [ROWWIDTH-1:0] 	dirty [1:0];
   logic [1:0] 		valid, wren, hit, lru;
@@ -145,13 +145,10 @@ module cache
   assign cache_status = hit;
   
   assign fifo_read = (state == S_IDLE & ~fifo_empty);
-  assign tag_in = fifo_adr_i[AWIDTH-1:INDEXSIZE];
-  assign rowaddr = fifo_adr_i[INDEXSIZE-1:0];
-  assign rowaddr1 = rowaddr + {{INDEXSIZE-2{1'h0}}, 2'h1};
-  assign rowaddr2 = rowaddr + {{INDEXSIZE-2{1'h0}}, 2'h2};
-  assign rowaddr3 = rowaddr + {{INDEXSIZE-2{1'h0}}, 2'h3};
+  assign tag_in = fifo_adr_i[AWIDTH-1:INDEXSIZE+WORDBITS];
+  assign rowaddr = fifo_adr_i[INDEXSIZE+WORDBITS-1:WORDBITS];
+  assign wordsel = fifo_adr_i[WORDBITS-1:0];
  
-  assign wordsel = fifo_adr_i[1:0];
   assign anyhit = |hit;
 
   assign outbus.sel = 4'hf;
@@ -359,7 +356,7 @@ module cache
 	      end
 	    rowin_next[lruset][VALID] = 1'b1;
 	    rowin_next[lruset][DIRTY3] = 1'b0; // clean
-	    outbus_adr_next = { tag_in, rowaddr };
+	    outbus_adr_next = { tag_in, rowaddr, 2'h0 };
 	    outbus_cyc_next = 1'h1;
 	    outbus_stb_next = 1'h1;
 	    outbus_we_next = 1'h0;
@@ -377,7 +374,7 @@ module cache
 	S_FILL2:
 	  begin
 	    rowin_next[lruset][DIRTY2] = 1'b0; // clean
-	    outbus_adr_next = { tag_in, rowaddr1 };
+	    outbus_adr_next = { tag_in, rowaddr, 2'h1 };
 	    outbus_stb_next = 1'h1;
 	    state_next = S_FILL2_WAIT;
 	  end
@@ -393,7 +390,7 @@ module cache
 	S_FILL3:
 	  begin
 	    rowin_next[lruset][DIRTY1] = 1'b0; // clean
-	    outbus_adr_next = { tag_in, rowaddr2 };
+	    outbus_adr_next = { tag_in, rowaddr, 2'h2 };
 	    outbus_stb_next = 1'h1;
 	    state_next = S_FILL3_WAIT;
 	  end
@@ -409,7 +406,7 @@ module cache
 	S_FILL4:
 	  begin
 	    rowin_next[lruset][DIRTY0] = 1'b0; // clean
-	    outbus_adr_next = { tag_in, rowaddr3 };
+	    outbus_adr_next = { tag_in, rowaddr, 2'h3 };
 	    outbus_stb_next = 1'h1;
 	    state_next = S_FILL4_WAIT;
 	  end
@@ -433,7 +430,7 @@ module cache
 	S_FLUSH:
 	  begin
 	    outbus_dat_next = word0[lruset];
-	    outbus_adr_next = { tag_cache[lruset], rowaddr };
+	    outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h0 };
 	    outbus_cyc_next = 1'h1;
 	    outbus_stb_next = 1'h1;
 	    outbus_we_next = 1'h1;
@@ -448,7 +445,7 @@ module cache
 	S_FLUSH2:
 	  begin
 	    outbus_dat_next = word1[lruset];
-	    outbus_adr_next = { tag_cache[lruset], rowaddr1 };
+	    outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h1 };
 	    outbus_stb_next = 1'h1;
 	    state_next = S_FLUSH2_WAIT;
 	  end
@@ -461,7 +458,7 @@ module cache
 	S_FLUSH3:
 	  begin
 	    outbus_dat_next = word2[lruset];
-	    outbus_adr_next = { tag_cache[lruset], rowaddr2 };
+	    outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h2 };
 	    outbus_stb_next = 1'h1;
 	    state_next = S_FLUSH3_WAIT;
 	  end
@@ -474,7 +471,7 @@ module cache
 	S_FLUSH4:
 	  begin
 	    outbus_dat_next = word3[lruset];
-	    outbus_adr_next = { tag_cache[lruset], rowaddr3 };
+	    outbus_adr_next = { tag_cache[lruset], rowaddr, 2'h3 };
 	    outbus_stb_next = 1'h1;
 	    state_next = S_FLUSH4_WAIT;
 	  end

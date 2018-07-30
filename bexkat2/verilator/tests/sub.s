@@ -6,6 +6,9 @@ _start:
 	bsr func2
 	ldi %3, 0xdeadbeef
 	mov %4, %3
+	# force cache flush
+	ldd.l %10, 0x11f0
+	ldd.l %10, 0xef0
 	halt
 	
 func1:	ldiu %1, 0x4567

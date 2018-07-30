@@ -21,4 +21,9 @@ _start:
 	st.b %1, 7(%0)
 	ld.l %8, 4(%0)
 	ld.b %9, 4(%0)
+	# force cache flush
+	ldd.l %10, 0xf00
+	ldd.l %10, 0x1100
+	ldd.l %10, 0x2f0
+	ldd.l %10, 0x11f0
 	halt
