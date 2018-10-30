@@ -5,7 +5,7 @@ LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
-CPUDEPS = ../bexkat1p.v ../alu.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../registerfile.v ../fifo.v ../memwb.v ../../interrupt_encoder.v ../../timerint.v ../../uart/uart.v
+CPUDEPS = ../bexkat1p.v ../alu.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../registerfile.v ../../fifo.sv ../memwb.v ../../interrupt_encoder.v ../../timerint.v ../../uart/uart.v
 
 .PHONY: all clean tests
 
