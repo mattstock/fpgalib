@@ -14,7 +14,7 @@ module timerint(input        clk_i,
   assign dat_i = bus.dat_i;
   assign bus.dat_o = dat_o;
 `endif
-
+  
   assign dat_o = result;
   assign bus.stall = 1'h0;
   assign bus.ack = (state == S_DONE);
@@ -24,23 +24,26 @@ module timerint(input        clk_i,
 		       status[0] & control[4] };
   
   typedef enum 		     bit [1:0] { S_IDLE, S_BUSY, S_DONE } state_t;
-
+  
   logic [31:0] 		     control, control_next;
   logic [31:0] 		     counter, counter_next;
   logic [31:0] 		     result, result_next;
   logic [31:0] 		     status, status_next;
-  logic [31:0] 		     compareval [3:0], compareval_next [3:0];
-  logic [31:0] 		     counterval [3:0], counterval_next [3:0];
-
+  logic [31:0] 		     cmpval [3:0], cmpval_next [3:0];
+  logic [31:0] 		     cntval [3:0], cntval_next [3:0];
+  logic [1:0] 		     idx;
+  
   state_t                    state, state_next;
 
+  always idx = bus.adr[3:2];
+  
   always_ff @(posedge clk_i, posedge rst_i)
     if (rst_i)
       begin
 	for (int i=0; i < 4; i = i + 1)
 	  begin
-            counterval[i] <= 32'h0;
-            compareval[i] <= 32'h0;
+            cntval[i] <= 32'h0;
+            cmpval[i] <= 32'h0;
 	  end
 	control <= 32'h0;
 	counter <= 32'h0;
@@ -52,8 +55,8 @@ module timerint(input        clk_i,
       begin
 	for (int i=0; i < 4; i = i + 1)
 	  begin
-            counterval[i] <= counterval_next[i];
-            compareval[i] <= compareval_next[i];
+            cntval[i] <= cntval_next[i];
+            cmpval[i] <= cmpval_next[i];
 	  end
 	control <= control_next;
 	status <= status_next;
@@ -66,8 +69,8 @@ module timerint(input        clk_i,
     begin
       for (int i=0; i < 4; i = i + 1)
 	begin
-	  counterval_next[i] = counterval[i];
-	  compareval_next[i] = compareval[i];
+	  cntval_next[i] = cntval[i];
+	  cmpval_next[i] = cmpval[i];
 	end
       control_next = control;
       result_next = result;
@@ -86,13 +89,17 @@ module timerint(input        clk_i,
               4'b0000:
 		if (bus.we)
 		  begin
-		    control_next[7:0] = (bus.sel[0] ? dat_i[7:0]
+		    control_next[7:0] = (bus.sel[0] 
+					 ? dat_i[7:0]
 					 : control[7:0]);
-		    control_next[15:8] = (bus.sel[1] ? dat_i[15:8]
+		    control_next[15:8] = (bus.sel[1] 
+					  ? dat_i[15:8]
 					  : control[15:8]);
-		    control_next[23:16] = (bus.sel[2] ? dat_i[23:16] 
+		    control_next[23:16] = (bus.sel[2] 
+					   ? dat_i[23:16] 
 					   : control[23:16]);
-		    control_next[31:24] = (bus.sel[3] ? dat_i[31:24] 
+		    control_next[31:24] = (bus.sel[3] 
+					   ? dat_i[31:24] 
 					   : control[31:24]);
 		  end
 		else
@@ -100,13 +107,17 @@ module timerint(input        clk_i,
               4'b0001:
 		if (bus.we)
 		  begin
-		    status_next[7:0] = (bus.sel[0] ? dat_i[7:0] ^ status[7:0]
+		    status_next[7:0] = (bus.sel[0] 
+					? dat_i[7:0] ^ status[7:0]
 					: status[7:0]);
-		    status_next[15:8] = (bus.sel[1] ? dat_i[15:8] ^ status[15:8]
+		    status_next[15:8] = (bus.sel[1] 
+					 ? dat_i[15:8] ^ status[15:8]
 					 : status[15:8]);
-		    status_next[23:16] = (bus.sel[2] ? dat_i[23:16] ^ status[23:16]
+		    status_next[23:16] = (bus.sel[2] 
+					  ? dat_i[23:16] ^ status[23:16]
 					  : status[23:16]);
-		    status_next[31:24] = (bus.sel[3] ? dat_i[31:24] ^ status[31:24]
+		    status_next[31:24] = (bus.sel[3] 
+					  ? dat_i[31:24] ^ status[31:24]
 					  : status[31:24]);
 		  end
 		else
@@ -114,31 +125,36 @@ module timerint(input        clk_i,
               4'b01??:
 		if (bus.we)
 		  begin
-		    compareval_next[bus.adr[3:2]][7:0] = (bus.sel[0] ? dat_i[7:0]
-							: compareval[bus.adr[3:2]][7:0]);
-		    compareval_next[bus.adr[3:2]][15:8] = (bus.sel[1] ? dat_i[15:8] 
-							 : compareval[bus.adr[3:2]][15:8]);
-		    compareval_next[bus.adr[3:2]][23:16] = (bus.sel[2] ? dat_i[23:16] 
-							  : compareval[bus.adr[3:2]][23:16]);
-		    compareval_next[bus.adr[3:2]][31:24] = (bus.sel[3] ? dat_i[31:24] 
-							  : compareval[bus.adr[3:2]][31:24]);
+		    cmpval_next[idx][7:0] = (bus.sel[0] 
+					     ? dat_i[7:0]
+					     : cmpval[idx][7:0]);
+		    cmpval_next[idx][15:8] = (bus.sel[1] 
+					      ? dat_i[15:8] 
+					      : cmpval[idx][15:8]);
+		    cmpval_next[idx][23:16] = (bus.sel[2] 
+					       ? dat_i[23:16] 
+					       : cmpval[idx][23:16]);
+		    cmpval_next[idx][31:24] = (bus.sel[3] 
+					       ? dat_i[31:24] 
+					       : cmpval[idx][31:24]);
 		  end
 		else
-		  result_next = compareval[bus.adr[3:2]];
+		  result_next = cmpval[idx];
               4'b10??:
 		if (bus.we)
 		  begin
-		    counterval_next[bus.adr[3:2]][7:0] = (bus.sel[0] ? dat_i[7:0] 
-							: counterval[bus.adr[3:2]][7:0]);
-		    counterval_next[bus.adr[3:2]][15:8] = (bus.sel[1] ? dat_i[15:8] 
-							 : counterval[bus.adr[3:2]][15:8]);
-		    counterval_next[bus.adr[3:2]][23:16] = (bus.sel[2] ? dat_i[23:16] 
-							  : counterval[bus.adr[3:2]][23:16]);
-		    counterval_next[bus.adr[3:2]][31:24] = (bus.sel[3] ? dat_i[31:24] 
-							  : counterval[bus.adr[3:2]][31:24]);
+		    cntval_next[idx][7:0] = (bus.sel[0] 
+					     ? dat_i[7:0] 
+					     : cntval[idx][7:0]);
+		    cntval_next[idx][15:8] = (bus.sel[1] ? dat_i[15:8] 
+					      : cntval[idx][15:8]);
+		    cntval_next[idx][23:16] = (bus.sel[2] ? dat_i[23:16] 
+					       : cntval[idx][23:16]);
+		    cntval_next[idx][31:24] = (bus.sel[3] ? dat_i[31:24] 
+					       : cntval[idx][31:24]);
 		  end
 		else
-		  result_next = counterval[bus.adr[3:2]];
+		  result_next = cntval[idx];
               4'b1100:
 		result_next = counter;
               default:
@@ -152,10 +168,10 @@ module timerint(input        clk_i,
       
       // Handle any new timer events
       for (int i=0; i < 4; i = i + 1)
-	if (control[i] & (compareval[i] == counter))
+	if (control[i] & (cmpval[i] == counter))
 	  begin
             status_next[i] = 1'b1;
-            counterval_next[i] = counterval[i] + 1'b1;
+            cntval_next[i] = cntval[i] + 1'b1;
 	  end
     end
   
