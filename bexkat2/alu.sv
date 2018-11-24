@@ -63,23 +63,23 @@ module alu
 	  begin
 	    out_next = in1 + in2;
 	    ccr_next[3] = (in1[WIDTH-1] & in2[WIDTH-1]) | 
-			  (in2[WIDTH-1] & out[WIDTH-1]) | 
-			  (out[WIDTH-1] & in1[WIDTH-1]);
+			  (in2[WIDTH-1] & out_next[WIDTH-1]) | 
+			  (out_next[WIDTH-1] & in1[WIDTH-1]);
 	    ccr_next[2] = ~|out_next;
 	    ccr_next[1] = out_next[WIDTH-1];
-	    ccr_next[0] = (in1[WIDTH-1] & in2[WIDTH-1] & ~out[WIDTH-1]) |
-			  (~in1[WIDTH-1] & ~in2[WIDTH-1] & out[WIDTH-1]);
+	    ccr_next[0] = (in1[WIDTH-1] & in2[WIDTH-1] & ~out_next[WIDTH-1]) |
+			  (~in1[WIDTH-1] & ~in2[WIDTH-1] & out_next[WIDTH-1]);
 	  end  
 	ALU_SUB:
 	  begin
 	    out_next = in1 - in2;
 	    ccr_next[3] = ~in1[WIDTH-1] & in2[WIDTH-1] | 
-			  in2[WIDTH-1] & out[WIDTH-1] |
-			  out[WIDTH-1] & ~in1[WIDTH-1];
+			  in2[WIDTH-1] & out_next[WIDTH-1] |
+			  out_next[WIDTH-1] & ~in1[WIDTH-1];
 	    ccr_next[2] = ~|out_next;
 	    ccr_next[1] = out_next[WIDTH-1];
-	    ccr_next[0] = (in1[WIDTH-1] & ~in2[WIDTH-1] & ~out[WIDTH-1]) |
-			  (~in1[WIDTH-1] & in2[WIDTH-1] & out[WIDTH-1]);
+	    ccr_next[0] = (in1[WIDTH-1] & ~in2[WIDTH-1] & ~out_next[WIDTH-1]) |
+			  (~in1[WIDTH-1] & in2[WIDTH-1] & out_next[WIDTH-1]);
 	  end  
 	ALU_LSHIFT:
 	  begin

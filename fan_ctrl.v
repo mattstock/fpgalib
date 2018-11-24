@@ -22,7 +22,7 @@ module fan_ctrl(input 	  	    clk,
     begin
       if (reset)
 	begin
-	  speed <= 16'h0400;
+	  speed <= 16'h040;
 	  tick <= 16'h0;
 	  coe_fan_pwm <= 1'b1;
 	end
