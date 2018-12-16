@@ -69,20 +69,23 @@ int main(int argc, char **argv, char **env) {
   uint8_t mode = 0;
   uint8_t str_count = 0;
   vluint64_t tick = 0, cycle = 0;
-
-  if (argc != 3) {
-    printf("Need debug and trace files on command line.\n");
-    exit(1);
-  }
+  char *tracefile;
   
-  debugfile.open(argv[1]);
+  for (int i=1; i < argc; i++) {
+    if (!strncmp(argv[i], "--debug=", 8)) {
+      debugfile.open(argv[i]+8);
+    }
+    if (!strncmp(argv[i], "--trace=", 8)) {
+      tracefile = argv[i]+8;
+    }
+  }
     
   Verilated::commandArgs(argc, argv);
   top = new Vmicrocode_top;
   Verilated::traceEverOn(true);
   trace = new VerilatedVcdC;
   top->trace(trace, 99);
-  trace->open(argv[2]);
+  trace->open(tracefile);
   
   top->rst_i = 1;
   top->clk_i = 0;
@@ -93,7 +96,7 @@ int main(int argc, char **argv, char **env) {
     top->clk_i = ~top->clk_i;
     
     // Drop reset
-    if (tick == 2)
+    if (tick == 4)
       top->rst_i = 0;
     
     top->eval();
@@ -200,7 +203,7 @@ int main(int argc, char **argv, char **env) {
 	   top->top__DOT__cache0__DOT__lruset,
 	   (top->top__DOT__cache0__DOT__fifo_saved>>42)& 0x1f,
 	   (top->top__DOT__cache0__DOT__fifo_saved>>36)& 0x3f);
-	   
+
       emit(D_DEBUG, "Ram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
 	   top->ram0_dat_o, top->ram0_we_o, top->ram0_sel_o, top->ram0_stall_i);

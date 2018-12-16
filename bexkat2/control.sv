@@ -27,11 +27,13 @@ module control(input clk_i,
 	       output logic 	  datbus_write,
 	       input 		  datbus_ack,
 	       output logic 	  datbus_stb,
+	       input 		  datbus_stall,
 	       output logic [3:0] byteenable,
 	       input [1:0] 	  datbus_align,
 	       input 		  insbus_ack,
 	       output logic 	  insbus_stb, 
 	       output logic 	  insbus_cyc,
+	       input 		  insbus_stall,
 	       output 		  halt,
 	       output 		  int_en,
 	       output 		  vectoff_write,
@@ -161,12 +163,15 @@ module control(input clk_i,
 	  end
 	S_EXC12: // push return val onto stack
 	  begin
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		datbus_write_next = 1'b0;
-		state_next = S_EXC9; // instead of EXC5
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    datbus_write_next = 1'b0;
+		    state_next = S_EXC9; // instead of EXC5
+		  end
 	      end
 	  end
 `ifdef CCR_ON_STACK
@@ -200,12 +205,15 @@ module control(input clk_i,
 	  end
 	S_EXC13: // push CCR onto stack
 	  begin
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		datbus_write_next = 1'b0;
-		state_next = S_EXC9;
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    datbus_write_next = 1'b0;
+		    state_next = S_EXC9;
+		  end
 	      end
 	  end
 `endif
@@ -434,12 +442,15 @@ module control(input clk_i,
 	  end
 	S_PUSH6:
 	  begin
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		datbus_write_next = 1'b0;
-		state_next = S_TERM;
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    datbus_write_next = 1'b0;
+		    state_next = S_TERM;
+		  end
 	      end
 	  end
 	S_POP: // pop
@@ -485,11 +496,14 @@ module control(input clk_i,
 	S_POP5:
 	  begin
 	    mdrsel = MDR_DBUS;
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		state_next = S_MDR2RA;
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    state_next = S_MDR2RA;
+		  end
 	      end
 	  end
 	S_RTI: // rti - pop CCR off of stack
@@ -504,11 +518,14 @@ module control(input clk_i,
 	S_RTI6:
 	  begin
 	    mdrsel = MDR_DBUS;
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		state_next = S_RTI2;
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    state_next = S_RTI2;
+		  end
 	      end
 	  end
 	S_RTI2:
@@ -549,11 +566,14 @@ module control(input clk_i,
 	S_RTS4:
 	  begin
 	    mdrsel = MDR_DBUS;
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		state_next = S_RTS2;
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    state_next = S_RTS2;
+		  end
 	      end
 	  end
 	S_RTS2:
@@ -749,11 +769,14 @@ module control(input clk_i,
 	S_LOADD3:
 	  begin
 	    mdrsel = MDR_DBUS;
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		state_next = S_MDR2RA;
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    state_next = S_MDR2RA;
+		  end
 	      end
 	  end // case: S_LOADD3
 	S_STORE:
@@ -803,12 +826,15 @@ module control(input clk_i,
 	  end // case: S_STORE4
 	S_STORE5:
 	  begin // MAR has address, MDR value
-	    datbus_stb_next = 1'b0;
-	    if (datbus_ack)
+	    if (!datbus_stall)
 	      begin
-		datbus_cyc_next = 1'b0;
-		datbus_write_next = 1'b0;
-		state_next = S_TERM;
+		datbus_stb_next = 1'b0;
+		if (datbus_ack)
+		  begin
+		    datbus_cyc_next = 1'b0;
+		    datbus_write_next = 1'b0;
+		    state_next = S_TERM;
+		  end
 	      end
 	  end // case: S_STORE4
 	S_HALT: state_next = S_HALT;

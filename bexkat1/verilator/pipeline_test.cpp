@@ -54,7 +54,7 @@ int main(int argc, char **argv, char **env) {
     top->clk_i = ~top->clk_i;
     
     // Drop reset
-    if (tick == 2)
+    if (tick == 4)
       top->rst_i = 0;
 
     top->eval();
