@@ -1,4 +1,4 @@
-include "../wb.vh"
+`include "../wb.vh"
 
 module led_matrix
   #(COL=32,
@@ -14,11 +14,10 @@ module led_matrix
    output 	matrix_clk,
    output 	matrix_oe_n);
 
-  logic 	r,g,b;
-  logic 	led_clk, select;
+  logic 	r,g,b, select;
   logic [23:0] 	buffer, matrixmem_out;
   logic [7:0] 	r_level, g_level, b_level;
-  logic 	ack_delay;
+  logic [1:0]	ack_delay;
 
   logic [2:0] 	matrix0_next, matrix1_next;
   state_t       state, state_next;
@@ -42,7 +41,8 @@ module led_matrix
 			    S_CLOCK, S_LATCH, S_DELAY } state_t;
 
   assign demux = rowpos;
-  assign select = bus.cyc & bus.stb
+  assign select = bus.cyc & bus.stb;
+  assign bus.stall = 1'b0;
 
   always_ff @(posedge clk_i)
     ack_delay <= { ack_delay[0], select };
@@ -57,7 +57,7 @@ module led_matrix
       b = b_level[pwmval];
       matrix_stb = (state == S_LATCH);
       matrix_clk = (state == S_CLOCK);
-      oe_n = ~(state == S_DELAY);
+      matrix_oe_n = ~(state == S_DELAY);
     end
 
   always_ff @(posedge led_clk or posedge rst_i)
