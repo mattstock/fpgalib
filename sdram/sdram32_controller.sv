@@ -1,59 +1,59 @@
 `include "../wb.vh"
-module sdram_controller(input 	   	    clk_i,
-			output 		    mem_clk_o,
-			input 		    rst_i,
-			if_wb.slave         bus,
-			output 		    we_n,
-			output 		    cs_n,
-			output 		    cke,
-			output 		    cas_n,
-			output 		    ras_n,
-			output logic [3:0]  dqm,
-			output logic [1:0]  ba,
-			output logic 	    databus_dir,
-			output logic [12:0] addrbus_out,
-			input [31:0] 	    databus_in,
-			output logic [31:0] databus_out);
+module sdram32_controller(input 	      clk_i,
+			  output 	      mem_clk_o,
+			  input 	      rst_i,
+			  if_wb.slave         bus,
+			  output 	      we_n,
+			  output 	      cs_n,
+			  output 	      cke,
+			  output 	      cas_n,
+			  output 	      ras_n,
+			  output logic [3:0]  dqm,
+			  output logic [1:0]  ba,
+			  output logic 	      databus_dir,
+			  output logic [12:0] addrbus_out,
+			  input [31:0] 	      databus_in,
+			  output logic [31:0] databus_out);
 
-   assign {cs_n, cas_n, ras_n, we_n} = cmd;
+  assign {cs_n, cas_n, ras_n, we_n} = cmd;
 
-   localparam [3:0]
-     CMD_DESL = 4'hf,
-     CMD_NOP = 4'h7,
-     CMD_READ = 4'h3,
-     CMD_WRITE = 4'h2,
-     CMD_ACTIVATE = 4'h5,
-     CMD_PRECHARGE = 4'h4,
-     CMD_REFRESH = 4'h1,
-     CMD_MRS = 4'h0;
-
-  typedef enum 				    bit [4:0] { S_INIT_WAIT,
-							S_INIT_PRECHARGE, 
-							S_INIT_REFRESH,
-							S_INIT_REFRESH_WAIT,
-							S_INIT_MODE_WAIT,
-							S_INIT_MODE,
-							S_IDLE,
-							S_ACTIVATE,
-							S_READ,
-							S_READ_WAIT,
-							S_READ_OUT,
-							S_REFRESH,
-							S_READ_OUT2,
-							S_READ_OUT3,
-							S_READ_OUT4,
-							S_WRITE2,
-							S_WRITE3,
-							S_WRITE4,
-							S_WRITE,
-							S_WRITE_WAIT,
-							S_WRITE_WAIT2,
-							S_WRITE_WAIT3,
-							S_ACTIVATE_WAIT
-							} state_t;
+  localparam [3:0]
+    CMD_DESL = 4'hf,
+    CMD_NOP = 4'h7,
+    CMD_READ = 4'h3,
+    CMD_WRITE = 4'h2,
+    CMD_ACTIVATE = 4'h5,
+    CMD_PRECHARGE = 4'h4,
+    CMD_REFRESH = 4'h1,
+    CMD_MRS = 4'h0;
   
-  logic 				    select;
-
+  typedef enum 				      bit [4:0] { S_INIT_WAIT,
+							  S_INIT_PRECHARGE, 
+							  S_INIT_REFRESH,
+							  S_INIT_REFRESH_WAIT,
+							  S_INIT_MODE_WAIT,
+							  S_INIT_MODE,
+							  S_IDLE,
+							  S_ACTIVATE,
+							  S_READ,
+							  S_READ_WAIT,
+							  S_READ_OUT,
+							  S_REFRESH,
+							  S_READ_OUT2,
+							  S_READ_OUT3,
+							  S_READ_OUT4,
+							  S_WRITE2,
+							  S_WRITE3,
+							  S_WRITE4,
+							  S_WRITE,
+							  S_WRITE_WAIT,
+							  S_WRITE_WAIT2,
+							  S_WRITE_WAIT3,
+							  S_ACTIVATE_WAIT
+							  } state_t;
+  
+  logic 				      select;
+  
   assign databus_dir = (state == S_WRITE ||
 			state == S_WRITE2 ||
 			state == S_WRITE3 ||
@@ -67,19 +67,28 @@ module sdram_controller(input 	   	    clk_i,
 		    state == S_WRITE2 ||
 		    state == S_WRITE3 ||
 		    state == S_WRITE4);
-assign bus.stall = 1'b0;
-assign bus.dat_o = (select & ~bus.we ? databus_in : 32'h0);
-assign cke = ~rst_i;
-assign select = bus.cyc & bus.stb;
-assign databus_out = bus.dat_i;
+  assign bus.stall = (state == S_INIT_WAIT ||
+		      state == S_INIT_PRECHARGE ||
+		      state == S_INIT_REFRESH ||
+		      state == S_INIT_REFRESH_WAIT ||
+		      state == S_INIT_MODE_WAIT ||
+		      state == S_IDLE ||
+		      state == S_ACTIVATE ||
+		      state == S_ACTIVATE_WAIT ||
+		      state == S_REFRESH);
+  assign bus.dat_o = (bus.we ? 32'h0 : databus_in);
 
-  logic [1:0] 				    ba_next;
-  logic [3:0] 				    cmd, cmd_next;
-  state_t                                   state, state_next;
-  logic [15:0] 				    delay, delay_next;
-  logic [12:0] 				    addrbus_out_next;
-  logic [3:0] 				    dqm_next;
-
+  assign cke = ~rst_i;
+  assign select = bus.cyc & bus.stb;
+  assign databus_out = bus.dat_i;
+  
+  logic [1:0] 				      ba_next;
+  logic [3:0] 				      cmd, cmd_next;
+  state_t                                     state, state_next;
+  logic [15:0] 				      delay, delay_next;
+  logic [12:0] 				      addrbus_out_next;
+  logic [3:0] 				      dqm_next;
+  
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
@@ -101,7 +110,7 @@ assign databus_out = bus.dat_i;
 	  dqm <= dqm_next;
 	end
     end
-
+  
   always_comb
     begin
       cmd_next = cmd;
@@ -167,8 +176,8 @@ assign databus_out = bus.dat_i;
 	    begin
 	      // address[24:0] [24:23] for bank, [22:10] for row, 
 	      cmd_next = CMD_ACTIVATE;
-	      ba_next = bus.adr[24:23];
-	      addrbus_out_next = bus.adr[22:10];  // open row
+	      ba_next = bus.adr[26:25];
+	      addrbus_out_next = bus.adr[24:12];  // open row
 	      dqm_next = ~bus.sel;
 	      state_next = S_ACTIVATE;
 	    end
@@ -195,10 +204,10 @@ assign databus_out = bus.dat_i;
 	  begin
 	    cmd_next = (bus.we ? CMD_WRITE : CMD_READ);
 	    state_next = (bus.we ? S_WRITE : S_READ);
-	    ba_next = bus.adr[24:23];
+	    ba_next = bus.adr[26:25];
 	    dqm_next = ~bus.sel;
 	    addrbus_out_next[10] = 1'b1; // auto precharge
-	    addrbus_out_next[9:0] = bus.adr[9:0]; // read/write column
+	    addrbus_out_next[9:0] = bus.adr[11:2]; // read/write column
 	  end
 	S_READ:
 	  begin

@@ -1,8 +1,10 @@
 `include "../wb.vh"
 
+// Assume that the busses are all byte-based.
+
 // pipeline and block support
 module cache
-  #(AWIDTH=25,
+  #(AWIDTH=27,
     DWIDTH=32,
     ROWWIDTH=4,
     TAGSIZE=13)
@@ -10,27 +12,38 @@ module cache
    input 	rst_i,
 		if_wb.slave inbus,
 		if_wb.master outbus,
-   output [1:0] cache_status,
-   input 	stats_stb_i);
+		if_wb.slave stats,
+   output [1:0] cache_status);
 
   logic [31:0] 	outbus_dat_i, outbus_dat_o;
   logic [31:0] 	inbus_dat_i, inbus_dat_o;
+  logic [31:0] 	stats_dat_i, stats_dat_o;
   
 `ifdef NO_MODPORT_EXPRESSIONS
   assign inbus_dat_i = inbus.dat_m;
   assign inbus.dat_s = inbus_dat_o;
+  assign stats_dat_i = stats.dat_m;
+  assign stats.dat_s = stats_dat_o;
   assign outbus_dat_i = outbus.dat_s;
   assign outbus.dat_m = outbus_dat_o;
 `else
   assign inbus_dat_i = inbus.dat_i;
   assign inbus.dat_o = inbus_dat_o;
+  assign stats_dat_i = stats.dat_i;
+  assign stats.dat_o = stats_dat_o;
   assign outbus_dat_i = outbus.dat_i;
   assign outbus.dat_o = outbus_dat_o;
 `endif
 
+  // Number of bits in address to represent byte position in a word
+  localparam BYTEBITS = $clog2(DWIDTH/8);
+  // Number of bits to remove from index based on the number of
+  // words we're putting in a single cache line
   localparam WORDBITS = $clog2(ROWWIDTH);
-  localparam INDEXSIZE=AWIDTH-TAGSIZE-WORDBITS;
-  localparam FIFO_DWIDTH=AWIDTH+DWIDTH+'d4+'d1;  
+  // Based on the byte size of the memory, the size of the index
+  localparam INDEXSIZE=AWIDTH-TAGSIZE-WORDBITS-BYTEBITS;
+  // Size of the command fifo data width
+  localparam FIFO_DWIDTH=AWIDTH+DWIDTH+'d4+'d1-BYTEBITS;  
   
   // 2 bits for valid and lru
   localparam ROWSIZE = 'd2 + ROWWIDTH + TAGSIZE + ROWWIDTH*DWIDTH;
@@ -45,7 +58,7 @@ module cache
   localparam TAGBASE = DIRTY0-TAGSIZE;
 
   // 0 fill
-  localparam padding = { 8'd30-AWIDTH{1'b0} };
+  localparam padding = { 8'd32-AWIDTH{1'b0} };
 
   // front of house
   typedef enum 	bit [1:0] { BS_IDLE, BS_ACK,
@@ -53,27 +66,31 @@ module cache
 
   bs_state_t    bus_state, bus_state_next;
   
-  logic 	fifo_read, fifo_empty, fifo_full, fifo_write;
-  logic [FIFO_DWIDTH-1:0] fifo_out, fifo_in, fifo_saved, fifo_saved_next;
-  logic [DWIDTH-1:0] 	fifo_dat_i;
-  logic [AWIDTH-1:0] 	fifo_adr_i;
-  logic [3:0] 		fifo_sel_i;
-  logic 		fifo_we_i;
+  logic  	              fifo_read, fifo_empty, fifo_full, fifo_write;
+  logic [FIFO_DWIDTH-1:0]     fifo_out, fifo_in, fifo_saved, fifo_saved_next;
+  logic [DWIDTH-1:0] 	      fifo_dat_i;
+  logic [AWIDTH-1-BYTEBITS:0] fifo_adr_i;
+  logic [3:0] 		      fifo_sel_i;
+  logic 		      fifo_we_i;
 
   logic [DWIDTH-1:0] 	inbus_dat_next;
 
   assign fifo_in = {inbus.we,
-		    inbus.adr[AWIDTH+1:2],
+		    inbus.adr[AWIDTH-1+BYTEBITS-WORDBITS:BYTEBITS],
 		    inbus_dat_i,
 		    inbus.sel};
   assign fifo_we_i = fifo_saved[FIFO_DWIDTH-1];
-  assign fifo_adr_i = fifo_saved[DWIDTH+3+AWIDTH:DWIDTH+4];
+  assign fifo_adr_i = fifo_saved[AWIDTH-1+DWIDTH+4-BYTEBITS:DWIDTH+4];
   assign fifo_dat_i = fifo_saved[DWIDTH+3:4];
   assign fifo_sel_i = fifo_saved[3:0];
 
-  assign fifo_write = ~fifo_full & inbus.cyc & inbus.stb & ~stats_stb_i;
+  assign fifo_write = ~fifo_full & inbus.cyc & inbus.stb;
   assign inbus.stall = fifo_full;
   assign inbus.ack = (bus_state == BS_ACK);
+
+  assign stats.stall = 1'b1;
+  assign stats.ack = 1'b0;
+  assign stats_dat_o = stats_dat_i;
   
   always_ff @(posedge clk_i or posedge rst_i)
     if (rst_i)
@@ -91,7 +108,7 @@ module cache
       case (bus_state)
 	BS_IDLE:
 	  if (inbus.cyc & inbus.stb)
-	    if (~fifo_full | stats_stb_i)
+	    if (~fifo_full)
 	      bus_state_next = (inbus.we ? BS_ACK : BS_READ_WAIT);
 	BS_READ_WAIT: // reads need to block until all transactions are complete
 	  if (fifo_empty && state == S_DONE)
@@ -100,7 +117,7 @@ module cache
 	  if (inbus.cyc)
 	    if (inbus.stb)
 	      begin
-		if (~fifo_full | stats_stb_i)
+		if (~fifo_full)
 		  bus_state_next = (inbus.we ? BS_ACK : BS_READ_WAIT);
 	      end
 	    else
@@ -118,9 +135,7 @@ module cache
 			     S_FILL, S_FILL2, S_FILL3, S_FILL4, 
 			     S_FILL5, S_FLUSH, S_FLUSH2, S_FLUSH3,
 			     S_FLUSH4, S_FLUSH5, S_DONE,
-			     S_FILL_WAIT, S_FILL2_WAIT, S_FILL3_WAIT, S_FILL4_WAIT,
-			     S_FLUSH_WAIT, S_FLUSH2_WAIT, S_FLUSH3_WAIT, S_FLUSH4_WAIT,
-			     S_INIT, S_BUSY2 } state_t;
+			     S_INIT, S_BUSY2, S_BUSY3 } state_t;
 
   state_t               state, state_next;
   logic [INDEXSIZE-1:0] initaddr, initaddr_next;
@@ -140,14 +155,11 @@ module cache
   logic 		anyhit;
   logic [DWIDTH-1:0] 	word0 [1:0], word1 [1:0], word2 [1:0], word3 [1:0];
   logic 		mem_stb;
-  logic [DWIDTH-1:0] 	outbus_dat_next;
-  logic [31:0] 		outbus_adr_next;
-  logic 		outbus_we_next, outbus_cyc_next, outbus_stb_next;
   
   assign cache_status = hit;
   
   assign fifo_read = (state == S_IDLE & ~fifo_empty);
-  assign tag_in = fifo_adr_i[AWIDTH-1:INDEXSIZE+WORDBITS];
+  assign tag_in = fifo_adr_i[AWIDTH-1-BYTEBITS:INDEXSIZE+WORDBITS];
   assign rowaddr = fifo_adr_i[INDEXSIZE+WORDBITS-1:WORDBITS];
   assign wordsel = fifo_adr_i[WORDBITS-1:0];
  
@@ -184,11 +196,6 @@ module cache
 	fillreg <= 32'h0;
 	hitset <= 1'h0;
 	lruset <= 1'h0;
-	outbus.adr <= 32'h0;
-	outbus_dat_o <= 32'h0;
-	outbus.we <= 1'h0;
-	outbus.cyc <= 1'h0;
-	outbus.stb <= 1'h0;
 	fifo_saved <= 'h0;
       end
     else
@@ -204,24 +211,20 @@ module cache
 	hitset <= hitset_next;
 	lruset <= lruset_next;
 	fifo_saved <= fifo_saved_next;
-	outbus_dat_o <= outbus_dat_next;
-	outbus.adr <= outbus_adr_next;
-	outbus.we <= outbus_we_next;
-	outbus.cyc <= outbus_cyc_next;
-	outbus.stb <= outbus_stb_next;
       end
   
   always_comb
     begin
+      outbus.adr = 32'h0;
+      outbus_dat_o = 32'h0;
+      outbus.we = 1'h0;
+      outbus.cyc = 1'h0;
+      outbus.stb = 1'h0;
       state_next = state;
       for (int i=0; i < 2; i = i + 1) begin
 	rowin_next[i] = rowin[i];
 	wren[i] = 1'b0;
       end
-      outbus_dat_next = outbus_dat_o;
-      outbus_we_next = outbus.we;
-      outbus_cyc_next = outbus.cyc;
-      outbus_stb_next = outbus.stb;
       fifo_saved_next = fifo_saved;
       initaddr_next = initaddr;
       inbus_dat_next = inbus_dat_o;
@@ -230,7 +233,6 @@ module cache
       fillreg_next = fillreg;
       lruset_next = lruset;
       hitset_next = hitset;
-      outbus_adr_next = outbus.adr;
       
       case (state)
 	S_INIT: 
@@ -245,25 +247,16 @@ module cache
 	      state_next = S_IDLE;
 	  end
 	S_IDLE:
-	  if (inbus.cyc & inbus.stb & stats_stb_i)
+	  if (~fifo_empty)
 	    begin
-	      case (inbus.adr[5:2])
-		'h0: inbus_dat_next = hitreg;
-		'h1: inbus_dat_next = flushreg;
-		'h2: inbus_dat_next = fillreg;
-		default: inbus_dat_next = 32'h0;
-	      endcase
-	      state_next = S_DONE;
+	      fifo_saved_next = fifo_out;
+	      state_next = S_BUSY;
 	    end
-	  else  
-	    if (~fifo_empty)
-	      begin
-		fifo_saved_next = fifo_out;
-		state_next = S_BUSY;
-	      end
 	S_BUSY: 
 	  state_next = S_BUSY2;
 	S_BUSY2:
+	  state_next = S_BUSY3;
+	S_BUSY3:
 	  begin
 	    for (int i=0; i < 2; i = i + 1)
 	      rowin_next[i] = rowout[i];
@@ -334,7 +327,7 @@ module cache
 	  end
 	S_DONE:
 	  begin
-	    if (~stats_stb_i)
+	    if (fifo_we_i)
 	      for (int i=0; i < 2; i = i + 1)
 		wren[i] = 1'h1;
 	    state_next = S_IDLE;
@@ -358,32 +351,23 @@ module cache
 	      end
 	    rowin_next[lruset][VALID] = 1'b1;
 	    rowin_next[lruset][DIRTY3] = 1'b0; // clean
-	    outbus_adr_next = { padding, tag_in, rowaddr, 4'h0 };
-	    outbus_cyc_next = 1'h1;
-	    outbus_stb_next = 1'h1;
-	    outbus_we_next = 1'h0;
-	    state_next = S_FILL_WAIT;
-	  end // case: S_FILL
-	S_FILL_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack)
+	    outbus.adr = { padding, tag_in, rowaddr, 4'h0 };
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h0;
+	    if (!outbus.stall && outbus.ack)
 	      begin
 		rowin_next[lruset][31:0] = outbus_dat_i;
 		state_next = S_FILL2;
 	      end
-	  end
+	  end // case: S_FILL
 	S_FILL2:
 	  begin
 	    rowin_next[lruset][DIRTY2] = 1'b0; // clean
-	    outbus_adr_next = { padding, tag_in, rowaddr, 4'h4 };
-	    outbus_stb_next = 1'h1;
-	    state_next = S_FILL2_WAIT;
-	  end
-	S_FILL2_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack)
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h0;
+	    if (!outbus.stall && outbus.ack)
 	      begin
 		rowin_next[lruset][63:32] = outbus_dat_i;
 		state_next = S_FILL3;
@@ -392,14 +376,10 @@ module cache
 	S_FILL3:
 	  begin
 	    rowin_next[lruset][DIRTY1] = 1'b0; // clean
-	    outbus_adr_next = { padding, tag_in, rowaddr, 4'h8 };
-	    outbus_stb_next = 1'h1;
-	    state_next = S_FILL3_WAIT;
-	  end
-	S_FILL3_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack)
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h0;
+	    if (!outbus.stall && outbus.ack)
 	      begin
 		rowin_next[lruset][95:64] = outbus_dat_i;
 		state_next = S_FILL4;
@@ -408,14 +388,10 @@ module cache
 	S_FILL4:
 	  begin
 	    rowin_next[lruset][DIRTY0] = 1'b0; // clean
-	    outbus_adr_next = { padding, tag_in, rowaddr, 4'hc };
-	    outbus_stb_next = 1'h1;
-	    state_next = S_FILL4_WAIT;
-	  end
-	S_FILL4_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack)
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h0;
+	    if (!outbus.stall && outbus.ack)
 	      begin
 		rowin_next[lruset][127:96] = outbus_dat_i;
 		state_next = S_FILL5;
@@ -426,67 +402,47 @@ module cache
 	    for (int i=0; i < 2; i = i + 1)
 	      wren[i] = 1'b1;
 	    fillreg_next = fillreg + 1'h1;
-	    outbus_cyc_next = 1'h0;
 	    state_next = S_BUSY;
 	  end
 	S_FLUSH:
 	  begin
-	    outbus_dat_next = word0[lruset];
-	    outbus_adr_next = { padding, tag_cache[lruset], rowaddr, 4'h0 };
-	    outbus_cyc_next = 1'h1;
-	    outbus_stb_next = 1'h1;
-	    outbus_we_next = 1'h1;
-	    state_next = S_FLUSH_WAIT;
-	  end
-	S_FLUSH_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack)
+	    outbus.adr = { padding, tag_cache[lruset], rowaddr, 4'h0 };
+	    outbus_dat_o = word0[lruset];
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h1;
+	    if (!outbus.stall && outbus.ack)
 	      state_next = S_FLUSH2;
 	  end
 	S_FLUSH2:
 	  begin
-	    outbus_dat_next = word1[lruset];
-	    outbus_adr_next = {padding, tag_cache[lruset], rowaddr, 4'h4 };
-	    outbus_stb_next = 1'h1;
-	    state_next = S_FLUSH2_WAIT;
-	  end
-	S_FLUSH2_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack)
+	    outbus_dat_o = word1[lruset];
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h1;
+	    if (!outbus.stall && outbus.ack)
 	      state_next = S_FLUSH3;
 	  end
 	S_FLUSH3:
 	  begin
-	    outbus_dat_next = word2[lruset];
-	    outbus_adr_next = { padding, tag_cache[lruset], rowaddr, 4'h8 };
-	    outbus_stb_next = 1'h1;
-	    state_next = S_FLUSH3_WAIT;
-	  end
-	S_FLUSH3_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack) 
+	    outbus_dat_o = word2[lruset];
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h1;
+	    if (!outbus.stall && outbus.ack)
 	      state_next = S_FLUSH4;
 	  end
 	S_FLUSH4:
 	  begin
-	    outbus_dat_next = word3[lruset];
-	    outbus_adr_next = { padding, tag_cache[lruset], rowaddr, 4'hc };
-	    outbus_stb_next = 1'h1;
-	    state_next = S_FLUSH4_WAIT;
-	  end
-	S_FLUSH4_WAIT:
-	  begin
-	    outbus_stb_next = 1'h0;
-	    if (outbus.ack)
+	    outbus_dat_o = word3[lruset];
+	    outbus.cyc = 1'h1;
+	    outbus.stb = 1'h1;
+	    outbus.we = 1'h1;
+	    if (!outbus.stall && outbus.ack)
 	      state_next = S_FLUSH5;
 	  end
 	S_FLUSH5:
 	  begin
-	    outbus_we_next = 1'h0;
-	    outbus_cyc_next = 1'h0;
 	    flushreg_next = flushreg + 1'h1;
 	    state_next = S_FILL;
 	  end
