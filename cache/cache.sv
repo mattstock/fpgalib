@@ -15,9 +15,9 @@ module cache
 		if_wb.slave stats,
    output [1:0] cache_status);
 
-  logic [31:0] 	outbus_dat_i, outbus_dat_o;
-  logic [31:0] 	inbus_dat_i, inbus_dat_o;
-  logic [31:0] 	stats_dat_i, stats_dat_o;
+  logic [DWIDTH-1:0] 	outbus_dat_i, outbus_dat_o;
+  logic [DWIDTH-1:0] 	inbus_dat_i, inbus_dat_o;
+  logic [DWIDTH-1:0] 	stats_dat_i, stats_dat_o;
   
 `ifdef NO_MODPORT_EXPRESSIONS
   assign inbus_dat_i = inbus.dat_m;
