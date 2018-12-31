@@ -19,43 +19,29 @@ module sdram32_controller_cache
    output 	       databus_dir,
    input [DWIDTH-1:0]  databus_in,
    output [DWIDTH-1:0] databus_out,
-   if_wb.slave         stats0_bus,
-   if_wb.slave         stats1_bus,
-   output [3:0]        cache_status);
+   if_wb.slave         stats_bus,
+   output [1:0]        cache_status);
 
-  logic [1:0] 	       cache_status0, cache_status1;
-  
-  assign cache_status = { cache_status0, cache_status1 };
-  
-  if_wb sdram0_bus(), sdram1_bus(), arb_bus();
+  if_wb sdram0_bus(), arb_bus();
  
+  arbiter arb0(.clk_i(clk_i),
+	       .rst_i(rst_i),
+	       .in0(bus0.slave),
+	       .in1(bus1.slave),
+	       .out(arb_bus.master));
+
   cache 
     #(.AWIDTH(AWIDTH),
       .DWIDTH(DWIDTH))
   cache0(.clk_i(clk_i), .rst_i(rst_i),
-	 .inbus(bus0.slave),
+	 .inbus(arb_bus.slave),
 	 .outbus(sdram0_bus.master),
-	 .stats(stats0_bus.slave),
-	 .cache_status(cache_status0));
+	 .stats(stats_bus.slave),
+	 .cache_status(cache_status));
 
-  cache 
-    #(.AWIDTH(AWIDTH),
-      .DWIDTH(DWIDTH))
-  cache1(.clk_i(clk_i), .rst_i(rst_i),
-	 .inbus(bus1.slave),
-	 .outbus(sdram1_bus.master),
-	 .stats(stats1_bus.slave),
-	 .cache_status(cache_status1));
-
-  arbiter arb0(.clk_i(clk_i),
-	       .rst_i(rst_i),
-	       .in0(sdram0_bus.slave),
-	       .in1(sdram1_bus.slave),
-	       .out(arb_bus.master));
-  
   sdram32_controller sdram0(.clk_i(clk_i),
 			    .rst_i(rst_i),
-			    .bus(arb_bus.slave),
+			    .bus(sdram0_bus.slave),
 			    .mem_clk_o(mem_clk_o), 
 			    .we_n(we_n),
 			    .cs_n(cs_n),
