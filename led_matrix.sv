@@ -151,7 +151,7 @@ module led_matrix
 	       .clock_b(clk_i),
 	       .data_b(dat_i[23:0]),
 	       .wren_b(select & bus.we),
-	       .address_b(bus.adr),
+	       .address_b(bus.adr[10:2]),
 	       .byteena_b(bus.sel[2:0]),
 	       .q_b(matrixmem_out));
   
