@@ -36,7 +36,7 @@ module spi_master
   logic [7:0] 	      rx_in;
   
   logic [7:0] 	      rx_byte, rx_byte_next;
-  logic [7:0] 	      selects_next;
+  logic [COUNT-1:0]   selects_next;
   logic [7:0] 	      conf, conf_next;
   logic 	      state, state_next;
   logic 	      rx_unread, rx_unread_next;
@@ -53,7 +53,7 @@ module spi_master
     if (rst_i)
       begin
 	rx_byte <= 8'h00;
-	selects <= 'hff;
+	selects <= {COUNT{1'h1}};
 	conf <= 'h00;
 	bus_dat_o <= 32'h0;
 	rx_unread <= 1'b0;
@@ -110,7 +110,7 @@ module spi_master
 		    if (bus.we)
 		      begin
 			if (bus.sel[3])
-			  selects_next = bus_dat_i[31:24];
+			  selects_next = bus_dat_i[COUNT-1+24:24];
 			if (bus.sel[2])
 			  conf_next = bus_dat_i[23:16];
 		      end
