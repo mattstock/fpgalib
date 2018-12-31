@@ -39,7 +39,7 @@ module segctrl
   assign out6 = hexed[6][SEG-1:0];
   assign out7 = hexed[7][SEG-1:0];
   
-  logic [4:0] 	    vals[7:0], vals_next[7:0];
+  logic [31:0] 	    segvals, segvals_next;
   logic [7:0] 	    hexed[7:0];
   
   logic 	    state, state_next;
@@ -49,15 +49,13 @@ module segctrl
     if (rst_i)
       begin
 	state <= 1'b0;
-	for (int i=0; i < 8; i = i + 1)
-	  vals[i] <= 5'h0;
+	segvals <= 32'h0;
 	result <= 32'h0;
       end
     else
       begin
 	state <= state_next;
-	for (int i=0; i < 8; i = i + 1)
-	  vals[i] <= vals_next[i];
+	segvals <= segvals_next;
 	result <= result_next;
       end // else: !if(rst_i)
   
@@ -65,20 +63,29 @@ module segctrl
     begin
       state_next = state;
       result_next = result;
-      
-      for (int i=0; i < 8; i = i + 1)
-	vals_next[i] = vals[i];
+      segvals_next = segvals;
 
       case (state)
 	1'h0:
 	  if (bus.cyc && bus.stb)
 	    begin
-	      case (bus.adr[5])
+	      case (bus.adr[2])
 		1'h0:
 		  if (bus.we)
-		    vals_next[bus.adr[4:2]] = dat_i[4:0];
+		    begin
+		      if (bus.sel[3])
+			segvals_next[31:24] = dat_i[31:24];
+		      if (bus.sel[2])
+			segvals_next[23:16] = dat_i[23:16];
+		      if (bus.sel[1])
+			segvals_next[15:8] = dat_i[15:8];
+		      if (bus.sel[0])
+			segvals_next[7:0] = dat_i[7:0];
+		    end
 		  else
-		    result_next = { 27'h0, vals[bus.adr[4:2]][4:0] };
+		    begin
+		      result_next = segvals;
+		    end
 		1'h1:
 		  if (!bus.we)
 		    result_next = { 22'h0, sw};
@@ -90,13 +97,13 @@ module segctrl
       endcase // case (state)
     end
 
-  hexdisp hexdisp0(.in(vals[0]), .out(hexed[0]));
-  hexdisp hexdisp1(.in(vals[1]), .out(hexed[1]));
-  hexdisp hexdisp2(.in(vals[2]), .out(hexed[2]));
-  hexdisp hexdisp3(.in(vals[3]), .out(hexed[3]));
-  hexdisp hexdisp4(.in(vals[4]), .out(hexed[4]));
-  hexdisp hexdisp5(.in(vals[5]), .out(hexed[5]));
-  hexdisp hexdisp6(.in(vals[6]), .out(hexed[6]));
-  hexdisp hexdisp7(.in(vals[7]), .out(hexed[7]));
+  hexdisp hexdisp0(.in(segvals[3:0]), .out(hexed[0]));
+  hexdisp hexdisp1(.in(segvals[7:4]), .out(hexed[1]));
+  hexdisp hexdisp2(.in(segvals[11:8]), .out(hexed[2]));
+  hexdisp hexdisp3(.in(segvals[15:12]), .out(hexed[3]));
+  hexdisp hexdisp4(.in(segvals[19:16]), .out(hexed[4]));
+  hexdisp hexdisp5(.in(segvals[23:20]), .out(hexed[5]));
+  hexdisp hexdisp6(.in(segvals[27:24]), .out(hexed[6]));
+  hexdisp hexdisp7(.in(segvals[31:28]), .out(hexed[7]));
   
 endmodule
