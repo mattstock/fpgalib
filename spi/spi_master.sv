@@ -30,7 +30,6 @@ module spi_master
   assign bus.dat_o = bus_dat_o;
 `endif
   
-
   logic 	      tx_start;
   logic 	      tx_done;
   logic [7:0] 	      rx_in;
@@ -47,7 +46,6 @@ module spi_master
   assign bus.stall = 1'h0;
   
   typedef enum 	      bit { S_IDLE, S_DONE } state_t;
-  
 
   always_ff @(posedge clk_i or posedge rst_i)
     if (rst_i)
