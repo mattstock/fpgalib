@@ -48,7 +48,7 @@ module top(input              clk_i,
   if_wb ins_bus(), dat_bus();
   if_wb ram0_ibus(), ram0_dbus();
   if_wb ram1_ibus(), ram1_dbus();
-  if_wb cache0_dbus(), stats0_dbus();
+  if_wb cache0(), stats0(), sdram0();
   
   assign ins_adr_o = ins_bus.adr;
   assign ins_ack_i = ins_bus.ack;
@@ -66,15 +66,15 @@ module top(input              clk_i,
   assign dat_sel_o = dat_bus.sel;
   assign dat_dat_o = dat_bus.dat_m;
 
-  assign cache0_adr_o = cache0_dbus.adr;
-  assign cache0_cyc_o = cache0_dbus.cyc;
-  assign cache0_ack_i = cache0_dbus.ack;
-  assign cache0_stb_o = cache0_dbus.stb;
-  assign cache0_dat_i = cache0_dbus.dat_s;
-  assign cache0_we_o = cache0_dbus.we;
-  assign cache0_stall_i = cache0_dbus.stall;
-  assign cache0_sel_o = cache0_dbus.sel;
-  assign cache0_dat_o = cache0_dbus.dat_m;
+  assign cache0_adr_o = cache0.adr;
+  assign cache0_cyc_o = cache0.cyc;
+  assign cache0_ack_i = cache0.ack;
+  assign cache0_stb_o = cache0.stb;
+  assign cache0_dat_i = cache0.dat_s;
+  assign cache0_we_o = cache0.we;
+  assign cache0_stall_i = cache0.stall;
+  assign cache0_sel_o = cache0.sel;
+  assign cache0_dat_o = cache0.dat_m;
 
   assign ram0_adr_o = ram0_dbus.adr;
   assign ram0_cyc_o = ram0_dbus.cyc;
@@ -146,7 +146,7 @@ module top(input              clk_i,
   
   mmu mmu_bus1(.clk_i(clk_i), .rst_i(rst_i),
 	       .mbus(dat_bus.slave),
-	       .p0(cache0_dbus.master),
+	       .p0(ram0_dbus.master),
 	       .p1(p1_bus1.master),
 	       .p2(p2_bus1.master),
 	       .p3(p3_bus1.master),
@@ -158,7 +158,7 @@ module top(input              clk_i,
 	       .p9(p9_bus1.master),
 	       .pa(pa_bus1.master),
 	       .pb(pb_bus1.master),
-	       .pc(stats0_dbus.master),
+	       .pc(pc_bus1.master),
 	       .pd(pd_bus1.master),
 	       .pe(pe_bus1.master),
 	       .pf(pf_bus1.master));
@@ -173,21 +173,26 @@ module top(input              clk_i,
   bus_term bus1_p9(p9_bus1.slave);
   bus_term bus1_pa(pa_bus1.slave);
   bus_term bus1_pb(pb_bus1.slave);
-//  bus_term bus1_pc(pc_bus1.slave);
+  bus_term bus1_pc(pc_bus1.slave);
   bus_term bus1_pd(pd_bus1.slave);
   bus_term bus1_pe(pe_bus1.slave);
   bus_term bus1_pf(pf_bus1.slave);
 
+  arbiter arb0(.clk_i(clk_i),
+	       .rst_i(rst_i),
+	       .in0(ram0_ibus.slave),
+	       .in1(ram0_dbus.slave),
+	       .out(cache0.master));
+
   cache #(.AWIDTH(11), .TAGSIZE(5)) cache0(.clk_i(clk_i), .rst_i(rst_i),
-					   .inbus(cache0_dbus.slave),
-					   .outbus(ram0_dbus.master),
+					   .inbus(cache0.slave),
+					   .outbus(sdram0.master),
 					   .cache_status(cache_status),
-					   .stats(stats0_dbus.slave));
+					   .stats(stats0.slave));
   
-  ram2 #(.AWIDTH(11),
-	 .INITNAME("../clear.hex")) ram0(.clk_i(clk_i), .rst_i(rst_i),
-					 .bus0(ram0_ibus.slave),
-					 .bus1(ram0_dbus.slave));
+  sdram2 #(.AWIDTH(11),
+	   .INITNAME("../clear.hex")) sdram0(.clk_i(clk_i), .rst_i(rst_i),
+					 .bus(sdram0.slave));
   ram2 #(.AWIDTH(11)) ram1(.clk_i(clk_i), .rst_i(rst_i),
 			   .bus0(ram1_ibus.slave),
 			   .bus1(ram1_dbus.slave));
