@@ -1,75 +1,22 @@
-module vga_avalon(
-  input csi_clk,
-  input csi_vga_clk,
-  output reg cso_vga_clk,
-  input rsi_reset,
-  input avs_s0_write,
-  input avs_s0_read,
-  input [3:0] avs_s0_byteenable,
-  input [31:0] avs_s0_writedata,
-  output [31:0] avs_s0_readdata,
-  input [9:0] avs_s0_address,
-  output avs_s0_waitrequest_n,
-  output [31:0] avm_m0_address,
-  output reg avm_m0_write,
-  output reg avm_m0_read,
-  output [31:0] avm_m0_writedata,
-  input [31:0] avm_m0_readdata,
-  output [3:0] avm_m0_byteenable,
-  input avm_m0_waitrequest_n,
-  output coe_vs,
-  output coe_hs,
-  output [7:0] coe_r,
-  output [7:0] coe_g,
-  output [7:0] coe_b,
-  output coe_sync_n,
-  output coe_blank_n
-);
+`include "../wb.vh"
 
 parameter VGA_MEMBASE = 34'h0c0000000;
 
-reg stb_o, we_o, cyc_o;
-
-always cso_vga_clk = csi_vga_clk;
-always avm_m0_read = stb_o & cyc_o & !we_o;
-always avm_m0_write = stb_o & cyc_o & we_o;
-
-vga_master #(.VGA_MEMBASE(VGA_MEMBASE)) vga0(.clk_i(csi_clk), .rst_i(rsi_reset), .slave_we_i(avs_s0_write & !avs_s0_read), .slave_dat_i(avs_s0_writedata),
-  .slave_adr_i(avs_s0_address), .slave_dat_o(avs_s0_readdata), .slave_cyc_i(avs_s0_read|avs_s0_write),
-  .slave_stb_i(avs_s0_read|avs_s0_write), .slave_sel_i(avs_s0_byteenable), .slave_ack_o(avs_s0_waitrequest_n),
-  .master_adr_o(avm_m0_address), .master_cyc_o(cyc_o), .master_dat_i(avm_m0_readdata), .master_sel_o(avm_m0_byteenable),
-  .master_ack_i(avm_m0_waitrequest_n), .master_we_o(we_o), .master_stb_o(stb_o), .vga_clock(csi_vga_clk), .master_dat_o(avm_m0_writedata),
-  .vs(coe_vs), .hs(coe_hs), .r(coe_r), .g(coe_g), .b(coe_b), .blank_n(coe_blank_n), .sync_n(coe_sync_n)); 
-
-endmodule
-
-module vga_master(
-  input clk_i,
-  input rst_i,
-  output [31:0] master_adr_o,
-  output master_cyc_o,
-  input [31:0] master_dat_i,
-  output master_we_o,
-  output [31:0] master_dat_o,
-  output [3:0] master_sel_o,
-  input master_ack_i,
-  output master_stb_o,
-  input [9:0] slave_adr_i,
-  input [31:0] slave_dat_i,
-  output reg [31:0] slave_dat_o,
-  input slave_cyc_i,
-  input slave_we_i,
-  input [3:0] slave_sel_i,
-  output slave_ack_o,
-  input slave_stb_i,
-  output vs,
-  output hs,
-  output [7:0] r,
-  output [7:0] g,
-  output [7:0] b,
-  output blank_n,
-  output sync_n,
-  input vga_clock);
+module vga_master
+  #(VGA_MEMBASE = 32'hc0000000)
+  (
+   input 	     clk_i,
+   input 	     rst_i,
+   if_wb.slave       inbus,
+   if_wb.master      outbus,
+   output 	     vs,
+   output 	     hs,
+   output [7:0]      r,
+   output [7:0]      g,
+   output [7:0]      b,
+   output 	     blank_n,
+   output 	     sync_n,
+   input 	     vga_clock);
 
 // Configuration registers
 // 0x000 - palette memory 1
@@ -78,18 +25,29 @@ module vga_master(
 // 0xc00 - video memory base address
 // 0xc01 - video mode, palette select
 
-parameter VGA_MEMBASE = 34'h0c0000000;
+  logic [31:0] 	     bus_dat_o, bus_dat_i;
 
-localparam [2:0] SSTATE_IDLE = 3'h0, SSTATE_PALETTE = 3'h1, SSTATE_PALETTE2 = 3'h2, SSTATE_FONT = 3'h3, SSTATE_DONE = 3'h4;
+`ifdef NO_MODPORT_EXPRESSIONS
+  assign bus_dat_i = bus.dat_m;
+  assign bus.dat_s = bus_dat_o;
+`else
+  assign bus_dat_i = bus.dat_i;
+  assign bus.dat_o = bus_dat_o;
+`endif
 
-reg [2:0] sstate, sstate_next;
-reg [31:0] setupreg, setupreg_next, vgabase, vgabase_next, cursorpos, cursorpos_next;
-reg [31:0] slave_dat_o_next;
-
-wire [7:0] gd_r, gd_g, gd_b, td_r, td_g, td_b;
-wire gd_cyc_o, td_cyc_o;
-wire [31:0] gd_adr_o, td_adr_o;
-wire [15:0] x_raw, y_raw;
+  typedef enum 	     bit [2:0] { SS_IDLE, SS_PALETTE, 
+				 SS_PALETTE2, SS_FONT, SS_DONE } sstate_t;
+  
+  logic 	     sstate_t sstate, sstate_next;
+  logic [31:0] 	     setupreg, setupreg_next,
+		     vgabase, vgabase_next,
+		     cursorpos, cursorpos_next;
+  logic [31:0] 	     slave_dat_o_next;
+  
+  logic [7:0] 	     gd_r, gd_g, gd_b, td_r, td_g, td_b;
+  logic 	     gd_cyc_o, td_cyc_o;
+  logic [31:0] 	     gd_adr_o, td_adr_o;
+  logic [15:0] 	     x_raw, y_raw;
 
 assign master_dat_o = 32'h0;
 assign slave_ack_o = (sstate == SSTATE_DONE);
