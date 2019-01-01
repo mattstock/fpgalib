@@ -48,7 +48,7 @@ module top(input              clk_i,
   if_wb ins_bus(), dat_bus();
   if_wb ram0_ibus(), ram0_dbus();
   if_wb ram1_ibus(), ram1_dbus();
-  if_wb cache0_dbus();
+  if_wb cache0_dbus(), stats0_dbus();
   
   assign ins_adr_o = ins_bus.adr;
   assign ins_ack_i = ins_bus.ack;
@@ -158,7 +158,7 @@ module top(input              clk_i,
 	       .p9(p9_bus1.master),
 	       .pa(pa_bus1.master),
 	       .pb(pb_bus1.master),
-	       .pc(pc_bus1.master),
+	       .pc(stats0_dbus.master),
 	       .pd(pd_bus1.master),
 	       .pe(pe_bus1.master),
 	       .pf(pf_bus1.master));
@@ -173,7 +173,7 @@ module top(input              clk_i,
   bus_term bus1_p9(p9_bus1.slave);
   bus_term bus1_pa(pa_bus1.slave);
   bus_term bus1_pb(pb_bus1.slave);
-  bus_term bus1_pc(pc_bus1.slave);
+//  bus_term bus1_pc(pc_bus1.slave);
   bus_term bus1_pd(pd_bus1.slave);
   bus_term bus1_pe(pe_bus1.slave);
   bus_term bus1_pf(pf_bus1.slave);
@@ -182,7 +182,7 @@ module top(input              clk_i,
 					   .inbus(cache0_dbus.slave),
 					   .outbus(ram0_dbus.master),
 					   .cache_status(cache_status),
-					   .stats_stb_i(1'h0));
+					   .stats(stats0_dbus.slave));
   
   ram2 #(.AWIDTH(11),
 	 .INITNAME("../clear.hex")) ram0(.clk_i(clk_i), .rst_i(rst_i),
