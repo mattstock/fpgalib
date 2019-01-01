@@ -97,13 +97,13 @@ module segctrl
       endcase // case (state)
     end
 
-  hexdisp hexdisp0(.in(segvals[3:0]), .out(hexed[0]));
-  hexdisp hexdisp1(.in(segvals[7:4]), .out(hexed[1]));
-  hexdisp hexdisp2(.in(segvals[11:8]), .out(hexed[2]));
-  hexdisp hexdisp3(.in(segvals[15:12]), .out(hexed[3]));
-  hexdisp hexdisp4(.in(segvals[19:16]), .out(hexed[4]));
-  hexdisp hexdisp5(.in(segvals[23:20]), .out(hexed[5]));
-  hexdisp hexdisp6(.in(segvals[27:24]), .out(hexed[6]));
-  hexdisp hexdisp7(.in(segvals[31:28]), .out(hexed[7]));
+  hexdisp hexdisp0(.in({ 1'b0, segvals[3:0]}), .out(hexed[0]));
+  hexdisp hexdisp1(.in({ 1'b0, segvals[7:4]}), .out(hexed[1]));
+  hexdisp hexdisp2(.in({ 1'b0, segvals[11:8]}), .out(hexed[2]));
+  hexdisp hexdisp3(.in({ 1'b0, segvals[15:12]}), .out(hexed[3]));
+  hexdisp hexdisp4(.in({ 1'b0, segvals[19:16]}), .out(hexed[4]));
+  hexdisp hexdisp5(.in({ 1'b0, segvals[23:20]}), .out(hexed[5]));
+  hexdisp hexdisp6(.in({ 1'b0, segvals[27:24]}), .out(hexed[6]));
+  hexdisp hexdisp7(.in({ 1'b0, segvals[31:28]}), .out(hexed[7]));
   
 endmodule
