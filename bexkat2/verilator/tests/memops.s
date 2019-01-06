@@ -10,6 +10,6 @@ _start:
 	ldd.b %6, 0x2
 	ldd.b %7, 0x3
 	# force cache flush
-	ldd.l %8, 0x100
-	ldd.l %8, 0x200
+	ldd.l %8, 0x40
+	ldd.l %8, 0x80
 	halt

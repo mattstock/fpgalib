@@ -1,6 +1,7 @@
 `ifndef _WB_VH
 `define _WB_VH
 
+/* verilator lint_off UNOPTFLAT */
 interface if_wb;
   parameter AWIDTH = 32; 
   parameter DWIDTH = 32;

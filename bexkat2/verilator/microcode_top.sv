@@ -2,7 +2,7 @@
 `define NO_MODPORT_EXPRESSIONS
 `include "bexkat2.vh"
 `include "wb.vh"
-  
+
 module top(input              clk_i,
 	   input 	      rst_i,
 	   input [2:0] 	      interrupts,
@@ -48,7 +48,7 @@ module top(input              clk_i,
   if_wb ins_bus(), dat_bus();
   if_wb ram0_ibus(), ram0_dbus();
   if_wb ram1_ibus(), ram1_dbus();
-  if_wb cache0(), stats0(), sdram0();
+  if_wb cachebus0(), stats0(), sdram0();
   
   assign ins_adr_o = ins_bus.adr;
   assign ins_ack_i = ins_bus.ack;
@@ -66,25 +66,25 @@ module top(input              clk_i,
   assign dat_sel_o = dat_bus.sel;
   assign dat_dat_o = dat_bus.dat_m;
 
-  assign cache0_adr_o = cache0.adr;
-  assign cache0_cyc_o = cache0.cyc;
-  assign cache0_ack_i = cache0.ack;
-  assign cache0_stb_o = cache0.stb;
-  assign cache0_dat_i = cache0.dat_s;
-  assign cache0_we_o = cache0.we;
-  assign cache0_stall_i = cache0.stall;
-  assign cache0_sel_o = cache0.sel;
-  assign cache0_dat_o = cache0.dat_m;
+  assign cache0_adr_o = cachebus0.adr;
+  assign cache0_cyc_o = cachebus0.cyc;
+  assign cache0_ack_i = cachebus0.ack;
+  assign cache0_stb_o = cachebus0.stb;
+  assign cache0_dat_i = cachebus0.dat_s;
+  assign cache0_we_o = cachebus0.we;
+  assign cache0_stall_i = cachebus0.stall;
+  assign cache0_sel_o = cachebus0.sel;
+  assign cache0_dat_o = cachebus0.dat_m;
 
-  assign ram0_adr_o = ram0_dbus.adr;
-  assign ram0_cyc_o = ram0_dbus.cyc;
-  assign ram0_ack_i = ram0_dbus.ack;
-  assign ram0_stb_o = ram0_dbus.stb;
-  assign ram0_dat_i = ram0_dbus.dat_s;
-  assign ram0_we_o = ram0_dbus.we;
-  assign ram0_stall_i = ram0_dbus.stall;
-  assign ram0_sel_o = ram0_dbus.sel;
-  assign ram0_dat_o = ram0_dbus.dat_m;
+  assign ram0_adr_o = sdram0.adr;
+  assign ram0_cyc_o = sdram0.cyc;
+  assign ram0_ack_i = sdram0.ack;
+  assign ram0_stb_o = sdram0.stb;
+  assign ram0_dat_i = sdram0.dat_s;
+  assign ram0_we_o = sdram0.we;
+  assign ram0_stall_i = sdram0.stall;
+  assign ram0_sel_o = sdram0.sel;
+  assign ram0_dat_o = sdram0.dat_m;
   
   bexkat2 cpu0(.clk_i(clk_i), .rst_i(rst_i),
 	       .ins_bus(ins_bus.master),
@@ -182,18 +182,23 @@ module top(input              clk_i,
 	       .rst_i(rst_i),
 	       .in0(ram0_ibus.slave),
 	       .in1(ram0_dbus.slave),
-	       .out(cache0.master));
+	       .out(cachebus0.master));
 
-  cache #(.AWIDTH(11), .TAGSIZE(5)) cache0(.clk_i(clk_i), .rst_i(rst_i),
-					   .inbus(cache0.slave),
-					   .outbus(sdram0.master),
-					   .cache_status(cache_status),
-					   .stats(stats0.slave));
+  bus_term_m stats_bus(stats0.master);
   
-  sdram2 #(.AWIDTH(11),
-	   .INITNAME("../clear.hex")) sdram0(.clk_i(clk_i), .rst_i(rst_i),
-					 .bus(sdram0.slave));
-  ram2 #(.AWIDTH(11)) ram1(.clk_i(clk_i), .rst_i(rst_i),
+  cache #(.AWIDTH(13), .TAGSIZE(7)) cache0(.clk_i(clk_i),
+					    .rst_i(rst_i),
+					    .inbus(cachebus0.slave),
+					    .outbus(sdram0.master),
+					    .cache_status(cache_status),
+					    .stats(stats0.slave));
+  
+  ram #(.AWIDTH(13),
+	.INITNAME("../clear.hex")) ram0(.clk_i(clk_i),
+					.rst_i(rst_i),
+					.bus(sdram0.slave));
+  ram2 #(.AWIDTH(13)) ram1(.clk_i(clk_i),
+			   .rst_i(rst_i),
 			   .bus0(ram1_ibus.slave),
 			   .bus1(ram1_dbus.slave));
   

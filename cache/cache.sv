@@ -355,17 +355,17 @@ module cache
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
 	    outbus.we = 1'h0;
-	    if (!outbus.stall && outbus.ack)
-	      begin
-		rowin_next[lruset][31:0] = outbus_dat_i;
-		state_next = S_FILL2;
-	      end
+	    if (!outbus.stall)
+	      state_next = S_FILL2;
+	    if (outbus.ack)
+	      rowin_next[lruset][31:0] = outbus_dat_i;
 	  end // case: S_FILL
 	S_FILL2:
 	  begin
 	    rowin_next[lruset][DIRTY2] = 1'b0; // clean
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
+	    outbus.adr = { padding, tag_in, rowaddr, 4'h4 };
 	    outbus.we = 1'h0;
 	    if (!outbus.stall && outbus.ack)
 	      begin
@@ -378,6 +378,7 @@ module cache
 	    rowin_next[lruset][DIRTY1] = 1'b0; // clean
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
+	    outbus.adr = { padding, tag_in, rowaddr, 4'h8 };
 	    outbus.we = 1'h0;
 	    if (!outbus.stall && outbus.ack)
 	      begin
@@ -390,6 +391,7 @@ module cache
 	    rowin_next[lruset][DIRTY0] = 1'b0; // clean
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
+	    outbus.adr = { padding, tag_in, rowaddr, 4'hc };
 	    outbus.we = 1'h0;
 	    if (!outbus.stall && outbus.ack)
 	      begin
@@ -416,6 +418,7 @@ module cache
 	  end
 	S_FLUSH2:
 	  begin
+	    outbus.adr = { padding, tag_cache[lruset], rowaddr, 4'h4 };
 	    outbus_dat_o = word1[lruset];
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
@@ -425,6 +428,7 @@ module cache
 	  end
 	S_FLUSH3:
 	  begin
+	    outbus.adr = { padding, tag_cache[lruset], rowaddr, 4'h8 };
 	    outbus_dat_o = word2[lruset];
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
@@ -434,6 +438,7 @@ module cache
 	  end
 	S_FLUSH4:
 	  begin
+	    outbus.adr = { padding, tag_cache[lruset], rowaddr, 4'hc };
 	    outbus_dat_o = word3[lruset];
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;

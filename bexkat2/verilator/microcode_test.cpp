@@ -115,10 +115,11 @@ int main(int argc, char **argv, char **env) {
 	   top->top__DOT__cpu0__DOT__mar,
 	   top->top__DOT__cpu0__DOT__a,
 	   top->top__DOT__cpu0__DOT__b);
-      emit(D_DEBUG, "ccr: %02x  status: %02x  ssp: %08x\n",
+      emit(D_DEBUG, "ccr: %02x  status: %02x  ssp: %08x  vectoff: %08x\n",
 	   top->top__DOT__cpu0__DOT__ccr,
 	   top->top__DOT__cpu0__DOT__status,
-	   top->top__DOT__cpu0__DOT__intreg__DOT__ssp);
+	   top->top__DOT__cpu0__DOT__intreg__DOT__ssp,
+	   top->top__DOT__cpu0__DOT__vectoff);
 	   
       for (int i=0; i < 8; i++)
 	emit(D_DEBUG, "%*d: %08x",
