@@ -35,10 +35,7 @@ static const char *cachestatestr[] = {
   "IDLE", "BUSY", "HIT", "MISS",
   "FILL", "FILL2", "FILL3", "FILL4", "FILL5",
   "FLUSH", "FLUSH2", "FLUSH3", "FLUSH4", "FLUSH5",
-  "DONE",
-  "FILL_WAIT", "FILL2_WAIT", "FILL3_WAIT", "FILL4_WAIT",
-  "FLUSH_WAIT", "FLUSH2_WAIT", "FLUSH3_WAIT", "FLUSH4_WAIT",
-  "INIT", "BUSY2" };
+  "FILL_WAIT", "FLUSH_WAIT", "DONE", "INIT", "BUSY2", "BUSY3" };
 
 static const char *cachebusstatestr[] = {
   "IDLE", "ACK", "READ_WAIT", "WAIT" };

@@ -134,7 +134,8 @@ module cache
   typedef enum 	 bit [5:0] { S_IDLE, S_BUSY, S_HIT, S_MISS, 
 			     S_FILL, S_FILL2, S_FILL3, S_FILL4, 
 			     S_FILL5, S_FLUSH, S_FLUSH2, S_FLUSH3,
-			     S_FLUSH4, S_FLUSH5, S_DONE,
+			     S_FLUSH4, S_FLUSH5, S_FILL_WAIT, 
+			     S_FLUSH_WAIT, S_DONE,
 			     S_INIT, S_BUSY2, S_BUSY3 } state_t;
 
   state_t               state, state_next;
@@ -155,6 +156,7 @@ module cache
   logic 		anyhit;
   logic [DWIDTH-1:0] 	word0 [1:0], word1 [1:0], word2 [1:0], word3 [1:0];
   logic 		mem_stb;
+  logic [1:0] 		count, count_next;
   
   assign cache_status = hit;
   
@@ -197,6 +199,7 @@ module cache
 	hitset <= 1'h0;
 	lruset <= 1'h0;
 	fifo_saved <= 'h0;
+	count <= 2'h0;
       end
     else
       begin
@@ -211,6 +214,7 @@ module cache
 	hitset <= hitset_next;
 	lruset <= lruset_next;
 	fifo_saved <= fifo_saved_next;
+	count <= count_next;
       end
   
   always_comb
@@ -221,6 +225,7 @@ module cache
       outbus.cyc = 1'h0;
       outbus.stb = 1'h0;
       state_next = state;
+      count_next = count;
       for (int i=0; i < 2; i = i + 1) begin
 	rowin_next[i] = rowin[i];
 	wren[i] = 1'b0;
@@ -357,8 +362,12 @@ module cache
 	    outbus.we = 1'h0;
 	    if (!outbus.stall)
 	      state_next = S_FILL2;
+	    count_next = 2'h0;
 	    if (outbus.ack)
-	      rowin_next[lruset][31:0] = outbus_dat_i;
+	      begin
+		count_next = 2'h1;
+		rowin_next[lruset][31:0] = outbus_dat_i;
+	      end
 	  end // case: S_FILL
 	S_FILL2:
 	  begin
@@ -367,10 +376,17 @@ module cache
 	    outbus.stb = 1'h1;
 	    outbus.adr = { padding, tag_in, rowaddr, 4'h4 };
 	    outbus.we = 1'h0;
-	    if (!outbus.stall && outbus.ack)
+	    if (!outbus.stall)
+	      state_next = S_FILL3;
+	    if (outbus.ack)
 	      begin
-		rowin_next[lruset][63:32] = outbus_dat_i;
-		state_next = S_FILL3;
+		count_next = count + 2'h1;
+		case (count)
+		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		endcase // case (count)
 	      end
 	  end
 	S_FILL3:
@@ -380,10 +396,17 @@ module cache
 	    outbus.stb = 1'h1;
 	    outbus.adr = { padding, tag_in, rowaddr, 4'h8 };
 	    outbus.we = 1'h0;
-	    if (!outbus.stall && outbus.ack)
+	    if (!outbus.stall)
+	      state_next = S_FILL4;
+	    if (outbus.ack)
 	      begin
-		rowin_next[lruset][95:64] = outbus_dat_i;
-		state_next = S_FILL4;
+		count_next = count + 2'h1;
+		case (count)
+		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		endcase // case (count)
 	      end
 	  end
 	S_FILL4:
@@ -393,13 +416,37 @@ module cache
 	    outbus.stb = 1'h1;
 	    outbus.adr = { padding, tag_in, rowaddr, 4'hc };
 	    outbus.we = 1'h0;
-	    if (!outbus.stall && outbus.ack)
+	    if (!outbus.stall)
 	      begin
-		rowin_next[lruset][127:96] = outbus_dat_i;
 		state_next = S_FILL5;
+	      end
+	    if (outbus.ack)
+	      begin
+		count_next = count + 2'h1;
+		case (count)
+		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		endcase // case (count)
 	      end
 	  end
 	S_FILL5:
+	  begin
+	    if (count == 2'h0)
+	      state_next = S_FILL_WAIT;
+	    if (outbus.ack)
+	      begin
+		count_next = count + 2'h1;
+		case (count)
+		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		endcase // case (count)
+	      end
+	  end
+	S_FILL_WAIT:
 	  begin
 	    for (int i=0; i < 2; i = i + 1)
 	      wren[i] = 1'b1;
@@ -413,8 +460,10 @@ module cache
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
 	    outbus.we = 1'h1;
-	    if (!outbus.stall && outbus.ack)
+	    if (!outbus.stall)
 	      state_next = S_FLUSH2;
+	    if (outbus.ack)
+	      count_next = count + 2'h1;
 	  end
 	S_FLUSH2:
 	  begin
@@ -423,8 +472,10 @@ module cache
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
 	    outbus.we = 1'h1;
-	    if (!outbus.stall && outbus.ack)
+	    if (!outbus.stall)
 	      state_next = S_FLUSH3;
+	    if (outbus.ack)
+	      count_next = count + 2'h1;
 	  end
 	S_FLUSH3:
 	  begin
@@ -433,8 +484,10 @@ module cache
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
 	    outbus.we = 1'h1;
-	    if (!outbus.stall && outbus.ack)
+	    if (!outbus.stall)
 	      state_next = S_FLUSH4;
+	    if (outbus.ack)
+	      count_next = count + 2'h1;
 	  end
 	S_FLUSH4:
 	  begin
@@ -443,10 +496,19 @@ module cache
 	    outbus.cyc = 1'h1;
 	    outbus.stb = 1'h1;
 	    outbus.we = 1'h1;
-	    if (!outbus.stall && outbus.ack)
+	    if (!outbus.stall)
 	      state_next = S_FLUSH5;
+	    if (outbus.ack)
+	      count_next = count + 2'h1;
 	  end
 	S_FLUSH5:
+	  begin
+	    if (count == 2'h0)
+	      state_next = S_FLUSH_WAIT;
+	    if (outbus.ack)
+	      count_next = count + 2'h1;
+	  end
+	S_FLUSH_WAIT:
 	  begin
 	    flushreg_next = flushreg + 1'h1;
 	    state_next = S_FILL;
@@ -473,5 +535,5 @@ module cache
 				       .out(fifo_out),
 				       .full(fifo_full),
 				       .empty(fifo_empty));
-  
+
 endmodule
