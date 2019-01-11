@@ -5,7 +5,7 @@ LD = bexkat1-elf-ld
 RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
-CPUDEPS = ../bexkat1p.v ../alu.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../registerfile.v ../../fifo.sv ../memwb.v ../../interrupt_encoder.v ../../timerint.v ../../uart/uart.v
+CPUDEPS = ../bexkat1p.v ../alu.v ../intcalc.v ../mem.v ../execute.v ../idecode.v ../ifetch.v  ../hazard.v ../registerfile.v ../../fifo.sv ../memwb.v ../../interrupt_encoder.v ../../timerint.v ../../uart/uart.v ../../cache/arbiter.sv ../../cache/cache.sv
 
 .PHONY: all clean tests
 
@@ -15,16 +15,10 @@ tests:
 	cd tests; make
 
 obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.v ram2.v
-	verilator -I.. -I../.. --unroll-count 256 --unroll-stmts 10000 -cc pipeline_top.v -exe pipeline_test.cpp
+	verilator --trace -I.. -I../.. -I../../cache --unroll-count 256 --unroll-stmts 10000 -cc pipeline_top.v -exe pipeline_test.cpp
 
 obj_dir/Vpipeline: obj_dir/Vpipeline_top.cpp pipeline_test.cpp
 	cd obj_dir; make -f Vpipeline_top.mk
-
-obj_dir/Varbiter.cpp: ../arbiter.v
-	verilator -I.. --unroll-count 256 --unroll-stmts 10000 -cc ../arbiter.v -exe arbiter_test.cpp
-
-obj_dir/Varbiter: obj_dir/Varbiter.cpp arbiter_test.cpp
-	cd obj_dir; make -f Varbiter.mk
 
 obj_dir/Vifetch.cpp: ../ifetch.v
 	verilator -I.. -cc ../ifetch.v -exe ifetch_test.cpp

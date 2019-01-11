@@ -66,6 +66,25 @@ module top(input         clk_i,
 	   output 	 dat_we_o,
 	   output [3:0]  dat_sel_o,
 	   output [31:0] dat_dat_o,
+	   output [31:0] cache0_adr_o,
+	   output 	 cache0_cyc_o,
+	   output 	 cache0_ack_i,
+	   output 	 cache0_stb_o,
+	   output 	 cache0_stall_i,
+	   output [31:0] cache0_dat_i,
+	   output 	 cache0_we_o,
+	   output [3:0]  cache0_sel_o,
+	   output [31:0] cache0_dat_o,
+	   output [1:0]  cache_status,
+	   output [31:0] ram0_adr_o,
+	   output 	 ram0_cyc_o,
+	   output 	 ram0_ack_i,
+	   output 	 ram0_stb_o,
+	   output 	 ram0_stall_i,
+	   output [31:0] ram0_dat_i,
+	   output 	 ram0_we_o,
+	   output [3:0]  ram0_sel_o,
+	   output [31:0] ram0_dat_o,
 	   output [7:0]  hex0,
 	   output [7:0]  hex1,
 	   output [7:0]  hex2,
@@ -80,7 +99,8 @@ module top(input         clk_i,
   if_wb ram1_ibus(), ram1_dbus();
   if_wb io_dbus(), io_seg();
   if_wb io_timer(), io_uart();
-
+  if_wb cachebus0(), stats0(), sdram0();
+  
   logic [3:0] 		 timer_interrupts;
   logic [1:0] 		 serial0_interrupts;
   logic [3:0] 		 cpu_exception;
@@ -102,6 +122,26 @@ module top(input         clk_i,
   assign dat_sel_o = dat_bus.sel;
   assign dat_dat_o = dat_bus.dat_m;
    
+  assign cache0_adr_o = cachebus0.adr;
+  assign cache0_cyc_o = cachebus0.cyc;
+  assign cache0_ack_i = cachebus0.ack;
+  assign cache0_stb_o = cachebus0.stb;
+  assign cache0_dat_i = cachebus0.dat_s;
+  assign cache0_we_o = cachebus0.we;
+  assign cache0_stall_i = cachebus0.stall;
+  assign cache0_sel_o = cachebus0.sel;
+  assign cache0_dat_o = cachebus0.dat_m;
+
+  assign ram0_adr_o = sdram0.adr;
+  assign ram0_cyc_o = sdram0.cyc;
+  assign ram0_ack_i = sdram0.ack;
+  assign ram0_stb_o = sdram0.stb;
+  assign ram0_dat_i = sdram0.dat_s;
+  assign ram0_we_o = sdram0.we;
+  assign ram0_stall_i = sdram0.stall;
+  assign ram0_sel_o = sdram0.sel;
+  assign ram0_dat_o = sdram0.dat_m;
+  
   ifetch #(.REQ_MAX(8)) fetch0(.clk_i(clk_i), .rst_i(rst_i),
 			       .ir(if_ir),
 			       .pc(if_pc),
@@ -370,12 +410,28 @@ module top(input         clk_i,
   bus_term bus2_pd(pd_bus2.slave);
   bus_term bus2_pe(pe_bus2.slave);
   bus_term bus2_pf(pf_bus2.slave);
+
+  arbiter arb0(.clk_i(clk_i),
+	       .rst_i(rst_i),
+	       .in0(ram0_ibus.slave),
+	       .in1(ram0_dbus.slave),
+	       .out(cachebus0.master));
+
+  bus_term_m stats_bus(stats0.master);
   
-  ram2 #(.AWIDTH(11),
-	 .INITNAME("../clear.hex")) ram0(.clk_i(clk_i), .rst_i(rst_i),
-					 .bus0(ram0_ibus.slave),
-					 .bus1(ram0_dbus.slave));
-  ram2 #(.AWIDTH(11)) ram1(.clk_i(clk_i), .rst_i(rst_i),
+  cache #(.AWIDTH(13), .TAGSIZE(7)) cache0(.clk_i(clk_i),
+					   .rst_i(rst_i),
+					   .inbus(cachebus0.slave),
+					   .outbus(sdram0.master),
+					   .cache_status(cache_status),
+					   .stats(stats0.slave));
+  
+  ram #(.AWIDTH(13),
+	.INITNAME("../clear.hex")) ram0(.clk_i(clk_i),
+					.rst_i(rst_i),
+					.bus(sdram0.slave));
+  
+  ram2 #(.AWIDTH(13)) ram1(.clk_i(clk_i), .rst_i(rst_i),
 			   .bus0(ram1_ibus.slave),
 			   .bus1(ram1_dbus.slave));
   

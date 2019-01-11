@@ -4,13 +4,29 @@
 #include <cstdarg>
 #include "Vpipeline_top.h"
 #include "verilated.h"
+#include <verilated_vcd_c.h>
 
 #define INS_RA(x) (0xf & (x >> 20))
 #define INS_RB(x) (0xf & (x >> 16))
 #define INS_RC(x) (0xf & (x >> 12))
 
+static const char *ifetchstatestr[] = {
+  "IDLE", "FETCH", "END", "HALT" };
+
+static const char *memstatestr[] = {
+  "IDLE", "EXC", "LOAD", "STORE", "PUSH", "POP", "JSR", "RTS" };
+static const char *cachestatestr[] = {
+  "IDLE", "BUSY", "HIT", "MISS",
+  "FILL", "FILL2", "FILL3", "FILL4", "FILL5",
+  "FLUSH", "FLUSH2", "FLUSH3", "FLUSH4", "FLUSH5",
+  "FILL_WAIT", "FLUSH_WAIT", "DONE", "INIT", "BUSY2", "BUSY3" };
+
+static const char *cachebusstatestr[] = {
+  "IDLE", "ACK", "READ_WAIT", "WAIT" };
+
 using namespace std;
 Vpipeline_top* top;
+VerilatedVcdC* trace;
 ofstream debugfile;
 
 #define D_DEBUG 0
@@ -34,22 +50,29 @@ int main(int argc, char **argv, char **env) {
   uint8_t mode = 0;
   uint8_t str_count = 0;
   vluint64_t tick = 0, cycle = 0;
-
-  if (argc != 2) {
-    printf("Need debug file on command line.\n");
-    exit(1);
-  }
+  char *tracefile;
   
-  debugfile.open(argv[1]);
+  for (int i=1; i < argc; i++) {
+    if (!strncmp(argv[i], "--debug=", 8)) {
+      debugfile.open(argv[i]+8);
+    }
+    if (!strncmp(argv[i], "--trace=", 8)) {
+      tracefile = argv[i]+8;
+    }
+  }
     
   Verilated::commandArgs(argc, argv);
   top = new Vpipeline_top;
-
+  Verilated::traceEverOn(true);
+  trace = new VerilatedVcdC;
+  top->trace(trace, 99);
+  trace->open(tracefile);
+  
   top->rst_i = 1;
   top->clk_i = 0;
   top->interrupts = 0;
   
-  while (!Verilated::gotFinish()) {
+  while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
     top->clk_i = ~top->clk_i;
     
@@ -59,6 +82,9 @@ int main(int argc, char **argv, char **env) {
 
     top->eval();
 
+    trace->dump(tick);
+    trace->flush();
+    
     if (top->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
       emit(D_DEBUG, "--- PIPELINE STATE ---\n");
@@ -162,23 +188,29 @@ int main(int argc, char **argv, char **env) {
 	   top->top__DOT__exe0__DOT__vectoff,
 	   2, top->cpu_inter_en,
 	   2, top->interrupts);
-      emit(D_DEBUG, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %d\n",
+      emit(D_DEBUG, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %s\n",
 	   top->ins_adr_o,
 	   top->ins_cyc_o,
 	   top->ins_stb_o,
 	   top->ins_ack_i,
 	   top->ins_dat_i,
 	   top->ins_stall_i,
-	   top->top__DOT__fetch0__DOT__state);
+	   ifetchstatestr[top->top__DOT__fetch0__DOT__state]);
       emit(D_DEBUG, "  fifo: cidx: %x ridx: %x widx: %x value[idx]: %08x\n",
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__cidx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__ridx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__widx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__values[top->top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
-      emit(D_DEBUG, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %x\n",
+      emit(D_DEBUG, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %s\n",
 	   top->dat_adr_o, top->dat_cyc_o, top->dat_stb_o, top->dat_ack_i, top->dat_dat_i,
 	   top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i,
-	   top->top__DOT__mem0__DOT__state);
+	   memstatestr[top->top__DOT__mem0__DOT__state]);
+      emit(D_DEBUG, "Cache: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state: %d active: %02x\n",
+	   top->cache0_adr_o, top->cache0_cyc_o, top->cache0_stb_o, top->cache0_ack_i, top->cache0_dat_i,
+	   top->cache0_dat_o, top->cache0_we_o, top->cache0_sel_o, top->cache0_stall_i, top->top__DOT__mmu_bus0__DOT__state, top->top__DOT__mmu_bus0__DOT__active);
+      emit(D_DEBUG, "sdram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
+	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
+	   top->ram0_dat_o, top->ram0_we_o, top->ram0_sel_o, top->ram0_stall_i);
       cycle++;
     }
 
@@ -209,6 +241,7 @@ int main(int argc, char **argv, char **env) {
     tick++;
   }
   debugfile.close();
+  trace->close();
   top->final();
   delete top;
   exit(0);
