@@ -1,18 +1,20 @@
-module textdrv(
-  input clk_i,
-  input rst_i,
-  input vga_clock,
-  input [31:0] cursorpos,
-  input [3:0] cursormode,
-  input [15:0] x,
-  input [15:0] y,
-  output [7:0] r,
-  output [7:0] g,
-  output [7:0] b,
-  output cyc_o,
-  output [31:0] adr_o,
-  input [31:0] dat_i,
-  input ack_i);
+module textdrv
+  #(BPP = 8)
+  (
+   input 	    clk_i,
+   input 	    rst_i,
+   input 	    vga_clock,
+   input [31:0]     cursorpos,
+   input [3:0] 	    cursormode,
+   input [15:0]     x,
+   input [15:0]     y,
+   output [BPP-1:0] r,
+   output [BPP-1:0] g,
+   output [BPP-1:0] b,
+   output 	    cyc_o,
+   output [31:0]    adr_o,
+   input [31:0]     dat_i,
+   input 	    ack_i);
 
 wire [95:0] fontval;
 wire [31:0] char;
@@ -55,7 +57,7 @@ begin
   endcase
 end  
 
-wire [7:0] red, green, blue;
+wire [BPP-1:0] red, green, blue;
 
 assign red =   (x[3] ? { buf_out[23:22], 6'h0 } : { buf_out[31:30], 6'h0 });
 assign green = (x[3] ? { buf_out[21:19], 5'h0 } : { buf_out[29:27], 5'h0 });
