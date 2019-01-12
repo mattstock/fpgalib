@@ -25,18 +25,13 @@ module vga_master
   // 0xc01 - video mode, palette select
   
   logic [31:0] 	    inbus_dat_o, inbus_dat_i;
-  logic [31:0] 	    outbus_dat_o, outbus_dat_i;
   
 `ifdef NO_MODPORT_EXPRESSIONS
   assign inbus_dat_i = inbus.dat_m;
   assign inbus.dat_s = inbus_dat_o;
-  assign outbus_dat_i = outbus.dat_s;
-  assign outbus.dat_m = outbus_dat_o;
 `else
   assign inbus_dat_i = inbus.dat_i;
   assign inbus.dat_o = inbus_dat_o;
-  assign outbus_dat_i = outbus.dat_i;
-  assign outbus.dat_o = outbus_dat_o;
 `endif
   
   typedef enum 	    bit [2:0] { SS_IDLE, SS_PALETTE, 
@@ -53,15 +48,9 @@ module vga_master
   logic [31:0] 	    gd_adr_o, td_adr_o;
   logic [15:0] 	    x_raw, y_raw;
   
-  assign outbus_dat_o = 32'h0;
   assign inbus.ack = (sstate == SS_DONE);
   assign inbus.stall = 1'h0;
 
-  assign outbus.we = 1'b0;
-  assign outbus.sel = 4'hf;
-  assign outbus.cyc = td_cyc_o;
-  assign outbus.stb = outbus.cyc;
-  assign outbus.adr = vgabase + td_adr_o;
   assign r = td_r;
   assign g = td_g;
   assign b = td_b;
@@ -180,12 +169,9 @@ module vga_master
 				   .r(td_r),
 				   .g(td_g),
 				   .b(td_b),
-				   .cyc_o(td_cyc_o),
 				   .cursorpos(cursorpos),
 				   .cursormode(setupreg[7:4]),
-				   .ack_i(outbus.ack),
-				   .adr_o(td_adr_o),
-				   .dat_i(outbus_dat_i),
+				   .bus(outbus.master),
 				   .vga_clock(vga_clock));
   
   vga_controller vga0(.active(blank_n),

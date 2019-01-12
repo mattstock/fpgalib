@@ -1,3 +1,5 @@
+`include "../wb.h"
+
 module textdrv
   #(BPP = 8)
   (
@@ -11,10 +13,17 @@ module textdrv
    output [BPP-1:0] r,
    output [BPP-1:0] g,
    output [BPP-1:0] b,
-   output 	    cyc_o,
-   output [31:0]    adr_o,
-   input [31:0]     dat_i,
-   input 	    ack_i);
+   if_wb.master     bus);
+
+  logic [DWIDTH-1:0] bus_dat_i, bus_dat_o;
+  
+`ifdef NO_MODPORT_EXPRESSIONS
+  assign outbus_dat_i = bus.dat_s;
+  assign outbus.dat_m = bus_dat_o;
+`else
+  assign bus_dat_i = bus.dat_i;
+  assign bus.dat_o = bus_dat_o;
+`endif
 
   logic [95:0] 	    fontval;
   logic [31:0] 	    char;
@@ -22,10 +31,9 @@ module textdrv
   logic [31:0] 	    buf_out;
   logic [15:0] 	    scanaddr;
   logic [15:0] 	    textrow, textcol;
-  logic [7:0] 	    color0, color1;
+  logic [BPP-1:0]   color0, color1;
   logic 	    oncursor;
 
-  logic [1:0] 	    state, state_next;
   logic [9:0] 	    idx, idx_next;
   logic [31:0] 	    rowval, rowval_next;
   logic [15:0] 	    x_sync [2:0];
@@ -35,7 +43,13 @@ module textdrv
 
   typedef enum 	    bit [1:0] { S_IDLE, S_BUS, S_FONT, S_STORE } state_t;
 
-  assign cyc_o = (state == S_BUS);
+  state_t 	    state, state_next;
+
+  assign bus.cyc = (state == S_BUS);
+  assign bus_dat_o = 32'h0;
+  assign bus.we = 1'h0;
+  assign bus.sel = 4'hf;
+  
   assign scanaddr = x+1'b1;
   assign textrow = { 3'h0, y[15:3] };
   assign textcol = { 3'h0, x[15:3] };
@@ -105,7 +119,7 @@ module textdrv
       idx_next = idx;
       rowval_next = rowval;
       font_idx_next = font_idx;
-      adr_o = 32'h0;
+      bus.adr = 32'h0;
       case (state)
 	S_IDLE:
 	  begin
@@ -116,11 +130,11 @@ module textdrv
 	  end
 	S_BUS:
 	  begin
-	    adr_o = rowval + idx;
-	    if (ack_i)
+	    bus.adr = rowval + idx;
+	    if (bus.ack)
 	      begin
 		state_next = S_FONT;
-		font_idx_next = dat_i;
+		font_idx_next = bus_dat_i;
 	      end
 	  end
 	S_FONT:
