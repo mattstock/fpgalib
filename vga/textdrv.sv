@@ -1,4 +1,4 @@
-`include "../wb.h"
+`include "../wb.vh"
 
 module textdrv
   #(BPP = 8)
@@ -15,11 +15,11 @@ module textdrv
    output [BPP-1:0] b,
    if_wb.master     bus);
 
-  logic [DWIDTH-1:0] bus_dat_i, bus_dat_o;
+  logic [31:0] bus_dat_i, bus_dat_o;
   
 `ifdef NO_MODPORT_EXPRESSIONS
-  assign outbus_dat_i = bus.dat_s;
-  assign outbus.dat_m = bus_dat_o;
+  assign bus_dat_i = bus.dat_s;
+  assign bus.dat_m = bus_dat_o;
 `else
   assign bus_dat_i = bus.dat_i;
   assign bus.dat_o = bus_dat_o;
@@ -164,7 +164,7 @@ module textdrv
   assign color1 = font_idx[15:8];
   dualrom 
     #(.AWIDTH(7),
-      .INITNAME("../../vga/font8x12.mif"),
+      .INITNAME("../../fpgalib/vga/font8x12.mif"),
       .DWIDTH(96)) fontmem(.clk_i(clk_i),
 			   .rst_i(rst_i),
 			   .bus0_adr(font_idx[22:16]),
