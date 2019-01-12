@@ -1,7 +1,7 @@
 `include "../wb.vh"
 
 module vga_master
-  #(VGA_MEMBASE = 32'hc0000000,
+  #(VGA_MEMBASE = 32'h0,
     BPP = 8)
   (
    input 	    clk_i,
@@ -55,6 +55,8 @@ module vga_master
   
   assign outbus_dat_o = 32'h0;
   assign inbus.ack = (sstate == SS_DONE);
+  assign inbus.stall = 1'h0;
+
   assign outbus.we = 1'b0;
   assign outbus.sel = 4'hf;
   assign outbus.cyc = td_cyc_o;
