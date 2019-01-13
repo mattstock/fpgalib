@@ -19,12 +19,12 @@ module ram2
   localparam S_IDLE = 1'b0;
   localparam S_ACTIVE = 1'b1;
   
-  always idx0 = { bus0.adr[AWIDTH+1:2], 2'b0 };
-  always idx1 = { bus1.adr[AWIDTH+1:2], 2'b0 };
-  always bus0.ack = (state0 == S_ACTIVE);
-  always bus1.ack = (state1 == S_ACTIVE);
-  always bus0.stall = 1'b0;
-  always bus1.stall = 1'b0;
+  assign idx0 = { bus0.adr[AWIDTH+1:2], 2'b0 };
+  assign idx1 = { bus1.adr[AWIDTH+1:2], 2'b0 };
+  assign bus0.ack = (state0 == S_ACTIVE);
+  assign bus1.ack = (state1 == S_ACTIVE);
+  assign bus0.stall = 1'b0;
+  assign bus1.stall = 1'b0;
   
   initial
     begin
