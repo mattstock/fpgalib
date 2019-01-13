@@ -46,6 +46,7 @@ module textdrv
   state_t 	    state, state_next;
 
   assign bus.cyc = (state == S_BUS);
+  assign bus.stb = bus.cyc;
   assign bus_dat_o = 32'h0;
   assign bus.we = 1'h0;
   assign bus.sel = 4'hf;
