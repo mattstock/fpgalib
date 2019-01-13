@@ -8,12 +8,13 @@ module textdrv
    input 	    vga_clock,
    input [31:0]     cursorpos,
    input [3:0] 	    cursormode,
+   input [23:0]     cursorcolor,
    input [15:0]     x,
    input [15:0]     y,
    output [BPP-1:0] r,
    output [BPP-1:0] g,
    output [BPP-1:0] b,
-   if_wb.master     bus);
+		    if_wb.master bus);
 
   logic [31:0] bus_dat_i, bus_dat_o;
   
@@ -39,7 +40,7 @@ module textdrv
   logic [15:0] 	    x_sync [2:0];
   logic [15:0] 	    y_sync [2:0];
   logic [31:0] 	    font_idx, font_idx_next;
-  logic [25:0] 	    blink;
+  logic [23:0] 	    blink;
 
   typedef enum 	    bit [1:0] { S_IDLE, S_BUS, S_FONT, S_STORE } state_t;
 
@@ -55,8 +56,8 @@ module textdrv
   assign textrow = { 3'h0, y[15:3] };
   assign textcol = { 3'h0, x[15:3] };
   assign oncursor = ({textrow,textcol} == cursorpos) &&
-		    ((blink[25] & cursormode[3:0] == 4'h1) ||
-		     (cursormode[3:0] == 4'h2));
+		    ((blink[23] & cursormode[3:0] == 4'h3) ||
+		     (cursormode[3:0] == 4'h4));
 
   // break out the rows of the font elements
   always_comb
@@ -73,16 +74,17 @@ module textdrv
 	default: char = 16'h0;
       endcase
     end  
-  
-  logic [BPP-1:0] red, green, blue;
 
-  assign red =   (x[3] ? { buf_out[23:22], 6'h0 } : { buf_out[31:30], 6'h0 });
-  assign green = (x[3] ? { buf_out[21:19], 5'h0 } : { buf_out[29:27], 5'h0 });
-  assign blue =  (x[3] ? { buf_out[18:16], 5'h0 } : { buf_out[26:24], 5'h0 });
+  // 233 color
+  logic [1:0] red;
+  logic [2:0] green, blue;
+
+  assign red =   (x[3] ? buf_out[23:22] : buf_out[31:30]);
+  assign green = (x[3] ? buf_out[21:19] : buf_out[29:27]);
+  assign blue =  (x[3] ? buf_out[18:16] : buf_out[26:24]);
   
-  assign {r,g,b} = (buf_out[4'hf-x[3:0]] || oncursor ?
-		    { red, green, blue } :
-		    24'h000000);
+  assign {r,g,b} = (buf_out[4'hf-x[3:0]] ? { red, 6'h0, green, 5'h0, blue, 5'h0 } : 24'h000000) |
+		   (oncursor ? cursorcolor : 24'h000000);
 
   always_ff @(posedge clk_i)
     begin

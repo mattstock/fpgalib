@@ -43,9 +43,7 @@ module vga_master
 		    cursorpos, cursorpos_next;
   logic [31:0] 	    inbus_dat_o_next;
   
-  logic [BPP-1:0]   gd_r, gd_g, gd_b, td_r, td_g, td_b;
-  logic 	    gd_cyc_o, td_cyc_o;
-  logic [31:0] 	    gd_adr_o, td_adr_o;
+  logic [BPP-1:0]   td_r, td_g, td_b;
   logic [15:0] 	    x_raw, y_raw;
   
   assign inbus.ack = (sstate == SS_DONE);
@@ -170,7 +168,8 @@ module vga_master
 				   .g(td_g),
 				   .b(td_b),
 				   .cursorpos(cursorpos),
-				   .cursormode(setupreg[7:4]),
+				   .cursormode(setupreg[3:0]),
+				   .cursorcolor(setupreg[31:7]),
 				   .bus(outbus.master),
 				   .vga_clock(vga_clock));
   
