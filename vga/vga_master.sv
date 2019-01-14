@@ -6,6 +6,8 @@ module vga_master
   (
    input 	    clk_i,
    input 	    rst_i,
+   input            vga_clock25,
+   input            vga_clock28,
    if_wb.slave      inbus,
    if_wb.master     outbus,
    output 	    vs,
@@ -15,7 +17,7 @@ module vga_master
    output [BPP-1:0] b,
    output 	    blank_n,
    output 	    sync_n,
-   input 	    vga_clock);
+   output 	    vga_clock);
 
   // Configuration registers
   // 0x000 - palette memory 1
@@ -42,16 +44,42 @@ module vga_master
 		    vgabase, vgabase_next,
 		    cursorpos, cursorpos_next;
   logic [31:0] 	    inbus_dat_o_next;
-  
+  logic [23:0] 	    cursorcolor, cursorcolor_next;
   logic [BPP-1:0]   td_r, td_g, td_b;
-  logic [15:0] 	    x_raw, y_raw;
+  logic [BPP-1:0]   gd_r, gd_g, gd_b;
+  logic [15:0] 	    x25_raw, y25_raw;
+  logic [15:0] 	    x28_raw, y28_raw;
+  logic 	    vs25, hs25;
+  logic 	    vs28, hs28;
+  logic 	    blank25_n, blank28_n;
   
   assign inbus.ack = (sstate == SS_DONE);
   assign inbus.stall = 1'h0;
 
-  assign r = td_r;
-  assign g = td_g;
-  assign b = td_b;
+  // timing changes based on graphics mode
+  always_comb
+    begin
+      if (setupreg[1])
+	begin
+	  r = td_r;
+	  g = td_g;
+	  b = td_b;
+	  vga_clock = vga_clock28;
+	  vs = vs28;
+	  hs = hs28;
+	  blank_n = blank28_n;
+	end
+      else
+	begin
+	  r = gd_r;
+	  g = gd_g;
+	  b = gd_b;
+	  vga_clock = vga_clock25;
+	  vs = vs25;
+	  hs = hs25;
+	  blank_n = blank25_n;
+	end
+    end // always_comb
   
   assign sync_n = 1'b0;
   
@@ -64,6 +92,7 @@ module vga_master
 	  setupreg <= 32'h02;
 	  inbus_dat_o <= 32'h0;
 	  cursorpos <= 32'h0;
+	  cursorcolor <= 24'ha0a0a0;
 	  sstate <= SS_IDLE;
 	end
       else
@@ -72,6 +101,7 @@ module vga_master
 	  setupreg <= setupreg_next;
 	  inbus_dat_o <= inbus_dat_o_next;
 	  cursorpos <= cursorpos_next;
+	  cursorcolor <= cursorcolor_next;
 	  sstate <= sstate_next;
 	end
     end
@@ -82,6 +112,7 @@ module vga_master
       setupreg_next = setupreg;
       vgabase_next = vgabase;
       cursorpos_next = cursorpos;
+      cursorcolor_next = cursorcolor;
       inbus_dat_o_next = inbus_dat_o;
       
       case (sstate)
@@ -141,6 +172,20 @@ module vga_master
 			  end
 			else
 			  inbus_dat_o_next = cursorpos;
+		      end // case: 8'h2
+		    8'h3:
+		      begin // c03 - cursor color
+			if (inbus.we)
+			  begin
+			    if (inbus.sel[2])
+			      cursorcolor_next[23:16] = inbus_dat_i[23:16];
+			    if (inbus.sel[1])
+			      cursorcolor_next[15:8] = inbus_dat_i[15:8];
+			    if (inbus.sel[0])
+			      cursorcolor_next[7:0] = inbus_dat_i[7:0];
+			  end
+			else
+			  inbus_dat_o_next = cursorcolor;
 		      end
 		    default:
 		      begin
@@ -162,23 +207,31 @@ module vga_master
   
   textdrv #(.BPP(BPP)) textdriver0(.clk_i(clk_i),
 				   .rst_i(rst_i),
-				   .x(x_raw),
-				   .y(y_raw),
+				   .x(x28_raw),
+				   .y(y28_raw),
 				   .r(td_r),
 				   .g(td_g),
 				   .b(td_b),
 				   .cursorpos(cursorpos),
-				   .cursormode(setupreg[3:0]),
-				   .cursorcolor(setupreg[31:7]),
+				   .cursormode(setupreg[7:4]),
+				   .cursorcolor(cursorcolor),
 				   .bus(outbus.master),
-				   .vga_clock(vga_clock));
+				   .vga_clock(vga_clock28));
   
-  vga_controller vga0(.active(blank_n),
-		      .vs(vs),
-		      .hs(hs),
-		      .clock(vga_clock),
-		      .reset_n(~rst_i),
-		      .x(x_raw),
-		      .y(y_raw));
+  vga_controller25 vga0(.active(blank25_n),
+			.vs(vs25),
+			.hs(hs25),
+			.clock(vga_clock25),
+			.rst_i(rst_i),
+			.x(x25_raw),
+			.y(y25_raw));
+  
+  vga_controller28 vga1(.active(blank28_n),
+			.vs(vs28),
+			.hs(hs28),
+			.clock(vga_clock28),
+			.rst_i(rst_i),
+			.x(x28_raw),
+			.y(y28_raw));
   
 endmodule

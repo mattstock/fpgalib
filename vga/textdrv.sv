@@ -26,9 +26,8 @@ module textdrv
   assign bus.dat_o = bus_dat_o;
 `endif
 
-  logic [95:0] 	    fontval;
   logic [31:0] 	    char;
-  logic [95:0] 	    font0_out, font1_out;
+  logic [143:0]     font0_out, font1_out;
   logic [31:0] 	    buf_out;
   logic [15:0] 	    scanaddr;
   logic [15:0] 	    textrow, textcol;
@@ -62,7 +61,9 @@ module textdrv
   // break out the rows of the font elements
   always_comb
     begin
-      case (y[2:0])
+      color0 = font_idx[31:24];
+      color1 = font_idx[15:8];
+      case (y[3:1])
 	'h7: char = { color0, color1, font0_out[39:32], font1_out[39:32] };
 	'h6: char = { color0, color1, font0_out[47:40], font1_out[47:40] };
 	'h5: char = { color0, color1, font0_out[55:48], font1_out[55:48] };
@@ -82,6 +83,11 @@ module textdrv
   assign red =   (x[3] ? buf_out[23:22] : buf_out[31:30]);
   assign green = (x[3] ? buf_out[21:19] : buf_out[29:27]);
   assign blue =  (x[3] ? buf_out[18:16] : buf_out[26:24]);
+
+  always_comb
+    begin
+      
+    end
   
   assign {r,g,b} = (buf_out[4'hf-x[3:0]] ? { red, 6'h0, green, 5'h0, blue, 5'h0 } : 24'h000000) |
 		   (oncursor ? cursorcolor : 24'h000000);
@@ -152,7 +158,7 @@ module textdrv
 	    else
 	      begin
 		idx_next = 10'd0;
-		if (y_sync[1] == 16'd479)
+		if (y_sync[1] == 16'd699)
 		  rowval_next = 32'h0;
 		else
 		  if (y_sync[1][2:0] == 16'h7)
@@ -163,17 +169,15 @@ module textdrv
       endcase
     end
 
-  assign color0 = font_idx[31:24];
-  assign color1 = font_idx[15:8];
   dualrom 
     #(.AWIDTH(7),
       .INITNAME("../../fpgalib/vga/font8x12.mif"),
-      .DWIDTH(96)) fontmem(.clk_i(clk_i),
-			   .rst_i(rst_i),
-			   .bus0_adr(font_idx[22:16]),
-			   .bus0_data(font0_out),
-			   .bus1_adr(font_idx[6:0]),
-			   .bus1_data(font1_out));
+      .DWIDTH(144)) fontmem(.clk_i(clk_i),
+			    .rst_i(rst_i),
+			    .bus0_adr(font_idx[22:16]),
+			    .bus0_data(font0_out),
+			    .bus1_adr(font_idx[6:0]),
+			    .bus1_data(font1_out));
   
   textlinebuf linebuf0(.wrclock(clk_i),
 		       .wraddress(idx[9:2]),
