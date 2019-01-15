@@ -3,6 +3,7 @@ module vga_controller28(output        hs,
 		      input 	    rst_i,
 		      input 	    clock,
 		      output 	    active,
+		      output 	    eol, 
 		      output [15:0] x,
 		      output [15:0] y,
 		      output [18:0] pixel);
@@ -23,22 +24,22 @@ module vga_controller28(output        hs,
   
   logic [15:0] 			    h_count, h_count_next;
   logic [15:0] 			    v_count, v_count_next;
-  logic [15:0] 			    xpos, xpos_next;
-  logic [15:0] 			    ypos, ypos_next;
   logic [18:0] 			    pixelval, pixelval_next;
 
   logic 			    v_active, h_active;
 
-  assign x = xpos;
-  assign y = ypos;
   assign pixel = pixelval;
   assign v_active = v_count > Y_START && v_count < Y_START+V_SYNC_ACT;
   assign h_active = h_count > X_START && h_count < X_START+H_SYNC_ACT;
   assign active = v_active && h_active;
 
+  assign eol = (h_count == H_SYNC_TOTAL - 15'h1);
+  
   assign vs = (v_count >= V_SYNC_INT);
   assign hs = (h_count >= H_SYNC_INT);
-
+  assign x = (h_count < X_START ? 15'h0 : h_count - X_START);
+  assign y = (v_count >= V_SYNC_ACT ? V_SYNC_ACT - 1 : v_count);
+  
   always_ff @(posedge clock or posedge rst_i)
     begin
       if (rst_i)
@@ -46,16 +47,12 @@ module vga_controller28(output        hs,
 	  pixelval <= 19'h0;
 	  h_count <= 16'h0;
 	  v_count <= 16'h0;
-	  xpos <= 16'h0;
-	  ypos <= 16'h0;
 	end
       else
 	begin
 	  pixelval <= pixelval_next;
 	  h_count <= h_count_next;
 	  v_count <= v_count_next;
-	  xpos <= xpos_next;
-	  ypos <= ypos_next;
 	end
     end
   
@@ -64,19 +61,12 @@ module vga_controller28(output        hs,
       pixelval_next = pixelval;
       h_count_next = h_count;
       v_count_next = v_count;
-      xpos_next = xpos;
-      ypos_next = ypos;
       
       if (h_count < H_SYNC_TOTAL)
 	begin
 	  h_count_next = h_count + 1'b1;
 	  if (active)
-	    begin
-	      xpos_next = xpos + 1'b1;
-	      pixelval_next = pixelval + 1'b1;
-	    end
-	  else
-	    xpos_next = 16'h0;
+	    pixelval_next = pixelval + 1'b1;
 	end
       else
 	begin
@@ -84,16 +74,7 @@ module vga_controller28(output        hs,
 	  if (v_count < V_SYNC_TOTAL)
 	    begin
 	      v_count_next = v_count + 1'b1;
-	      if (v_active)
-		begin
-		  ypos_next = ypos + 1'b1;
-		  pixelval_next = pixelval + 1'b1;
-		end
-	      else
-		begin
-		  ypos_next = 16'h0;
-		  pixelval_next = 19'h0;
-		end
+	      pixelval_next = (v_active ? pixelval + 1'b1 : 19'h0);
 	    end
 	  else
 	    v_count_next = 16'h0;

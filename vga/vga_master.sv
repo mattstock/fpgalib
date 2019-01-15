@@ -204,19 +204,21 @@ module vga_master
 	SS_DONE: sstate_next = SS_IDLE;
       endcase
     end
+
+  logic eol;
+
   
-  textdrv #(.BPP(BPP)) textdriver0(.clk_i(clk_i),
+  textdrv #(.BPP(BPP)) textdriver0(.clk_i(vga_clock28),
 				   .rst_i(rst_i),
-				   .x(x28_raw),
-				   .y(y28_raw),
+				   .active(blank28_n),
+				   .eol(eol),
 				   .r(td_r),
 				   .g(td_g),
 				   .b(td_b),
 				   .cursorpos(cursorpos),
 				   .cursormode(setupreg[7:4]),
 				   .cursorcolor(cursorcolor),
-				   .bus(outbus.master),
-				   .vga_clock(vga_clock28));
+				   .bus(outbus.master));
   
   vga_controller25 vga0(.active(blank25_n),
 			.vs(vs25),
@@ -229,9 +231,8 @@ module vga_master
   vga_controller28 vga1(.active(blank28_n),
 			.vs(vs28),
 			.hs(hs28),
+			.eol(eol),
 			.clock(vga_clock28),
-			.rst_i(rst_i),
-			.x(x28_raw),
-			.y(y28_raw));
+			.rst_i(rst_i));
   
 endmodule
