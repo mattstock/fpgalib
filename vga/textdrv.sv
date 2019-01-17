@@ -227,7 +227,7 @@ module textdrv
 		       .wraddress(idx[9:2]),
 		       .wren(state == S_STORE),
 		       .data(char),
-		       .rdaddress(textcol[8:1]),
+		       .rdaddress(textcol_next[8:1]),
 		       .q(buf_out));
 
 endmodule
