@@ -205,13 +205,16 @@ module vga_master
       endcase
     end
 
-  logic eol;
+  logic eol28, eos28, v_active28, h_active28;
 
+  assign blank28_n = v_active28 & h_active28;
   
   textdrv #(.BPP(BPP)) textdriver0(.clk_i(vga_clock28),
 				   .rst_i(rst_i),
-				   .active(blank28_n),
-				   .eol(eol),
+				   .eol(eol28),
+				   .eos(eos28),
+				   .h_active(h_active28),
+				   .v_active(v_active28),
 				   .r(td_r),
 				   .g(td_g),
 				   .b(td_b),
@@ -228,10 +231,12 @@ module vga_master
 			.x(x25_raw),
 			.y(y25_raw));
   
-  vga_controller28 vga1(.active(blank28_n),
-			.vs(vs28),
+  vga_controller28 vga1(.vs(vs28),
 			.hs(hs28),
-			.eol(eol),
+			.v_active(v_active28),
+			.h_active(h_active28),
+			.eol(eol28),
+			.eos(eos28),
 			.clock(vga_clock28),
 			.rst_i(rst_i));
   

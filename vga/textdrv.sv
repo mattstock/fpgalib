@@ -11,8 +11,10 @@ module textdrv
    input [31:0]     cursorpos,
    input [3:0] 	    cursormode,
    input [23:0]     cursorcolor,
-   input 	    active,
+   input 	    v_active,
+   input            h_active,
    input 	    eol,
+   input 	    eos,
    output [BPP-1:0] r,
    output [BPP-1:0] g,
    output [BPP-1:0] b,
@@ -31,7 +33,6 @@ module textdrv
   logic [31:0] 	    char;
   logic [127:0]     font0_out, font1_out;
   logic [31:0] 	    buf_out;
-  logic [15:0] 	    scanaddr;
   logic [15:0] 	    textrow;
   logic [15:0] 	    textcol, textcol_next;
   logic [15:0] 	    y, y_next;
@@ -39,7 +40,6 @@ module textdrv
   
   logic [BPP-1:0]   color0, color1;
   logic 	    oncursor;
-  logic 	    active_last;
 
   logic [9:0] 	    idx, idx_next;
   logic [31:0] 	    rowval, rowval_next;
@@ -86,28 +86,36 @@ module textdrv
       endcase
     end  
 
-  // 233 color
-  logic [1:0] red;
-  logic [2:0] green, blue;
-
   always_comb
     begin
-      if (ninecol == 5'h8)
+      r = 8'h0;
+      g = 8'h0;
+      b = 8'h0;
+      if (ninecol != 5'h8)
 	begin
-	  red = 2'h0;
-	  green = 3'h0;
-	  blue = 3'h0;
-	end
-      else
-	begin
-	  red =   (~textcol[0] ? buf_out[23:22] : buf_out[31:30]);
-	  green = (~textcol[0] ? buf_out[21:19] : buf_out[29:27]);
-	  blue =  (~textcol[0] ? buf_out[18:16] : buf_out[26:24]);
-	end // else: !if(ninecol == 5'h8)
+	  if (textcol[0])
+	    begin
+	      if (buf_out[4'h7-ninecol])
+		begin
+		  r = { buf_out[31:30], 6'h0 };
+		  g = { buf_out[29:27], 5'h0 };
+		  b = { buf_out[26:24], 5'h0 };
+		end
+	    end
+	  else
+	    begin
+	      if (buf_out[4'hf-ninecol])
+		begin
+		  r = { buf_out[23:22], 6'h0 };
+		  g = { buf_out[21:19], 5'h0 };
+		  b = { buf_out[18:16], 5'h0 };
+		end
+	    end // else: !if(textcol[0])
+	  if (oncursor)
+	    {r, g, b} = cursorcolor;
+	end // if (ninecol != 5'h8)
     end // always_comb
   
-  assign {r,g,b} = (buf_out[4'hf-ninecol[2:0]] ? { red, 6'h0, green, 5'h0, blue, 5'h0 } : 24'h000000) | (oncursor ? cursorcolor : 24'h000000);
-
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
@@ -120,7 +128,6 @@ module textdrv
 	  textcol <= 16'h0;
 	  ninecol <= 5'h0;
 	  y <= 15'h0;
-	  active_last <= 1'h0;
 	end
       else
 	begin
@@ -132,7 +139,6 @@ module textdrv
 	  textcol <= textcol_next;
 	  ninecol <= ninecol_next;
 	  y <= y_next;
-	  active_last <= active;
 	end
     end
 
@@ -147,12 +153,10 @@ module textdrv
       y_next = y;
       bus.adr = 32'h0;
 
-      if (!active)
+      if (!h_active)
 	begin
 	  ninecol_next = 5'h0;
 	  textcol_next = 15'h0;
-	  if (active_last) // end of a scanline
-	    y_next = (y == 15'd402 ? 15'h0 : y + 15'h1);
 	end
       else
 	begin
@@ -164,14 +168,18 @@ module textdrv
 	  else
 	    ninecol_next = ninecol + 5'h1;
 	end // else: !if(!active)
+
+      if (v_active && eol)
+	y_next = y + 15'h1;
+	  
+      if (eos)
+	y_next = 15'h0;
       
       case (state)
 	S_IDLE:
 	  begin
-	    if (!active && active_last)
-	      begin
-		state_next = S_BUS;
-	      end
+	    if (eol)
+	      state_next = S_BUS;
 	  end
 	S_BUS:
 	  begin
@@ -219,7 +227,7 @@ module textdrv
 		       .wraddress(idx[9:2]),
 		       .wren(state == S_STORE),
 		       .data(char),
-		       .rdaddress(scanaddr[11:4]),
+		       .rdaddress(textcol[8:1]),
 		       .q(buf_out));
 
 endmodule

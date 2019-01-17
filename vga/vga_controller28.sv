@@ -1,12 +1,14 @@
 module vga_controller28(output        hs,
-		      output 	    vs,
-		      input 	    rst_i,
-		      input 	    clock,
-		      output 	    active,
-		      output 	    eol, 
-		      output [15:0] x,
-		      output [15:0] y,
-		      output [18:0] pixel);
+			output 	      vs,
+			input 	      rst_i,
+			input 	      clock,
+			output 	      h_active, 
+			output 	      v_active,
+			output 	      eol,
+			output 	      eos, 
+			output [15:0] x,
+			output [15:0] y,
+			output [18:0] pixel);
 
   // VESA 720x400 @ 70Hz, pixel clock is 28MHz
   localparam [15:0] H_SYNC_INT	 =	16'd108;
@@ -26,14 +28,12 @@ module vga_controller28(output        hs,
   logic [15:0] 			    v_count, v_count_next;
   logic [18:0] 			    pixelval, pixelval_next;
 
-  logic 			    v_active, h_active;
-
   assign pixel = pixelval;
   assign v_active = v_count > Y_START && v_count < Y_START+V_SYNC_ACT;
   assign h_active = h_count > X_START && h_count < X_START+H_SYNC_ACT;
-  assign active = v_active && h_active;
 
   assign eol = (h_count == H_SYNC_TOTAL - 15'h1);
+  assign eos = (h_count == H_SYNC_TOTAL && v_count == V_SYNC_TOTAL - 15'h1);
   
   assign vs = (v_count >= V_SYNC_INT);
   assign hs = (h_count >= H_SYNC_INT);
@@ -65,7 +65,7 @@ module vga_controller28(output        hs,
       if (h_count < H_SYNC_TOTAL)
 	begin
 	  h_count_next = h_count + 1'b1;
-	  if (active)
+	  if (h_active && v_active)
 	    pixelval_next = pixelval + 1'b1;
 	end
       else
