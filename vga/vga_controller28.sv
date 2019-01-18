@@ -13,7 +13,7 @@ module vga_controller28(output        hs,
   // VESA 720x400 @ 70Hz, pixel clock is 28MHz
   localparam [15:0] H_SYNC_INT	 =	16'd108;
   localparam [15:0] H_SYNC_BACK	 =	16'd51;
-  localparam [15:0] H_SYNC_ACT	 =	16'd726;
+  localparam [15:0] H_SYNC_ACT	 =	16'd720;
   localparam [15:0] H_SYNC_FRONT =	16'd15;
   localparam [15:0] H_SYNC_TOTAL =	H_SYNC_ACT+H_SYNC_FRONT+H_SYNC_INT+H_SYNC_BACK;
   localparam [15:0] V_SYNC_INT	 =	16'd2;

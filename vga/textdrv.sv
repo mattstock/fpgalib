@@ -15,9 +15,9 @@ module textdrv
    input            h_active,
    input 	    eol,
    input 	    eos,
-   output [BPP-1:0] r,
-   output [BPP-1:0] g,
-   output [BPP-1:0] b,
+   output [BPP-1:0] red,
+   output [BPP-1:0] green,
+   output [BPP-1:0] blue,
 		    if_wb.master bus);
 
   logic [31:0] bus_dat_i, bus_dat_o;
@@ -37,7 +37,6 @@ module textdrv
   logic [15:0] 	    textcol, textcol_next;
   logic [15:0] 	    y, y_next;
   logic [4:0] 	    ninecol, ninecol_next;
-  
   logic [BPP-1:0]   color0, color1;
   logic 	    oncursor;
 
@@ -46,17 +45,17 @@ module textdrv
   logic [31:0] 	    font_idx, font_idx_next;
   logic [23:0] 	    blink;
   
-  typedef enum 	    bit [1:0] { S_IDLE, S_BUS, S_FONT, S_STORE } state_t;
+  typedef enum 	    bit [2:0] { S_IDLE, S_BUS, S_FONT, S_STORE, S_ACK_WAIT } state_t;
 
   state_t 	    state, state_next;
 
-  assign bus.cyc = (state == S_BUS);
-  assign bus.stb = bus.cyc;
+  assign bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
+  assign bus.stb = (state == S_BUS);
   assign bus_dat_o = 32'h0;
   assign bus.we = 1'h0;
   assign bus.sel = 4'hf;
   assign textrow = { 4'h0, y[15:4] };
-  
+
   assign oncursor = ({textrow,textcol} == cursorpos) &&
 		    ((blink[23] & cursormode == 4'h1) ||
 		     (cursormode == 4'h2));
@@ -64,8 +63,8 @@ module textdrv
   // break out the rows of the font elements
   always_comb
     begin
-      color0 = font_idx[31:24];
-      color1 = font_idx[15:8];
+      color0 = font_idx[15:8];
+      color1 = font_idx[31:24];
       case (y[3:0])
 	'hf: char = { color0, color1, font0_out[7:0], font1_out[7:0] };
 	'he: char = { color0, color1, font0_out[15:8], font1_out[15:8] };
@@ -88,31 +87,31 @@ module textdrv
 
   always_comb
     begin
-      r = 8'h0;
-      g = 8'h0;
-      b = 8'h0;
+      red = 8'h0;
+      green = 8'h0;
+      blue = 8'h0;
       if (ninecol != 5'h8)
 	begin
 	  if (textcol[0])
 	    begin
 	      if (buf_out[4'h7-ninecol])
 		begin
-		  r = { buf_out[31:30], 6'h0 };
-		  g = { buf_out[29:27], 5'h0 };
-		  b = { buf_out[26:24], 5'h0 };
+		  red = { buf_out[31:30], 6'h0 };
+		  green = { buf_out[29:27], 5'h0 };
+		  blue = { buf_out[26:24], 5'h0 };
 		end
 	    end
 	  else
 	    begin
 	      if (buf_out[4'hf-ninecol])
 		begin
-		  r = { buf_out[23:22], 6'h0 };
-		  g = { buf_out[21:19], 5'h0 };
-		  b = { buf_out[18:16], 5'h0 };
+		  red = { buf_out[23:22], 6'h0 };
+		  green = { buf_out[21:19], 5'h0 };
+		  blue = { buf_out[18:16], 5'h0 };
 		end
 	    end // else: !if(textcol[0])
 	  if (oncursor)
-	    {r, g, b} = cursorcolor;
+	    {red, green, blue} = cursorcolor;
 	end // if (ninecol != 5'h8)
     end // always_comb
   
@@ -184,6 +183,10 @@ module textdrv
 	S_BUS:
 	  begin
 	    bus.adr = rowval + idx;
+	    state_next = S_ACK_WAIT;
+	  end
+	S_ACK_WAIT:
+	  begin
 	    if (bus.ack)
 	      begin
 		state_next = S_FONT;
