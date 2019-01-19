@@ -40,7 +40,7 @@ module textdrv
   logic [BPP-1:0]   color0, color1;
   logic 	    oncursor;
 
-  logic [9:0] 	    idx, idx_next;
+  logic [5:0] 	    idx, idx_next;
   logic [31:0] 	    rowval, rowval_next;
   logic [31:0] 	    font_idx, font_idx_next;
   logic [23:0] 	    blink;
@@ -50,6 +50,7 @@ module textdrv
   state_t 	    state, state_next;
 
   assign bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
+  assign bus.adr = rowval + { idx, 2'h0 };
   assign bus.stb = (state == S_BUS);
   assign bus_dat_o = 32'h0;
   assign bus.we = 1'h0;
@@ -120,7 +121,7 @@ module textdrv
       if (rst_i)
 	begin
 	  state <= S_IDLE;
-	  idx <= 10'h0;
+	  idx <= 6'h0;
 	  rowval <= 32'h0;
 	  font_idx <= 32'h0;
 	  blink <= 25'h0;
@@ -150,7 +151,6 @@ module textdrv
       textcol_next = textcol;
       ninecol_next = ninecol;
       y_next = y;
-      bus.adr = 32'h0;
 
       if (!h_active)
 	begin
@@ -181,10 +181,7 @@ module textdrv
 	      state_next = S_BUS;
 	  end
 	S_BUS:
-	  begin
-	    bus.adr = rowval + idx;
 	    state_next = S_ACK_WAIT;
-	  end
 	S_ACK_WAIT:
 	  begin
 	    if (bus.ack)
@@ -197,14 +194,14 @@ module textdrv
 	  state_next = S_STORE;
 	S_STORE:
 	  begin
-	    if (idx < 11'd160)
+	    if (idx < 6'd40)
 	      begin
 		state_next = S_BUS;
-		idx_next = idx + 10'd4;
+		idx_next = idx + 6'h1;
 	      end
 	    else
 	      begin
-		idx_next = 10'd0;
+		idx_next = 5'd0;
 		if (y == 16'd399)
 		  rowval_next = 32'h0;
 		else
@@ -227,7 +224,7 @@ module textdrv
 			    .bus1_data(font1_out));
   
   textlinebuf linebuf0(.clock(clk_i),
-		       .wraddress(idx[9:2]),
+		       .wraddress(idx),
 		       .wren(state == S_STORE),
 		       .data(char),
 		       .rdaddress(textcol_next[8:1]),
