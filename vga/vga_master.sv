@@ -1,5 +1,7 @@
 `include "../wb.vh"
 
+`define VGA_GRAPHICS
+
 module vga_master
   #(VGA_MEMBASE = 32'h0,
     BPP = 8)
@@ -27,13 +29,22 @@ module vga_master
   // 0xc01 - video mode, palette select
   
   logic [31:0] 	    inbus_dat_o, inbus_dat_i;
+  logic [31:0] 	    outbus_dat_o, outbus_dat_i;
+  
+  if_wb textbus();
+  if_wb graphicsbus();
+  if_wb palbus();
   
 `ifdef NO_MODPORT_EXPRESSIONS
   assign inbus_dat_i = inbus.dat_m;
   assign inbus.dat_s = inbus_dat_o;
+  assign outbus_dat_i = outbus.dat_s;
+  assign outbus.dat_m = outbus_dat_o;
 `else
   assign inbus_dat_i = inbus.dat_i;
   assign inbus.dat_o = inbus_dat_o;
+  assign outbus_dat_i = outbus.dat_i;
+  assign outbus.dat_o = outbus_dat_o;
 `endif
   
   typedef enum 	    bit [2:0] { SS_IDLE, SS_PALETTE, 
@@ -46,21 +57,40 @@ module vga_master
   logic [31:0] 	    inbus_dat_o_next;
   logic [23:0] 	    cursorcolor, cursorcolor_next;
   logic [BPP-1:0]   td_r, td_g, td_b;
-  logic [BPP-1:0]   gd_r, gd_g, gd_b;
-  logic [15:0] 	    x25_raw, y25_raw;
   logic [15:0] 	    x28_raw, y28_raw;
-  logic 	    vs25, hs25;
   logic 	    vs28, hs28;
-  logic 	    blank25_n, blank28_n;
+  logic 	    blank28_n, eol28, eos28;
+  logic 	    v_active28, h_active28;
+  
+  assign blank28_n = v_active28 & h_active28;
+
+`ifdef VGA_GRAPHICS
+  logic [15:0] 	    x25_raw, y25_raw;
+  logic [BPP-1:0]   gd_r, gd_g, gd_b;
+  logic 	    vs25, hs25;
+  logic 	    v_active25, h_active25;
+  logic 	    blank25_n, eol25, eos25;
+
+  assign blank25_n = v_active25 & h_active25;
+  
+`endif
   
   assign inbus.ack = (sstate == SS_DONE);
   assign inbus.stall = 1'h0;
+  assign textbus.ack = outbus.ack;
+  assign textbus.stall = outbus.stall;
+  assign textbus.dat_s = outbus_dat_i;
+  assign graphicsbus.dat_s = outbus_dat_i;
+  assign graphicsbus.ack = outbus.ack;
+  assign graphicsbus.stall = outbus.stall;
 
   // timing changes based on graphics mode
   always_comb
     begin
+`ifdef VGA_GRAPHICS
       if (setupreg[1])
 	begin
+`endif
 	  r = td_r;
 	  g = td_g;
 	  b = td_b;
@@ -68,6 +98,13 @@ module vga_master
 	  vs = vs28;
 	  hs = hs28;
 	  blank_n = blank28_n;
+	  outbus.cyc = textbus.cyc;
+	  outbus.stb = textbus.stb;
+	  outbus.adr = textbus.adr;
+	  outbus.we = textbus.we;
+	  outbus.sel = textbus.sel;
+	  outbus_dat_o = textbus.dat_m;
+`ifdef VGA_GRAPHICS
 	end
       else
 	begin
@@ -78,8 +115,16 @@ module vga_master
 	  vs = vs25;
 	  hs = hs25;
 	  blank_n = blank25_n;
-	end
+	  outbus.cyc = graphicsbus.cyc;
+	  outbus.adr = graphicsbus.adr;
+	  outbus.stb = graphicsbus.stb;
+	  outbus.we = graphicsbus.we;
+	  outbus.sel = graphicsbus.sel;
+	  outbus_dat_o = graphicsbus.dat_m;
+	end // else: !if(setupreg[1])
+`endif
     end // always_comb
+  
   
   assign sync_n = 1'b0;
   
@@ -205,14 +250,9 @@ module vga_master
       endcase
     end
 
-  logic eol28, eos28, v_active28, h_active28;
-
-  assign blank28_n = v_active28 & h_active28;
-  
   textdrv #(.BPP(BPP)) textdriver0(.clk_i(vga_clock28),
-				   .rst_i(rst_i),
+				   .rst_i(rst_i|eos28),
 				   .eol(eol28),
-				   .eos(eos28),
 				   .h_active(h_active28),
 				   .v_active(v_active28),
 				   .red(td_r),
@@ -221,15 +261,7 @@ module vga_master
 				   .cursorpos(cursorpos),
 				   .cursormode(setupreg[7:4]),
 				   .cursorcolor(cursorcolor),
-				   .bus(outbus.master));
-  
-  vga_controller25 vga0(.active(blank25_n),
-			.vs(vs25),
-			.hs(hs25),
-			.clock(vga_clock25),
-			.rst_i(rst_i),
-			.x(x25_raw),
-			.y(y25_raw));
+				   .bus(textbus.master));
   
   vga_controller28 vga1(.vs(vs28),
 			.hs(hs28),
@@ -239,5 +271,30 @@ module vga_master
 			.eos(eos28),
 			.clock(vga_clock28),
 			.rst_i(rst_i));
+
+`ifdef VGA_GRAPHICS
+
+  graphicsdrv graphicsdriver0(.clk_i(vga_clock25),
+			      .rst_i(rst_i|eos25),
+			      .mode(setupreg[11:8]),
+			      .v_active(v_active25),
+			      .h_active(h_active25),
+			      .eol(eol25),
+			      .red(gd_r),
+			      .green(gd_g),
+			      .blue(gd_b),
+			      .fb_bus(graphicsbus.master),
+			      .pal_bus(palbus.master));
+  
+  vga_controller25 vga0(.v_active(v_active25),
+			.h_active(h_active25),
+			.vs(vs25),
+			.hs(hs25),
+			.eos(eos25),
+			.eol(eol25),
+			.clock(vga_clock25),
+			.rst_i(rst_i));
+  
+`endif //  `ifdef VGA_GRAPHICS
   
 endmodule

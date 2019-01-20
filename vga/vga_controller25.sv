@@ -2,7 +2,10 @@ module vga_controller25(output        hs,
 			output 	      vs,
 			input 	      rst_i,
 			input 	      clock,
-			output 	      active,
+			output 	      h_active,
+			output 	      v_active,
+			output 	      eol,
+			output 	      eos,
 			output [15:0] x,
 			output [15:0] y,
 			output [18:0] pixel);
@@ -10,7 +13,7 @@ module vga_controller25(output        hs,
   // VESA 640x480 @ 60Hz, pixel clock is 25MHz
   localparam [15:0] H_SYNC_INT	 =	16'd96;  // 3.8us / 40ns    
   localparam [15:0] H_SYNC_BACK	 =	16'd45;  // 1.9us / 40ns 
-  localparam [15:0] H_SYNC_ACT	 =	16'd646; // 25.4us / 40ns
+  localparam [15:0] H_SYNC_ACT	 =	16'd640; // 25.4us / 40ns
   localparam [15:0] H_SYNC_FRONT =	16'd13;  // 0.6us / 40ns
   localparam [15:0] H_SYNC_TOTAL =	H_SYNC_ACT+H_SYNC_FRONT+H_SYNC_INT+H_SYNC_BACK;
   localparam [15:0] V_SYNC_INT	 =	16'd2;
@@ -27,15 +30,15 @@ module vga_controller25(output        hs,
   logic [15:0] 			    ypos, ypos_next;
   logic [18:0] 			    pixelval, pixelval_next;
 
-  logic 			    v_active, h_active;
-
   assign x = xpos;
   assign y = ypos;
   assign pixel = pixelval;
   assign v_active = v_count > Y_START && v_count < Y_START+V_SYNC_ACT;
   assign h_active = h_count > X_START && h_count < X_START+H_SYNC_ACT;
-  assign active = v_active && h_active;
 
+  assign eol = (h_count == H_SYNC_TOTAL - 15'h1);
+  assign eos = (h_count == H_SYNC_TOTAL && v_count == V_SYNC_TOTAL - 15'h1);
+  
   assign vs = (v_count >= V_SYNC_INT);
   assign hs = (h_count >= H_SYNC_INT);
 
@@ -70,7 +73,7 @@ module vga_controller25(output        hs,
       if (h_count < H_SYNC_TOTAL)
 	begin
 	  h_count_next = h_count + 1'b1;
-	  if (active)
+	  if (v_active && h_active)
 	    begin
 	      xpos_next = xpos + 1'b1;
 	      pixelval_next = pixelval + 1'b1;

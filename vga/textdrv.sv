@@ -14,11 +14,10 @@ module textdrv
    input 	    v_active,
    input            h_active,
    input 	    eol,
-   input 	    eos,
    output [BPP-1:0] red,
    output [BPP-1:0] green,
    output [BPP-1:0] blue,
-		    if_wb.master bus);
+   if_wb.master     bus);
 
   logic [31:0] bus_dat_i, bus_dat_o;
   
@@ -171,9 +170,6 @@ module textdrv
       if (v_active && eol)
 	y_next = y + 15'h1;
 	  
-      if (eos)
-	y_next = 15'h0;
-      
       case (state)
 	S_IDLE:
 	  begin
