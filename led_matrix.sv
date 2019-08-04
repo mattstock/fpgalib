@@ -37,7 +37,7 @@ module led_matrix
   assign bus.dat_o = dat_o;
 `endif
   
-  typedef enum 	bit [2:0] { S_IDLE, S_READ1, S_READ2,
+  typedef enum 	bit [2:0] { S_IDLE, S_READ1, S_READ2, S_STEP,
 			    S_CLOCK, S_LATCH, S_DELAY } state_t;
 
   assign demux = rowpos;
@@ -134,13 +134,23 @@ module led_matrix
 	  begin
 	    if (delay == 8'h0)
 	      begin
+		state_next = S_STEP;
+		delay_next = 8'hff;
+	      end
+	    else
+	      delay_next = delay - 1'h1;
+	  end // case: S_DELAY
+	S_STEP:
+	  begin
+	    if (delay == 8'h0)
+	      begin
 		if (pwmval == 3'h0)
 		  rowpos_next = rowpos + 1'b1;
 		state_next = S_IDLE;
 	      end
 	    else
 	      delay_next = delay - 1'h1;
-	  end // case: S_DELAY
+	  end
       endcase // case (state)
     end // always_comb
 
