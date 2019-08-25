@@ -1,4 +1,4 @@
-`include "../wb.vh"
+`include "wb.vh"
 
 module led_matrix
   #(COL=32,
