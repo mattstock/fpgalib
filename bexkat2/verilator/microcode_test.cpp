@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <cstdarg>
 #include "Vmicrocode_top.h"
+#include "Vcache_top.h"
 #include "verilated.h"
 #include <verilated_vcd_c.h>
 
@@ -41,7 +42,7 @@ static const char *cachebusstatestr[] = {
   "IDLE", "ACK", "READ_WAIT", "WAIT" };
 
 using namespace std;
-Vmicrocode_top* top;
+Vmicrocode_top* cpu;
 VerilatedVcdC* trace;
 ofstream debugfile;
 
@@ -78,148 +79,81 @@ int main(int argc, char **argv, char **env) {
   }
     
   Verilated::commandArgs(argc, argv);
-  top = new Vmicrocode_top;
+  cpu = new Vmicrocode_top;
   Verilated::traceEverOn(true);
   trace = new VerilatedVcdC;
-  top->trace(trace, 99);
+  cpu->trace(trace, 99);
   trace->open(tracefile);
   
-  top->rst_i = 1;
-  top->clk_i = 0;
-  top->interrupts = 0;
+  cpu->rst_i = 1;
+  cpu->clk_i = 0;
+  cpu->interrupts = 0;
   
   while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
-    top->clk_i = ~top->clk_i;
+    cpu->clk_i = ~cpu->clk_i;
     
     // Drop reset
     if (tick == 4)
-      top->rst_i = 0;
+      cpu->rst_i = 0;
     
-    top->eval();
+    cpu->eval();
 
     trace->dump(tick);
     trace->flush();
     
-    if (top->clk_i) {
+    if (cpu->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
       emit(D_DEBUG, "state: %*s  ", 8,
-	   statestr[top->top__DOT__cpu0__DOT__con0__DOT__state]);
+	   statestr[cpu->top__DOT__cpu0__DOT__con0__DOT__state]);
       emit(D_DEBUG, "pc: %08x  ir: %08x  mdr: %08x  mar: %08x  a: %08x  b: %08x\n",
-	   top->top__DOT__cpu0__DOT__pc,
-	   top->top__DOT__cpu0__DOT__ir,
-	   top->top__DOT__cpu0__DOT__mdr,
-	   top->top__DOT__cpu0__DOT__mar,
-	   top->top__DOT__cpu0__DOT__a,
-	   top->top__DOT__cpu0__DOT__b);
+	   cpu->top__DOT__cpu0__DOT__pc,
+	   cpu->top__DOT__cpu0__DOT__ir,
+	   cpu->top__DOT__cpu0__DOT__mdr,
+	   cpu->top__DOT__cpu0__DOT__mar,
+	   cpu->top__DOT__cpu0__DOT__a,
+	   cpu->top__DOT__cpu0__DOT__b);
       emit(D_DEBUG, "ccr: %02x  status: %02x  ssp: %08x  vectoff: %08x\n",
-	   top->top__DOT__cpu0__DOT__ccr,
-	   top->top__DOT__cpu0__DOT__status,
-	   top->top__DOT__cpu0__DOT__intreg__DOT__ssp,
-	   top->top__DOT__cpu0__DOT__vectoff);
+	   cpu->top__DOT__cpu0__DOT__ccr,
+	   cpu->top__DOT__cpu0__DOT__status,
+	   cpu->top__DOT__cpu0__DOT__intreg__DOT__ssp,
+	   cpu->top__DOT__cpu0__DOT__vectoff);
 	   
       for (int i=0; i < 8; i++)
 	emit(D_DEBUG, "%*d: %08x",
-	     3, i, top->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_DEBUG, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_DEBUG, "%*d: %08x",
-	     3, i, top->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_DEBUG, "\n");
       emit(D_DEBUG, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d\n",
-	   top->ins_adr_o,
-	   top->ins_cyc_o,
-	   top->ins_stb_o,
-	   top->ins_ack_i,
-	   top->ins_dat_i,
-	   top->ins_stall_i);
+	   cpu->ins_adr_o,
+	   cpu->ins_cyc_o,
+	   cpu->ins_stb_o,
+	   cpu->ins_ack_i,
+	   cpu->ins_dat_i,
+	   cpu->ins_stall_i);
       emit(D_DEBUG, "Dat: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
-	   top->dat_adr_o, top->dat_cyc_o, top->dat_stb_o, top->dat_ack_i, top->dat_dat_i,
-	   top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i);
+	   cpu->dat_adr_o, cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_ack_i, cpu->dat_dat_i,
+	   cpu->dat_dat_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_stall_i);
 
-      emit(D_DEBUG, "Cache: state: %*s bus state: %*s\n",
-	   6, cachestatestr[top->top__DOT__cache0__DOT__state],
-	   9, cachebusstatestr[top->top__DOT__cache0__DOT__bus_state]);
-      
-      emit(D_DEBUG, "Cache0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
-	   top->cache0_adr_o, top->cache0_cyc_o, top->cache0_stb_o, top->cache0_ack_i, top->cache0_dat_i,
-	   top->cache0_dat_o, top->cache0_we_o, top->cache0_sel_o, top->cache0_stall_i);
-      emit(D_DEBUG, "row0: in: %03x%08x%08x%08x%08x out: %03x%08x%08x%08x%08x\n",
-	   top->top__DOT__cache0__DOT__rowin[0][4],
-	   top->top__DOT__cache0__DOT__rowin[0][3],
-	   top->top__DOT__cache0__DOT__rowin[0][2],
-	   top->top__DOT__cache0__DOT__rowin[0][1],
-	   top->top__DOT__cache0__DOT__rowin[0][0],
-	   top->top__DOT__cache0__DOT__rowout[0][4],
-	   top->top__DOT__cache0__DOT__rowout[0][3],
-	   top->top__DOT__cache0__DOT__rowout[0][2],
-	   top->top__DOT__cache0__DOT__rowout[0][1],
-	   top->top__DOT__cache0__DOT__rowout[0][0]);
-      emit(D_DEBUG, "row1: in: %03x%08x%08x%08x%08x out: %03x%08x%08x%08x%08x\n",
-	   top->top__DOT__cache0__DOT__rowin[1][4],
-	   top->top__DOT__cache0__DOT__rowin[1][3],
-	   top->top__DOT__cache0__DOT__rowin[1][2],
-	   top->top__DOT__cache0__DOT__rowin[1][1],
-	   top->top__DOT__cache0__DOT__rowin[1][0],
-	   top->top__DOT__cache0__DOT__rowout[1][4],
-	   top->top__DOT__cache0__DOT__rowout[1][3],
-	   top->top__DOT__cache0__DOT__rowout[1][2],
-	   top->top__DOT__cache0__DOT__rowout[1][1],
-	   top->top__DOT__cache0__DOT__rowout[1][0]);
-
-      emit(D_DEBUG, "fifo: write: %d read: %d saved: %016lx\n",
-	   top->top__DOT__cache0__DOT__fifo_write,
-	   top->top__DOT__cache0__DOT__fifo_read,
-	   top->top__DOT__cache0__DOT__fifo_saved);
-      emit(D_DEBUG, "words0: 3: %08x 2: %08x 1: %08x 0: %08x\n",
-	   top->top__DOT__cache0__DOT__word3[0],
-	   top->top__DOT__cache0__DOT__word2[0],
-	   top->top__DOT__cache0__DOT__word1[0],
-	   top->top__DOT__cache0__DOT__word0[0]);
-      emit(D_DEBUG, "words1: 3: %08x 2: %08x 1: %08x 0: %08x\n",
-	   top->top__DOT__cache0__DOT__word3[1],
-	   top->top__DOT__cache0__DOT__word2[1],
-	   top->top__DOT__cache0__DOT__word1[1],
-	   top->top__DOT__cache0__DOT__word0[1]);
-      emit(D_DEBUG, "wren1: %x lru1: %x valid1: %x dirty1: %x hit1: %x tagcache1: %02x\n",
-	   top->top__DOT__cache0__DOT__wren>>1,
-	   top->top__DOT__cache0__DOT__lru>>1,
-	   top->top__DOT__cache0__DOT__valid>>1,
-	   top->top__DOT__cache0__DOT__dirty[1],
-	   top->top__DOT__cache0__DOT__hit>>1,
-	   top->top__DOT__cache0__DOT__tag_cache[1]);
-      emit(D_DEBUG, "wren0: %x lru0: %x valid0: %x dirty0: %x hit0: %x tagcache0: %02x\n",
-	   top->top__DOT__cache0__DOT__wren&0x1,
-	   top->top__DOT__cache0__DOT__lru&0x1,
-	   top->top__DOT__cache0__DOT__valid&0x1,
-	   top->top__DOT__cache0__DOT__dirty[0],
-	   top->top__DOT__cache0__DOT__hit&0x1,
-	   top->top__DOT__cache0__DOT__tag_cache[0]);
-      
-      emit(D_DEBUG, "hitset: %d lruset: %d tagin: %02x rowaddr: %02x\n",
-	   top->top__DOT__cache0__DOT__hitset,
-	   top->top__DOT__cache0__DOT__lruset,
-	   (top->top__DOT__cache0__DOT__fifo_saved>>42)& 0x1f,
-	   (top->top__DOT__cache0__DOT__fifo_saved>>36)& 0x3f);
-
-      emit(D_DEBUG, "Ram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
-	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
-	   top->ram0_dat_o, top->ram0_we_o, top->ram0_sel_o, top->ram0_stall_i);
       cycle++;
     }
 
-    if (top->halt) {
+    if (cpu->halt) {
       emit(D_DEBUG, "HALT\n");
       
       emit(D_BOTH, "Registers:\n");
       for (int i=0; i < 8; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, top->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, top->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_BOTH, "\n");
+#if 0
       emit(D_BOTH, "Memory:\n");
       for (int i=0; i < 8*1024; i++) {
 	if (i%16==0) {
@@ -227,8 +161,9 @@ int main(int argc, char **argv, char **env) {
 	    emit(D_BOTH, "\n");
 	  emit(D_BOTH, "%04x: ", i);
 	}
-	emit(D_BOTH, "%02x ", top->top__DOT__ram0__DOT__mem[i]);
+	emit(D_BOTH, "%02x ", cpu->top__DOT__ram0__DOT__mem[i]);
       }
+#endif
       break;
     }
     
@@ -236,7 +171,7 @@ int main(int argc, char **argv, char **env) {
   }
   debugfile.close();
   trace->close();
-  top->final();
-  delete top;
+  cpu->final();
+  delete cpu;
   exit(0);
 }
