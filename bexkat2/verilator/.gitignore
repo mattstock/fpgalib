@@ -1,3 +1,4 @@
 obj_dir/
 ram0
 ram0.hex
+*.d
