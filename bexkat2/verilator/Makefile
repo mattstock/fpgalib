@@ -38,8 +38,8 @@ obj_dir/verilated_vcd_c.o:
 microcode_test.o: obj_dir/Vmicrocode_top__ALL.a microcode_test.cpp
 	cd obj_dir; make -f Vcache_top.mk ../microcode_test.o
 
-obj_dir/Vmicrocode_top: obj_dir/Vmicrocode_top__ALL.a obj_dir/Vcache_top__ALL.a obj_dir/verilated.o obj_dir/verilated_vcd_c.o microcode_test.o
-	g++ -o $@ obj_dir/Vmicrocode_top__ALL*.o obj_dir/Vcache_top__ALL*.o obj_dir/verilated.o obj_dir/verilated_vcd_c.o microcode_test.o
+obj_dir/Vmicrocode_top: obj_dir/Vmicrocode_top__ALL.a obj_dir/Vcache_top__ALL.a obj_dir/verilated.o obj_dir/verilated_vcd_c.o microcode_test.o memory.o
+	g++ -o $@ obj_dir/Vmicrocode_top__ALL*.o obj_dir/Vcache_top__ALL*.o obj_dir/verilated.o obj_dir/verilated_vcd_c.o microcode_test.o memory.o
 
 clean:
 	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand *~ *.bak *.d

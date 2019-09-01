@@ -6,6 +6,7 @@
 #include "Vcache_top.h"
 #include "verilated.h"
 #include <verilated_vcd_c.h>
+#include "memory.h"
 
 #define INS_RA(x) (0xf & (x >> 20))
 #define INS_RB(x) (0xf & (x >> 16))
@@ -45,6 +46,8 @@ using namespace std;
 Vmicrocode_top* cpu;
 VerilatedVcdC* trace;
 ofstream debugfile;
+
+MemoryBlock *ram0;
 
 #define D_DEBUG 0
 #define D_BOTH  1
@@ -88,6 +91,7 @@ int main(int argc, char **argv, char **env) {
   cpu->rst_i = 1;
   cpu->clk_i = 0;
   cpu->interrupts = 0;
+  ram0 = new MemoryBlock(32*1024);  
   
   while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
