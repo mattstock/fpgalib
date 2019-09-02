@@ -57,6 +57,22 @@ unsigned char MemoryBlock::read(unsigned int addr) {
   return (addr < len ? block[addr] : 0);
 }
 
+unsigned short MemoryBlock::read2(unsigned int addr) {
+  unsigned short temp = 0;
+  
+  temp = read(addr) << 8;
+  temp += read(addr+1);
+  return temp;
+}
+
+unsigned int MemoryBlock::read4(unsigned int addr) {
+  unsigned int temp = 0;
+
+  temp = read2(addr) << 16;;
+  temp += read2(addr+2);
+  return temp;
+}
+
 void MemoryBlock::write(unsigned int addr, unsigned char v) {
   if (addr < len)
     block[addr] = v;

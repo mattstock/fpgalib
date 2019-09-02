@@ -11,6 +11,8 @@ public:
   MemoryBlock(int s);
   MemoryBlock(int s, const char filename[]);
   unsigned char read(unsigned int addr);
+  unsigned short read2(unsigned int addr);
+  unsigned int read4(unsigned int addr);
   void write(unsigned int addr, unsigned char v);
   ~MemoryBlock();
 };

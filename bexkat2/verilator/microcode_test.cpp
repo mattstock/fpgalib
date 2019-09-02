@@ -47,8 +47,6 @@ Vmicrocode_top* cpu;
 VerilatedVcdC* trace;
 ofstream debugfile;
 
-MemoryBlock *ram0;
-
 #define D_DEBUG 0
 #define D_BOTH  1
 
@@ -71,6 +69,7 @@ int main(int argc, char **argv, char **env) {
   uint8_t str_count = 0;
   vluint64_t tick = 0, cycle = 0;
   char *tracefile;
+  MemoryBlock *ram0, *rom0;
   
   for (int i=1; i < argc; i++) {
     if (!strncmp(argv[i], "--debug=", 8)) {
@@ -91,7 +90,8 @@ int main(int argc, char **argv, char **env) {
   cpu->rst_i = 1;
   cpu->clk_i = 0;
   cpu->interrupts = 0;
-  ram0 = new MemoryBlock(32*1024, "../ram0.srec");  
+  rom0 = new MemoryBlock(32*1024, "../ram0.srec");  
+  ram0 = new MemoryBlock(32*1024);  
   
   while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
@@ -103,9 +103,19 @@ int main(int argc, char **argv, char **env) {
     
     cpu->eval();
 
+    // Memory checks
+    if (cpu->ins_cyc_o && cpu->ins_stb_o) {
+      if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
+	cpu->ins_dat_i = rom0->read4(cpu->ins_adr_o & 0xfffffff);
+	cpu->ins_ack_i = 1;
+      }
+    } else {
+      cpu->ins_ack_i = 0;
+    }
+    
     trace->dump(tick);
     trace->flush();
-    
+
     if (cpu->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
       emit(D_DEBUG, "state: %*s  ", 8,
@@ -139,8 +149,15 @@ int main(int argc, char **argv, char **env) {
 	   cpu->ins_dat_i,
 	   cpu->ins_stall_i);
       emit(D_DEBUG, "Dat: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
-	   cpu->dat_adr_o, cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_ack_i, cpu->dat_dat_i,
-	   cpu->dat_dat_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_stall_i);
+	   cpu->dat_adr_o,
+	   cpu->dat_cyc_o,
+	   cpu->dat_stb_o,
+	   cpu->dat_ack_i,
+	   cpu->dat_dat_i,
+	   cpu->dat_dat_o,
+	   cpu->dat_we_o,
+	   cpu->dat_sel_o,
+	   cpu->dat_stall_i);
 
       cycle++;
     }
