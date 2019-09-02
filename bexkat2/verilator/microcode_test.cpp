@@ -91,7 +91,7 @@ int main(int argc, char **argv, char **env) {
   cpu->rst_i = 1;
   cpu->clk_i = 0;
   cpu->interrupts = 0;
-  ram0 = new MemoryBlock(32*1024);  
+  ram0 = new MemoryBlock(32*1024, "../ram0.srec");  
   
   while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock

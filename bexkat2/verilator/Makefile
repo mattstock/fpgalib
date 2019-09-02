@@ -42,7 +42,7 @@ obj_dir/Vmicrocode_top: obj_dir/Vmicrocode_top__ALL.a obj_dir/Vcache_top__ALL.a 
 	g++ -o $@ obj_dir/Vmicrocode_top__ALL*.o obj_dir/Vcache_top__ALL*.o obj_dir/verilated.o obj_dir/verilated_vcd_c.o microcode_test.o memory.o
 
 clean:
-	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand *~ *.bak *.d
+	rm -f *.o ram0.srec *.bin *.mif *.gkd *.expand *~ *.bak *.d
 	rm -rf obj_dir
 	cd tests; make clean
 
@@ -57,3 +57,7 @@ clean:
 
 %.bin: %.o
 	$(OBJCOPY) -O binary $< $@
+
+microcode_test.o: microcode_test.cpp memory.h
+memory.o: memory.cpp memory.h
+

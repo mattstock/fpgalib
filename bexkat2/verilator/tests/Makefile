@@ -12,7 +12,7 @@ RANLIB = bexkat1-elf-ranlib
 TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions branch branch2 jump sub cache
 
 
-TESTPROGS = $(addsuffix .hex, $(addprefix out/, $(TESTS)))
+TESTPROGS = $(addsuffix .srec, $(addprefix out/, $(TESTS)))
 
 .PHONY: all clean tests rebase directories
 
@@ -33,7 +33,7 @@ rebase:
 tests: $(TESTPROGS)
 	@for t in $(TESTS); do \
 		echo -n $$t ; \
-		sed -e 's/^@70000000/@00000000/' out/$$t.hex > ../ram0.hex ; \
+		cp out/$$t.srec ../ram0.srec ; \
 		../obj_dir/Vmicrocode_top --debug=out/$$t.debug --trace=out/$$t.vcd > out/$$t.output ; \
 		diff -u0 ref/$$t out/$$t.output > out/$$t.diff ; \
 		if [ -s out/$$t.diff ] ; \
@@ -56,6 +56,9 @@ out/libvectors.a: out/vectors.o
 
 out/%.mif: out/%
 	$(OBJCOPY) -O mif $< $@
+
+out/%.srec: out/%
+	$(OBJCOPY) -O srec $< $@
 
 out/%.hex: out/%
 	$(OBJCOPY) -O verilog $< $@
