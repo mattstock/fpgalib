@@ -75,8 +75,9 @@ void MemoryBlock::eval() {
 	  block[addr1+2] = (wdata1 >> 8) & 0xff;
 	if (sel1 & 0x1)
 	  block[addr1+3] = wdata1 & 0xff; 
-      } else { 
-	rdata1 = (read2(addr1) << 16) + read2(addr1+2);
+      } else {
+	unsigned int foo = addr1 & 0xfffffff0;
+	rdata1 = (read2(foo) << 16) + read2(foo+2);
       } 
     }
     break;
@@ -94,7 +95,8 @@ void MemoryBlock::eval() {
 	if (sel1 & 0x1)
 	  block[addr1+3] = wdata1 & 0xff;
       } else {
-	rdata1 = (read2(addr1) << 16) + read2(addr1+2);
+	unsigned int foo = addr1 & 0xfffffff0;
+	rdata1 = (read2(foo) << 16) + read2(foo+2);
       }
     }
     break;
