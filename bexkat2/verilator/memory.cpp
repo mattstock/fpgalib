@@ -34,13 +34,13 @@ MemoryBlock::MemoryBlock(int s) {
 void MemoryBlock::bus0(bool cyc, bool stb, unsigned int addr) {
   cyc0 = cyc;
   stb0 = stb;
-  addr0 = addr;
+  addr0 = addr & 0xfffffffc;
 }
 
 void MemoryBlock::bus1(bool cyc, bool stb, unsigned int addr, bool we, unsigned short sel, unsigned int data) {
   cyc1 = cyc;
   stb1 = stb;
-  addr1 = addr;
+  addr1 = addr & 0xfffffffc;
   we1 = we;
   wdata1 = data;
   sel1 = sel;
@@ -76,8 +76,7 @@ void MemoryBlock::eval() {
 	if (sel1 & 0x1)
 	  block[addr1+3] = wdata1 & 0xff; 
       } else {
-	unsigned int foo = addr1 & 0xfffffff0;
-	rdata1 = (read2(foo) << 16) + read2(foo+2);
+	rdata1 = (read2(addr1) << 16) + read2(addr1+2);
       } 
     }
     break;
@@ -95,8 +94,7 @@ void MemoryBlock::eval() {
 	if (sel1 & 0x1)
 	  block[addr1+3] = wdata1 & 0xff;
       } else {
-	unsigned int foo = addr1 & 0xfffffff0;
-	rdata1 = (read2(foo) << 16) + read2(foo+2);
+	rdata1 = (read2(addr1) << 16) + read2(addr1+2);
       }
     }
     break;
