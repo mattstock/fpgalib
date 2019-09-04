@@ -90,8 +90,8 @@ int main(int argc, char **argv, char **env) {
   cpu->rst_i = 1;
   cpu->clk_i = 0;
   cpu->interrupts = 0;
-  rom0 = new MemoryBlock(32*1024, "../ram0.srec");  
-  ram0 = new MemoryBlock(32*1024);  
+  rom0 = new MemoryBlock(8*1024, "../ram0.srec");  
+  ram0 = new MemoryBlock(8*1024);  
   
   while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
@@ -101,16 +101,40 @@ int main(int argc, char **argv, char **env) {
     if (tick == 4)
       cpu->rst_i = 0;
     
-    cpu->eval();
+    // Memory in wiring
+    if (cpu->ins_adr_o >= 0x00000000 && cpu->ins_adr_o < 0x10000000) {
+      ram0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
+    }
+    if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
+      rom0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
+    }
+    if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
+      ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+    }
+    if (cpu->dat_adr_o >= 0x70000000 && cpu->dat_adr_o < 0x80000000) {
+      rom0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+    }
 
-    // Memory checks
-    if (cpu->ins_cyc_o && cpu->ins_stb_o) {
-      if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
-	cpu->ins_dat_i = rom0->read4(cpu->ins_adr_o & 0xfffffff);
-	cpu->ins_ack_i = 1;
-      }
-    } else {
-      cpu->ins_ack_i = 0;
+    cpu->eval();
+    rom0->eval();
+    ram0->eval();
+    
+    // Memory out wiring
+    if (cpu->ins_adr_o >= 0x00000000 && cpu->ins_adr_o < 0x10000000) {
+      cpu->ins_dat_i = ram0->read0();
+      cpu->ins_ack_i = ram0->ack0();
+    }
+    if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
+      cpu->ins_dat_i = rom0->read0();
+      cpu->ins_ack_i = rom0->ack0();
+    }
+    if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
+      cpu->dat_dat_i = ram0->read1();
+      cpu->dat_ack_i = ram0->ack1();
+    }
+    if (cpu->dat_adr_o >= 0x70000000 && cpu->dat_adr_o < 0x80000000) {
+      cpu->dat_dat_i = rom0->read1();
+      cpu->dat_ack_i = rom0->ack1();
     }
     
     trace->dump(tick);
@@ -174,17 +198,8 @@ int main(int argc, char **argv, char **env) {
 	emit(D_BOTH, "%*d: %08x",
 	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_BOTH, "\n");
-#if 0
       emit(D_BOTH, "Memory:\n");
-      for (int i=0; i < 8*1024; i++) {
-	if (i%16==0) {
-	  if (i != 0)
-	    emit(D_BOTH, "\n");
-	  emit(D_BOTH, "%04x: ", i);
-	}
-	emit(D_BOTH, "%02x ", cpu->top__DOT__ram0__DOT__mem[i]);
-      }
-#endif
+      ram0->dump(debugfile);
       break;
     }
     
