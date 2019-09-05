@@ -90,8 +90,8 @@ int main(int argc, char **argv, char **env) {
   cpu->rst_i = 1;
   cpu->clk_i = 0;
   cpu->interrupts = 0;
-  rom0 = new MemoryBlock(8*1024, "../ram0.srec");  
-  ram0 = new MemoryBlock(8*1024);  
+  rom0 = new MemoryBlock("rom0", debugfile, 8*1024, "../ram0.srec");  
+  ram0 = new MemoryBlock("ram0", debugfile, 8*1024);  
   
   while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
@@ -101,9 +101,6 @@ int main(int argc, char **argv, char **env) {
     if (tick == 4)
       cpu->rst_i = 0;
     
-
-    cpu->eval();
-
     if (cpu->clk_i) {
       // Memory in wiring
       if (cpu->ins_adr_o >= 0x00000000 && cpu->ins_adr_o < 0x10000000) {
@@ -126,9 +123,11 @@ int main(int argc, char **argv, char **env) {
 	cpu->dat_dat_i = rom0->read1();
 	cpu->dat_ack_i = rom0->ack1();
       }
-      rom0->eval();
-      ram0->eval();
     }
+
+    cpu->eval();
+    rom0->eval();
+    ram0->eval();
     
     trace->dump(tick);
     trace->flush();
@@ -192,7 +191,7 @@ int main(int argc, char **argv, char **env) {
 	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       emit(D_BOTH, "Memory:\n");
-      ram0->dump(debugfile);
+      ram0->dump();
       break;
     }
     

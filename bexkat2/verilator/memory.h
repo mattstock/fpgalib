@@ -4,6 +4,8 @@
 
 class MemoryBlock {
   int len;
+  char *name;
+  std::ostream& debugfile;
   unsigned char *block;
   unsigned int cyc0, cyc1;
   unsigned int stb0, stb1;
@@ -21,10 +23,10 @@ class MemoryBlock {
   unsigned short read2(unsigned int addr);
   
 public:
-  MemoryBlock(int s);
-  MemoryBlock(int s, const char filename[]);
+  MemoryBlock(const char name[], std::ostream& df,int s);
+  MemoryBlock(const char name[], std::ostream& df, int s, const char filename[]);
   void eval();
-  void dump(std::ofstream& df);
+  void dump();
   void bus0(bool cyc, bool stb, unsigned int addr);
   void bus1(bool cyc, bool stb, unsigned int addr, bool we, unsigned short sel, unsigned int data);
   unsigned int read0();
