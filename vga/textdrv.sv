@@ -123,7 +123,7 @@ module textdrv
 	  idx <= 6'h0;
 	  rowval <= 32'h0;
 	  font_idx <= 32'h0;
-	  blink <= 25'h0;
+	  blink <= 24'h0;
 	  textcol <= 16'h0;
 	  ninecol <= 5'h0;
 	  y <= 15'h0;
