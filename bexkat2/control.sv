@@ -1,6 +1,8 @@
 `timescale 1ns / 1ns
 `include "bexkat2.vh"
 `include "../bexkat1/exceptions.vh"
+
+`define CCR_ON_STACK
   
 module control(input clk_i,
 	       input 		  rst_i,
@@ -171,7 +173,11 @@ module control(input clk_i,
 	      begin
 		datbus_cyc_next = 1'b0;
 		datbus_write_next = 1'b0;
-		state_next = S_EXC9; // instead of EXC5
+`ifdef CCR_ON_STACK
+		state_next = S_EXC5;
+`else
+		state_next = S_EXC9;
+`endif
 	      end
 	  end
 `ifdef CCR_ON_STACK
@@ -514,7 +520,11 @@ module control(input clk_i,
 		datbus_cyc_next = 1'b1;
 		byteenable_next = 4'hf;
 		datbus_stb_next = 1'b1;
-		state_next = S_RTS4; // S_RTI6
+`ifdef CCR_ON_STACK
+		state_next = S_RTI6;
+`else
+		state_next = S_RTS4;
+`endif
 	      end
 	  end
 `ifdef CCR_ON_STACK
