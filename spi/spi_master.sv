@@ -98,7 +98,7 @@ module spi_master
 		      end
 		    else
 		      begin
-			dat_o_next[7:0] = rx_byte;
+			dat_o_next = { 24'h0, rx_byte };
 			rx_unread_next = 1'b0;
 			state_next = S_DONE;
 		      end
@@ -131,7 +131,7 @@ module spi_master
 	end
     end
   
-  spi_xcvr #(.clkfreq(CLKFREQ)) xcvr0(.clk_i(clk_i),
+  spi_xcvr #(.CLKFREQ(CLKFREQ)) xcvr0(.clk_i(clk_i),
 				      .rst_i(rst_i),
 				      .conf(conf),
 				      .start(tx_start),
