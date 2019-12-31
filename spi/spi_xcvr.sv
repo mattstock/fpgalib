@@ -1,20 +1,21 @@
-module spi_xcvr(
-  input clk_i,
-  input rst_i,
-  input [15:0] conf,
-  input start,
-  output [7:0] rx,
-  output reg done,
-  input [7:0] tx,
-  input miso,
-  output mosi,
-  output reg sclk);
+module spi_xcvr
+  #(CLKFREQ = 10000000)
+  (
+   input 	clk_i,
+   input 	rst_i,
+   input [15:0] conf,
+   input 	start,
+   output [7:0] rx,
+   output logic done,
+   input [7:0] 	tx,
+   input 	miso,
+   output 	mosi,
+   output logic sclk);
 
-parameter clkfreq =  100000000; // 100MHz
-parameter speed3 =    30000000;
-parameter speed2 =    20000000; // 16MHz
-parameter speed1 =    10000000; // 8MHz
-parameter speed0 =     1000000; // 2MHz
+  localparam speed3 =    30000000;
+  localparam speed2 =    20000000;
+  localparam speed1 =    10000000;
+  localparam speed0 =      500000;
 
 reg [8:0] buffer, buffer_next;
 reg done_next;
@@ -39,10 +40,10 @@ assign {speedselect, cpol, cpha} = conf[3:0];
 
 always_comb
   case (speedselect)
-    2'b00: maxval = clkfreq/speed0;
-    2'b01: maxval = clkfreq/speed1;
-    2'b10: maxval = clkfreq/speed2;
-    2'b11: maxval = clkfreq/speed3;
+    2'b00: maxval = CLKFREQ/speed0;
+    2'b01: maxval = CLKFREQ/speed1;
+    2'b10: maxval = CLKFREQ/speed2;
+    2'b11: maxval = CLKFREQ/speed3;
   endcase
 
 always @(posedge clk_i or posedge rst_i)
