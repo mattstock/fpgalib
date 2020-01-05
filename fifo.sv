@@ -25,7 +25,7 @@ module fifo
     if (rst_i)
       begin
 	widx <= 0;
-	ridx <= 0;
+	ridx <= { AWIDTH{1'h1} };
 	cidx <= 0;
 	for (int i=0; i < DEPTH; i=i+1)
 	  values[i] = 0;
