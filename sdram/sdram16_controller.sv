@@ -223,12 +223,12 @@ module sdram16_controller
 	  end
 	S_READ:
 	  begin
-	    ba = bus.adr[23:22];
+	    ba = fifo_adr[23:22];
 	    addrbus_out[10] = 1'b1; // auto precharge
 	    // Column is shifted out one, since we're doing a burst of
 	    // two 16 bit words but the master bus is looking for a 32 bit
 	    // word.
-	    addrbus_out[9:0] = { bus.adr[8:0], 1'h0 }; // read/write column
+	    addrbus_out[9:0] = { fifo_adr[8:0], 1'h0 }; // read/write column
 	    dqm = ~fifo_sel[1:0];
 	    cmd_next = CMD_NOP;
 	    state_next = S_READ2;
@@ -253,12 +253,12 @@ module sdram16_controller
 	  end
 	S_WRITE:
 	  begin
-	    ba = bus.adr[23:22];
+	    ba = fifo_adr[23:22];
 	    addrbus_out[10] = 1'b1; // auto precharge
 	    // Column is shifted out one, since we're doing a burst of
 	    // two 16 bit words but the master bus is looking for a 32 bit
 	    // word.
-	    addrbus_out[9:0] = { bus.adr[8:0], 1'h0 }; // read/write column
+	    addrbus_out[9:0] = { fifo_adr[8:0], 1'h0 }; // read/write column
 	    databus_out = fifo_dat[15:0];
 	    dqm = ~fifo_sel[1:0];
 	    cmd_next = CMD_NOP;
