@@ -7,7 +7,7 @@
 module control(input clk_i,
 	       input 		  rst_i,
 	       input [31:0] 	  ir,
-	       output 		  ir_write,
+	       output logic	  ir_write,
 	       input [2:0] 	  ccr,
 	       output 		  ccr_t ccrsel,
 	       output 		  alufunc_t alu_func,
@@ -245,17 +245,18 @@ module control(input clk_i,
 	    if (insbus_ack)
 	      begin
 		insbus_cyc_next = 1'b0;
-		pcsel = PC_NEXT;
-		state_next = S_EVAL;
+		if (|interrupt && interrupts_enabled)
+		  begin
+		    state_next = S_EXC;
+		    interrupts_enabled_next = 1'b0;
+		    exception_next = { 1'b0, interrupt};
+		  end
+		else
+		  begin
+		    state_next = S_EVAL;
+		    pcsel = PC_NEXT;
+		  end
 	      end
-	    else 
-	      if (|interrupt && interrupts_enabled)
-		begin
-		  insbus_cyc_next = 1'b0;
-		  state_next = S_EXC;
-		  interrupts_enabled_next = 1'b0;
-		  exception_next = { 1'b0, interrupt};
-		end
 	  end
 	S_EVAL:
 	  begin
