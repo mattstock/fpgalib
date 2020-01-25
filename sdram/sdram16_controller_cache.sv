@@ -11,6 +11,7 @@ module sdram16_controller_cache
 		       if_wb.slave bus0,
 		       if_wb.slave bus1,
 		       if_wb.slave stats_bus,
+   input 	       mem_clk_i,
    output 	       we_n,
    output 	       cs_n,
    output 	       cke,
@@ -47,6 +48,8 @@ module sdram16_controller_cache
 	 .cache_status(cache_status));
 `else 
   assign cache_status = 2'h0;
+  bus_term cache0(.bus(stats_bus.slave));
+  
 `endif
   
   sdram16_controller sdram0(.clk_i(clk_i),
@@ -56,6 +59,7 @@ module sdram16_controller_cache
 `else
 			    .bus(sdram0_bus.slave),
 `endif
+			    .mem_clk_i(mem_clk_i),
 			    .mem_clk_o(mem_clk_o), 
 			    .we_n(we_n),
 			    .cs_n(cs_n),

@@ -13,6 +13,7 @@ module sdram16_controller
   #(AWIDTH=26,
     DWIDTH=16)
   (input 	       clk_i,
+   input               mem_clk_i, 	       
    output 	       mem_clk_o,
    input 	       rst_i,
    if_wb.slave         bus,
@@ -39,6 +40,7 @@ module sdram16_controller
   
   logic 	       fifo_full, fifo_empty, fifo_read, fifo_write;
   logic [FIFO_DWIDTH-1:0] fifo_in, fifo_out;
+  logic [FIFO_DWIDTH-1:0] fifo_saved, fifo_saved_next;
   logic 		  fifo_we;
   logic [31:0] 		  fifo_dat;
   logic [3:0] 		  fifo_sel;
@@ -50,7 +52,7 @@ module sdram16_controller
   assign fifo_write = ~fifo_full & bus.cyc & bus.stb;
   // Back signals
   assign fifo_read = (state == S_IDLE && !fifo_empty);
-  assign { fifo_adr, fifo_we, fifo_sel, fifo_dat } = fifo_out;
+  assign { fifo_adr, fifo_we, fifo_sel, fifo_dat } = fifo_saved;
   assign bus.dat_o = (state == S_READ_OUT2 ? { databus_in, halfword } : 32'h0);
   assign bus.ack = (state == S_READ_OUT2 || state == S_WRITE_WAIT);
   
@@ -96,7 +98,7 @@ module sdram16_controller
   assign {cs_n, cas_n, ras_n, we_n} = cmd;
   
   assign databus_dir = (state == S_WRITE || state == S_WRITE2);
-  assign mem_clk_o = clk_i;
+  assign mem_clk_o = mem_clk_i;
   assign cke = ~rst_i;
   
   always_ff @(posedge clk_i or posedge rst_i)
@@ -107,6 +109,7 @@ module sdram16_controller
 	  delay <= 16'd20000;
 	  state <= S_INIT_WAIT;
 	  halfword <= 16'h0000;
+	  fifo_saved <= 0;
 	end
       else
 	begin
@@ -114,6 +117,7 @@ module sdram16_controller
 	  delay <= delay_next;
 	  state <= state_next;
 	  halfword <= halfword_next;
+	  fifo_saved <= fifo_saved_next;
 	end
     end
 
@@ -127,6 +131,7 @@ module sdram16_controller
       ba = 2'h0;
       dqm = 2'h3;
       halfword_next = halfword;
+      fifo_saved_next = fifo_saved;
       
       case (state)
 	S_INIT_WAIT:
@@ -185,6 +190,7 @@ module sdram16_controller
 	    begin
 	      cmd_next = CMD_ACTIVATE;
 	      state_next = S_ACTIVATE;
+	      fifo_saved_next = fifo_out;
 	    end
 	  else
 	    begin
