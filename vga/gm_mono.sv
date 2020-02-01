@@ -1,38 +1,25 @@
 `include "../wb.vh"
 
-module graphicsdrv
+module gm_mono
   #(BPP = 8)
   (
    input 	    clk_i,
    input 	    rst_i,
-   input [3:0] 	    mode,
    input 	    eol,
    input 	    h_active,
    input 	    v_active,
    output [BPP-1:0] red,
    output [BPP-1:0] green,
    output [BPP-1:0] blue,
-		    if_wb.master fb_bus,
-		    if_wb.master pal_bus);
+   if_wb.master     bus);
 
-  // Mode 0: 640x480x1
-  // Mode 1: 640x480x4 (classic EGA colors)
-  // Mode 2: 640x480x8 (256 color palette)
-  // Mode 3: 320x200x8 (double mode)
-  
-  logic [31:0] 	fb_bus_dat_i, fb_bus_dat_o;
-  logic [31:0] 	pal_bus_dat_i, pal_bus_dat_o;
-
+  logic [31:0] 	bus_dat_i, bus_dat_o;
 `ifdef NO_MODPORT_EXPRESSIONS
-  assign fb_bus_dat_i = fb_bus.dat_s;
-  assign fb_bus.dat_m = fb_bus_dat_o;
-  assign pal_bus_dat_i = pal_bus.dat_s;
-  assign pal_bus.dat_m = pal_bus_dat_o;
+  assign bus_dat_i = bus.dat_s;
+  assign bus.dat_m = bus_dat_o;
 `else
-  assign fb_bus_dat_i = fb_bus.dat_i;
-  assign fb_bus.dat_o = fb_bus_dat_o;
-  assign pal_bus_dat_i = pal_bus.dat_i;
-  assign pal_bus.dat_o = pal_bus_dat_o;
+  assign bus_dat_i = bus.dat_i;
+  assign bus.dat_o = bus_dat_o;
 `endif
 
   typedef enum 	bit [2:0] { S_IDLE, S_BUS, S_STORE, S_ACK_WAIT } state_t;
@@ -45,19 +32,12 @@ module graphicsdrv
   
   logic [31:0] monobuf[0:19], monobuf_next[0:19];
 
-  assign fb_bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
-  assign fb_bus.stb = (state == S_BUS);
-  assign fb_bus.adr = rowval + { idx, 2'h0 };
-  assign fb_bus_dat_o = 32'h0;
-  assign fb_bus.we = 1'h0;
-  assign fb_bus.sel = 4'hf;
-  
-  assign pal_bus.cyc = 1'h0;
-  assign pal_bus.stb = 1'h0;
-  assign pal_bus_dat_o = 32'h0;
-  assign pal_bus.adr = 32'h0;
-  assign pal_bus.we = 1'h0;
-  assign pal_bus.sel = 4'hf;
+  assign bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
+  assign bus.stb = (state == S_BUS);
+  assign bus.adr = rowval + { idx, 2'h0 };
+  assign bus_dat_o = 32'h0;
+  assign bus.we = 1'h0;
+  assign bus.sel = 4'hf;
   
   always_comb
     begin
@@ -114,10 +94,10 @@ module graphicsdrv
 	  state_next = S_ACK_WAIT;
 	S_ACK_WAIT:
 	  begin
-	    if (fb_bus.ack)
+	    if (bus.ack)
 	      begin
 		state_next = S_STORE;
-		monobuf_next[idx] = fb_bus_dat_i;
+		monobuf_next[idx] = bus_dat_i;
 	      end
 	  end
 	S_STORE:

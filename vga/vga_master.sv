@@ -1,6 +1,6 @@
 `include "../wb.vh"
 
-`define VGA_GRAPHICS
+`define VGA_MONO
 
 module vga_master
   #(VGA_MEMBASE = 32'h0,
@@ -24,7 +24,6 @@ module vga_master
   // Configuration registers
   // 0x000 - palette memory 1
   // 0x400 - palette memory 2
-  // 0x800 - font memory 1
   // 0xc00 - video memory base address
   // 0xc01 - video mode, palette select
   
@@ -32,8 +31,8 @@ module vga_master
   logic [31:0] 	    outbus_dat_o, outbus_dat_i;
   
   if_wb textbus();
-  if_wb graphicsbus();
-  if_wb palbus();
+  if_wb gm_monobus();
+  if_wb gm_13hbus();
   
 `ifdef NO_MODPORT_EXPRESSIONS
   assign inbus_dat_i = inbus.dat_m;
@@ -64,69 +63,82 @@ module vga_master
   
   assign blank28_n = v_active28 & h_active28;
 
-`ifdef VGA_GRAPHICS
   logic [15:0] 	    x25_raw, y25_raw;
-  logic [BPP-1:0]   gd_r, gd_g, gd_b;
+  logic [BPP-1:0]   gm_mono_r, gm_mono_g, gm_mono_b;
   logic 	    vs25, hs25;
   logic 	    v_active25, h_active25;
   logic 	    blank25_n, eol25, eos25;
 
   assign blank25_n = v_active25 & h_active25;
-  
-`endif
+
+  assign sync_n = 1'b0;
   
   assign inbus.ack = (sstate == SS_DONE);
   assign inbus.stall = 1'h0;
   assign textbus.ack = outbus.ack;
   assign textbus.stall = outbus.stall;
   assign textbus.dat_s = outbus_dat_i;
-  assign graphicsbus.dat_s = outbus_dat_i;
-  assign graphicsbus.ack = outbus.ack;
-  assign graphicsbus.stall = outbus.stall;
+  assign gm_monobus.dat_s = outbus_dat_i;
+  assign gm_monobus.ack = outbus.ack;
+  assign gm_monobus.stall = outbus.stall;
+  assign gm_13hbus.dat_s = outbus_dat_i;
+  assign gm_13hbus.ack = outbus.ack;
+  assign gm_13hbus.stall = outbus.stall;
 
   // timing changes based on graphics mode
   always_comb
     begin
-`ifdef VGA_GRAPHICS
-      if (setupreg[1])
-	begin
-`endif
-	  r = td_r;
-	  g = td_g;
-	  b = td_b;
-	  vga_clock = vga_clock28;
-	  vs = vs28;
-	  hs = hs28;
-	  blank_n = blank28_n;
-	  outbus.cyc = textbus.cyc;
-	  outbus.stb = textbus.stb;
-	  outbus.adr = textbus.adr;
-	  outbus.we = textbus.we;
-	  outbus.sel = textbus.sel;
-	  outbus_dat_o = textbus.dat_m;
-`ifdef VGA_GRAPHICS
-	end
-      else
-	begin
-	  r = gd_r;
-	  g = gd_g;
-	  b = gd_b;
-	  vga_clock = vga_clock25;
-	  vs = vs25;
-	  hs = hs25;
-	  blank_n = blank25_n;
-	  outbus.cyc = graphicsbus.cyc;
-	  outbus.adr = graphicsbus.adr;
-	  outbus.stb = graphicsbus.stb;
-	  outbus.we = graphicsbus.we;
-	  outbus.sel = graphicsbus.sel;
-	  outbus_dat_o = graphicsbus.dat_m;
-	end // else: !if(setupreg[1])
-`endif
+      case (setupreg[1:0])
+	2'h0: // mono graphics
+	  begin
+	    r = gm_mono_r;
+	    g = gm_mono_g;
+	    b = gm_mono_b;
+	    vga_clock = vga_clock25;
+	    vs = vs25;
+	    hs = hs25;
+	    blank_n = blank25_n;
+	    outbus.cyc = gm_monobus.cyc;
+	    outbus.adr = gm_monobus.adr;
+	    outbus.stb = gm_monobus.stb;
+	    outbus.we = gm_monobus.we;
+	    outbus.sel = gm_monobus.sel;
+	    outbus_dat_o = gm_monobus.dat_m;
+	  end
+	2'h1: // 13h graphics
+	  begin
+	    r = gm_13h_r;
+	    g = gm_13h_g;
+	    b = gm_13h_b;
+	    vga_clock = vga_clock25;
+	    vs = vs25;
+	    hs = hs25;
+	    blank_n = blank25_n;
+	    outbus.cyc = gm_13hbus.cyc;
+	    outbus.adr = gm_13hbus.adr;
+	    outbus.stb = gm_13hbus.stb;
+	    outbus.we = gm_13hbus.we;
+	    outbus.sel = gm_13hbus.sel;
+	    outbus_dat_o = gm_13hbus.dat_m;
+	  end
+	default: // 720x400 text mode
+	  begin
+	    r = td_r;
+	    g = td_g;
+	    b = td_b;
+	    vga_clock = vga_clock28;
+	    vs = vs28;
+	    hs = hs28;
+	    blank_n = blank28_n;
+	    outbus.cyc = textbus.cyc;
+	    outbus.stb = textbus.stb;
+	    outbus.adr = textbus.adr;
+	    outbus.we = textbus.we;
+	    outbus.sel = textbus.sel;
+	    outbus_dat_o = textbus.dat_m;
+	  end // case: 2'h2
+      endcase // case (setupreg[1:0])
     end // always_comb
-  
-  
-  assign sync_n = 1'b0;
   
   // Slave state machine
   always_ff @(posedge clk_i or posedge rst_i)
@@ -272,19 +284,25 @@ module vga_master
 			.clock(vga_clock28),
 			.rst_i(rst_i));
 
-`ifdef VGA_GRAPHICS
+  gm_mono graphicsdriver0(.clk_i(vga_clock25),
+			  .rst_i(rst_i|eos25),
+			  .v_active(v_active25),
+			  .h_active(h_active25),
+			  .eol(eol25),
+			  .red(gm_mono_r),
+			  .green(gm_mono_g),
+			  .blue(gm_mono_b),
+			  .bus(gm_monobus.master));
 
-  graphicsdrv graphicsdriver0(.clk_i(vga_clock25),
-			      .rst_i(rst_i|eos25),
-			      .mode(setupreg[11:8]),
-			      .v_active(v_active25),
-			      .h_active(h_active25),
-			      .eol(eol25),
-			      .red(gd_r),
-			      .green(gd_g),
-			      .blue(gd_b),
-			      .fb_bus(graphicsbus.master),
-			      .pal_bus(palbus.master));
+  gm_13h graphicsdriver1(.clk_i(vga_clock25),
+			 .rst_i(rst_i|eos25),
+			 .v_active(v_active25),
+			 .h_active(h_active25),
+			 .eol(eol25),
+			 .red(gm_13h_r),
+			 .green(gm_13h_g),
+			 .blue(gm_13h_b),
+			 .bus(gm_13hbus.master));
   
   vga_controller25 vga0(.v_active(v_active25),
 			.h_active(h_active25),
@@ -294,7 +312,5 @@ module vga_master
 			.eol(eol25),
 			.clock(vga_clock25),
 			.rst_i(rst_i));
-  
-`endif //  `ifdef VGA_GRAPHICS
   
 endmodule
