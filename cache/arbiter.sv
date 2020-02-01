@@ -29,12 +29,12 @@ module arbiter
   
   always_comb
     begin
-      in0.ack = out.ack;
-      in0_dat_o = out_dat_i;
-      in0.stall = out.stall;
+      in0.ack = 1'h0;
+      in0_dat_o = 32'h0;
+      in0.stall = 1'h0;
       in1.ack = 1'h0;
-      in1_dat_o = out_dat_i;
-      in1.stall = out.stall;
+      in1_dat_o = 32'h0;
+      in1.stall = 1'h0;
       out.cyc = 1'h0;
       out.stb = 1'h0;
       out.adr = 32'h0;
@@ -49,6 +49,9 @@ module arbiter
 	  out.adr = in0.adr;
 	  out_dat_o = in0_dat_i;
 	  out.we = in0.we;
+	  in0_dat_o = out_dat_i;
+	  in0.stall = out.stall;
+	  in0.ack = out.ack;
 	end // if (in0.cyc & in0.stb)
       else
 	if (in1.cyc)
@@ -59,6 +62,8 @@ module arbiter
 	    out.adr = in1.adr;
 	    out_dat_o = in1_dat_i;
 	    out.we = in1.we;
+	    in1_dat_o = out_dat_i;
+	    in1.stall = out.stall;
 	    in1.ack = out.ack;
 	  end // if (in1.cyc & in1.stb)
     end

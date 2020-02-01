@@ -1,7 +1,6 @@
 `include "../wb.vh"
 
 // Assume that the busses are all byte-based.
-
 // pipeline and block support
 module cache
   #(AWIDTH=27,
@@ -140,9 +139,6 @@ module cache
 
   state_t               state, state_next;
   logic [INDEXSIZE-1:0] initaddr, initaddr_next;
-  logic [31:0] 		hitreg, hitreg_next;
-  logic [31:0] 		flushreg, flushreg_next;
-  logic [31:0] 		fillreg, fillreg_next;
   logic [ROWSIZE-1:0] 	rowin [1:0], rowin_next [1:0];
   logic 		lruset, lruset_next;
   logic 		hitset, hitset_next;
@@ -156,7 +152,11 @@ module cache
   logic 		anyhit;
   logic [DWIDTH-1:0] 	word0 [1:0], word1 [1:0], word2 [1:0], word3 [1:0];
   logic 		mem_stb;
-  logic [1:0] 		count, count_next;
+  logic [2:0] 		count, count_next;
+  // statistics registers
+  logic [31:0] 		hitreg, hitreg_next;
+  logic [31:0] 		flushreg, flushreg_next;
+  logic [31:0] 		fillreg, fillreg_next;
   
   assign cache_status = hit;
   
@@ -199,7 +199,7 @@ module cache
 	hitset <= 1'h0;
 	lruset <= 1'h0;
 	fifo_saved <= 'h0;
-	count <= 2'h0;
+	count <= 3'h0;
       end
     else
       begin
@@ -340,6 +340,7 @@ module cache
 	S_MISS:
 	  begin
 	    rowin_next[lruset][TAGBASE+TAGSIZE-1:TAGBASE] = tag_in;
+	    count_next = 3'h0;
 	    state_next = (valid[lruset] & |dirty[lruset]  ? S_FLUSH : S_FILL);
 	  end
 	S_FILL:
@@ -362,10 +363,9 @@ module cache
 	    outbus.we = 1'h0;
 	    if (!outbus.stall)
 	      state_next = S_FILL2;
-	    count_next = 2'h0;
 	    if (outbus.ack)
 	      begin
-		count_next = 2'h1;
+		count_next = 3'h1;
 		rowin_next[lruset][31:0] = outbus_dat_i;
 	      end
 	  end // case: S_FILL
@@ -380,12 +380,13 @@ module cache
 	      state_next = S_FILL3;
 	    if (outbus.ack)
 	      begin
-		count_next = count + 2'h1;
+		count_next = count + 3'h1;
 		case (count)
-		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
-		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
-		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
-		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  3'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  3'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  3'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  3'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  default: ;
 		endcase // case (count)
 	      end
 	  end
@@ -400,12 +401,13 @@ module cache
 	      state_next = S_FILL4;
 	    if (outbus.ack)
 	      begin
-		count_next = count + 2'h1;
+		count_next = count + 3'h1;
 		case (count)
-		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
-		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
-		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
-		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  3'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  3'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  3'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  3'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  default: ;
 		endcase // case (count)
 	      end
 	  end
@@ -422,27 +424,30 @@ module cache
 	      end
 	    if (outbus.ack)
 	      begin
-		count_next = count + 2'h1;
+		count_next = count + 3'h1;
 		case (count)
-		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
-		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
-		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
-		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  3'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  3'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  3'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  3'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  default: ;
 		endcase // case (count)
 	      end
 	  end
 	S_FILL5:
 	  begin
-	    if (count == 2'h0)
+	    outbus.cyc = 1'h1;
+	    if (count == 3'h4)
 	      state_next = S_FILL_WAIT;
 	    if (outbus.ack)
 	      begin
-		count_next = count + 2'h1;
+		count_next = count + 3'h1;
 		case (count)
-		  2'h0: rowin_next[lruset][31:0] = outbus_dat_i;
-		  2'h1: rowin_next[lruset][63:32] = outbus_dat_i;
-		  2'h2: rowin_next[lruset][95:64] = outbus_dat_i;
-		  2'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  3'h0: rowin_next[lruset][31:0] = outbus_dat_i;
+		  3'h1: rowin_next[lruset][63:32] = outbus_dat_i;
+		  3'h2: rowin_next[lruset][95:64] = outbus_dat_i;
+		  3'h3: rowin_next[lruset][127:96] = outbus_dat_i;
+		  default: ;
 		endcase // case (count)
 	      end
 	  end
@@ -463,7 +468,7 @@ module cache
 	    if (!outbus.stall)
 	      state_next = S_FLUSH2;
 	    if (outbus.ack)
-	      count_next = count + 2'h1;
+	      count_next = count + 3'h1;
 	  end
 	S_FLUSH2:
 	  begin
@@ -475,7 +480,7 @@ module cache
 	    if (!outbus.stall)
 	      state_next = S_FLUSH3;
 	    if (outbus.ack)
-	      count_next = count + 2'h1;
+	      count_next = count + 3'h1;
 	  end
 	S_FLUSH3:
 	  begin
@@ -487,7 +492,7 @@ module cache
 	    if (!outbus.stall)
 	      state_next = S_FLUSH4;
 	    if (outbus.ack)
-	      count_next = count + 2'h1;
+	      count_next = count + 3'h1;
 	  end
 	S_FLUSH4:
 	  begin
@@ -499,18 +504,19 @@ module cache
 	    if (!outbus.stall)
 	      state_next = S_FLUSH5;
 	    if (outbus.ack)
-	      count_next = count + 2'h1;
+	      count_next = count + 3'h1;
 	  end
 	S_FLUSH5:
 	  begin
-	    if (count == 2'h0)
+	    if (count == 3'h4)
 	      state_next = S_FLUSH_WAIT;
 	    if (outbus.ack)
-	      count_next = count + 2'h1;
+	      count_next = count + 3'h1;
 	  end
 	S_FLUSH_WAIT:
 	  begin
 	    flushreg_next = flushreg + 1'h1;
+	    count_next = 3'h0;
 	    state_next = S_FILL;
 	  end
 	default:
