@@ -3,8 +3,7 @@
 `define VGA_MONO
 
 module vga_master
-  #(VGA_MEMBASE = 32'h0,
-    BPP = 8)
+  #(BPP = 8)
   (
    input 	    clk_i,
    input 	    rst_i,
@@ -51,20 +50,17 @@ module vga_master
   
   sstate_t           sstate, sstate_next;
   logic [31:0] 	    setupreg, setupreg_next,
-		    vgabase, vgabase_next,
 		    cursorpos, cursorpos_next;
   logic [31:0] 	    inbus_dat_o_next;
   logic [23:0] 	    cursorcolor, cursorcolor_next;
   logic [BPP-1:0]   td_r, td_g, td_b;
   logic [15:0] 	    x28_raw, y28_raw;
   logic 	    vs28, hs28;
-  logic 	    blank28_n, eol28, eos28;
-  logic 	    v_active28, h_active28;
+  logic 	    blank28_n;
   
-  assign blank28_n = v_active28 & h_active28;
-
   logic [15:0] 	    x25_raw, y25_raw;
   logic [BPP-1:0]   gm_mono_r, gm_mono_g, gm_mono_b;
+  logic [BPP-1:0]   gm_13h_r, gm_13h_g, gm_13h_b;
   logic 	    vs25, hs25;
   logic 	    v_active25, h_active25;
   logic 	    blank25_n, eol25, eos25;
@@ -86,6 +82,8 @@ module vga_master
   assign gm_13hbus.stall = outbus.stall;
 
   // timing changes based on graphics mode
+  // we likely will need to gate this so that we don't interrupt
+  // a bus cycle
   always_comb
     begin
       case (setupreg[1:0])
@@ -145,7 +143,6 @@ module vga_master
     begin
       if (rst_i)
 	begin
-	  vgabase <= VGA_MEMBASE;
 	  setupreg <= 32'h02;
 	  inbus_dat_o <= 32'h0;
 	  cursorpos <= 32'h0;
@@ -154,7 +151,6 @@ module vga_master
 	end
       else
 	begin
-	  vgabase <= vgabase_next;
 	  setupreg <= setupreg_next;
 	  inbus_dat_o <= inbus_dat_o_next;
 	  cursorpos <= cursorpos_next;
@@ -167,7 +163,6 @@ module vga_master
     begin
       sstate_next = sstate;
       setupreg_next = setupreg;
-      vgabase_next = vgabase;
       cursorpos_next = cursorpos;
       cursorcolor_next = cursorcolor;
       inbus_dat_o_next = inbus_dat_o;
@@ -182,22 +177,6 @@ module vga_master
               2'h3:
 		begin
 		  case (inbus.adr[9:2])
-		    8'h0:
-		      begin // c00 - vga base
-			if (inbus.we)
-			  begin
-			    if (inbus.sel[3])
-			      vgabase_next[31:24] = inbus_dat_i[31:24];
-			    if (inbus.sel[2])
-			      vgabase_next[23:16] = inbus_dat_i[23:16];
-			    if (inbus.sel[1])
-			      vgabase_next[15:8] = inbus_dat_i[15:8];
-			    if (inbus.sel[0])
-			      vgabase_next[7:0] = inbus_dat_i[7:0];
-			  end
-			else
-			  inbus_dat_o_next = vgabase;
-		      end
 		    8'h1:
 		      begin // c01 - graphics mode / cursor mode
 			if (inbus.we)
@@ -263,27 +242,18 @@ module vga_master
     end
 
   textdrv #(.BPP(BPP)) textdriver0(.clk_i(vga_clock28),
-				   .rst_i(rst_i|eos28),
-				   .eol(eol28),
-				   .h_active(h_active28),
-				   .v_active(v_active28),
+				   .rst_i(rst_i),
+				   .blank_n(blank28_n),
 				   .red(td_r),
 				   .green(td_g),
 				   .blue(td_b),
+				   .vs(vs28),
+				   .hs(hs28),
 				   .cursorpos(cursorpos),
 				   .cursormode(setupreg[7:4]),
 				   .cursorcolor(cursorcolor),
 				   .bus(textbus.master));
   
-  vga_controller28 vga1(.vs(vs28),
-			.hs(hs28),
-			.v_active(v_active28),
-			.h_active(h_active28),
-			.eol(eol28),
-			.eos(eos28),
-			.clock(vga_clock28),
-			.rst_i(rst_i));
-
   gm_mono graphicsdriver0(.clk_i(vga_clock25),
 			  .rst_i(rst_i|eos25),
 			  .v_active(v_active25),

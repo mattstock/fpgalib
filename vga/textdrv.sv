@@ -11,16 +11,16 @@ module textdrv
    input [31:0]     cursorpos,
    input [3:0] 	    cursormode,
    input [23:0]     cursorcolor,
-   input 	    v_active,
-   input            h_active,
-   input 	    eol,
+   output 	    blank_n,
+   output 	    vs,
+   output 	    hs,
    output [BPP-1:0] red,
    output [BPP-1:0] green,
    output [BPP-1:0] blue,
    if_wb.master     bus);
 
-  logic [31:0] bus_dat_i, bus_dat_o;
-  
+  logic [31:0] 	    bus_dat_i, bus_dat_o;
+
 `ifdef NO_MODPORT_EXPRESSIONS
   assign bus_dat_i = bus.dat_s;
   assign bus.dat_m = bus_dat_o;
@@ -29,6 +29,7 @@ module textdrv
   assign bus.dat_o = bus_dat_o;
 `endif
 
+  logic 	    eos, eol, v_active, h_active;
   logic [31:0] 	    char;
   logic [127:0]     font0_out, font1_out;
   logic [31:0] 	    buf_out;
@@ -43,6 +44,8 @@ module textdrv
   logic [31:0] 	    rowval, rowval_next;
   logic [31:0] 	    font_idx, font_idx_next;
   logic [23:0] 	    blink;
+  logic 	    newscreen;
+  
   
   typedef enum 	    bit [2:0] { S_IDLE, S_BUS, S_FONT, S_STORE, S_ACK_WAIT } state_t;
 
@@ -55,7 +58,9 @@ module textdrv
   assign bus.we = 1'h0;
   assign bus.sel = 4'hf;
   assign textrow = { 4'h0, y[15:4] };
-
+  assign blank_n = v_active & h_active;
+  
+  assign newscreen = rst_i | eos;
   assign oncursor = ({textrow,textcol} == cursorpos) &&
 		    ((blink[23] & cursormode == 4'h1) ||
 		     (cursormode == 4'h2));
@@ -114,10 +119,10 @@ module textdrv
 	    {red, green, blue} = cursorcolor;
 	end // if (ninecol != 5'h8)
     end // always_comb
-  
-  always_ff @(posedge clk_i or posedge rst_i)
+
+  always_ff @(posedge clk_i or posedge newscreen)
     begin
-      if (rst_i)
+      if (newscreen)
 	begin
 	  state <= S_IDLE;
 	  idx <= 6'h0;
@@ -226,4 +231,13 @@ module textdrv
 		       .rdaddress(textcol_next[8:1]),
 		       .q(buf_out));
 
+  vga_controller28 vga1(.vs(vs),
+			.hs(hs),
+			.v_active(v_active),
+			.h_active(h_active),
+			.eol(eol),
+			.eos(eos),
+			.clock(clk_i),
+			.rst_i(rst_i));
+  
 endmodule
