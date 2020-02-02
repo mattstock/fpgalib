@@ -5,9 +5,9 @@ module gm_mono
   (
    input 	    clk_i,
    input 	    rst_i,
-   input 	    eol,
-   input 	    h_active,
-   input 	    v_active,
+   output 	    vs,
+   output 	    hs,
+   output 	    blank_n, 
    output [BPP-1:0] red,
    output [BPP-1:0] green,
    output [BPP-1:0] blue,
@@ -29,24 +29,26 @@ module gm_mono
   logic [31:0] rowval, rowval_next;
   logic [9:0]  x, x_next;
   logic [8:0]  y, y_next;
-  
   logic [31:0] monobuf[0:19], monobuf_next[0:19];
-
+  logic        newscreen;
+  
   assign bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
   assign bus.stb = (state == S_BUS);
   assign bus.adr = rowval + { idx, 2'h0 };
   assign bus_dat_o = 32'h0;
   assign bus.we = 1'h0;
   assign bus.sel = 4'hf;
+  assign blank_n = v_active & h_active;
+  assign newscreen = rst_i | eos;
   
   always_comb
     begin
       { red, green, blue } = (monobuf[x[9:5]][5'h1f-x] ? 24'hffffff : 24'h0);
     end
 
-  always_ff @(posedge clk_i or posedge rst_i)
+  always_ff @(posedge clk_i or posedge newscreen)
     begin
-      if (rst_i)
+      if (newscreen)
 	begin
 	  state <= S_IDLE;
 	  idx <= 5'h0;
@@ -116,5 +118,14 @@ module gm_mono
 	  end
       endcase
     end
+
+  vga_controller25 vga0(.v_active(v_active),
+			.h_active(h_active),
+			.vs(vs),
+			.hs(hs),
+			.eos(eos),
+			.eol(eol),
+			.clock(clk_i),
+			.rst_i(rst_i));
 
 endmodule

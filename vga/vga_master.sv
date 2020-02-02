@@ -62,10 +62,7 @@ module vga_master
   logic [BPP-1:0]   gm_mono_r, gm_mono_g, gm_mono_b;
   logic [BPP-1:0]   gm_13h_r, gm_13h_g, gm_13h_b;
   logic 	    vs25, hs25;
-  logic 	    v_active25, h_active25;
-  logic 	    blank25_n, eol25, eos25;
-
-  assign blank25_n = v_active25 & h_active25;
+  logic 	    blank25_n;
 
   assign sync_n = 1'b0;
   
@@ -255,32 +252,14 @@ module vga_master
 				   .bus(textbus.master));
   
   gm_mono graphicsdriver0(.clk_i(vga_clock25),
-			  .rst_i(rst_i|eos25),
-			  .v_active(v_active25),
-			  .h_active(h_active25),
-			  .eol(eol25),
+			  .rst_i(rst_i),
+			  .vs(vs25),
+			  .hs(hs25),
+			  .blank_n(blank25_n),
 			  .red(gm_mono_r),
 			  .green(gm_mono_g),
 			  .blue(gm_mono_b),
 			  .bus(gm_monobus.master));
 
-  gm_13h graphicsdriver1(.clk_i(vga_clock25),
-			 .rst_i(rst_i|eos25),
-			 .v_active(v_active25),
-			 .h_active(h_active25),
-			 .eol(eol25),
-			 .red(gm_13h_r),
-			 .green(gm_13h_g),
-			 .blue(gm_13h_b),
-			 .bus(gm_13hbus.master));
-  
-  vga_controller25 vga0(.v_active(v_active25),
-			.h_active(h_active25),
-			.vs(vs25),
-			.hs(hs25),
-			.eos(eos25),
-			.eol(eol25),
-			.clock(vga_clock25),
-			.rst_i(rst_i));
   
 endmodule
