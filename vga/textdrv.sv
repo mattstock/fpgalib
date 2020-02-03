@@ -8,6 +8,7 @@ module textdrv
   (
    input 	    clk_i,
    input 	    rst_i,
+   input 	    video_clk, 
    input [31:0]     cursorpos,
    input [3:0] 	    cursormode,
    input [23:0]     cursorcolor,
@@ -237,7 +238,7 @@ module textdrv
 			.h_active(h_active),
 			.eol(eol),
 			.eos(eos),
-			.clock(clk_i),
+			.clock(video_clk),
 			.rst_i(rst_i));
   
 endmodule

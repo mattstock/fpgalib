@@ -36,8 +36,8 @@ module vga_controller25(output        hs,
   assign v_active = v_count > Y_START && v_count < Y_START+V_SYNC_ACT;
   assign h_active = h_count > X_START && h_count < X_START+H_SYNC_ACT;
 
-  assign eol = (h_count == H_SYNC_TOTAL - 15'h1);
-  assign eos = (h_count == H_SYNC_TOTAL && v_count == V_SYNC_TOTAL - 15'h1);
+  assign eol = (h_count == H_SYNC_TOTAL);
+  assign eos = (h_count == H_SYNC_TOTAL && v_count == V_SYNC_TOTAL);
   
   assign vs = (v_count >= V_SYNC_INT);
   assign hs = (h_count >= H_SYNC_INT);

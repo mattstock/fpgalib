@@ -60,9 +60,11 @@ module vga_master
   
   logic [15:0] 	    x25_raw, y25_raw;
   logic [BPP-1:0]   gm_mono_r, gm_mono_g, gm_mono_b;
-  logic [BPP-1:0]   gm_13h_r, gm_13h_g, gm_13h_b;
   logic 	    vs25, hs25;
   logic 	    blank25_n;
+  logic [BPP-1:0]   gm_13h_r, gm_13h_g, gm_13h_b;
+  logic 	    vs_13h, hs_13h;
+  logic 	    blank_13h_n;
 
   assign sync_n = 1'b0;
   
@@ -84,7 +86,7 @@ module vga_master
   always_comb
     begin
       case (setupreg[1:0])
-	2'h0: // mono graphics
+	2'h0: // 640x320x1 60Hz graphics
 	  begin
 	    r = gm_mono_r;
 	    g = gm_mono_g;
@@ -100,15 +102,15 @@ module vga_master
 	    outbus.sel = gm_monobus.sel;
 	    outbus_dat_o = gm_monobus.dat_m;
 	  end
-	2'h1: // 13h graphics
+	2'h1: // 640x400x8 70Hz graphics, with doubling
 	  begin
 	    r = gm_13h_r;
 	    g = gm_13h_g;
 	    b = gm_13h_b;
 	    vga_clock = vga_clock25;
-	    vs = vs25;
-	    hs = hs25;
-	    blank_n = blank25_n;
+	    vs = vs_13h;
+	    hs = hs_13h;
+	    blank_n = blank_13h_n;
 	    outbus.cyc = gm_13hbus.cyc;
 	    outbus.adr = gm_13hbus.adr;
 	    outbus.stb = gm_13hbus.stb;
@@ -238,12 +240,13 @@ module vga_master
       endcase
     end
 
-  textdrv #(.BPP(BPP)) textdriver0(.clk_i(vga_clock28),
+  textdrv #(.BPP(BPP)) textdriver0(.clk_i(clk_i),
 				   .rst_i(rst_i),
 				   .blank_n(blank28_n),
 				   .red(td_r),
 				   .green(td_g),
 				   .blue(td_b),
+				   .video_clk(vga_clock28),
 				   .vs(vs28),
 				   .hs(hs28),
 				   .cursorpos(cursorpos),
@@ -251,15 +254,27 @@ module vga_master
 				   .cursorcolor(cursorcolor),
 				   .bus(textbus.master));
   
-  gm_mono graphicsdriver0(.clk_i(vga_clock25),
+  gm_mono graphicsdriver0(.clk_i(clk_i),
 			  .rst_i(rst_i),
 			  .vs(vs25),
 			  .hs(hs25),
 			  .blank_n(blank25_n),
+			  .video_clk(vga_clock25),
 			  .red(gm_mono_r),
 			  .green(gm_mono_g),
 			  .blue(gm_mono_b),
 			  .bus(gm_monobus.master));
+
+  gm_13h graphicsdriver1(.clk_i(clk_i),
+			 .rst_i(rst_i),
+			 .vs(vs_13h),
+			 .hs(hs_13h),
+			 .blank_n(blank_13h_n),
+			 .video_clk(vga_clock25),
+			 .red(gm_13h_r),
+			 .green(gm_13h_g),
+			 .blue(gm_13h_b),
+			 .bus(gm_13hbus.master));
 
   
 endmodule
