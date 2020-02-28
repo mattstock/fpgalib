@@ -7,8 +7,9 @@ module vga_master
   (
    input 	    clk_i,
    input 	    rst_i,
-   input            vga_clock25,
-   input            vga_clock28,
+   input 	    vga_clock25,
+   input 	    vga_clock28,
+   input            vga_rst_i, 	    
    if_wb.slave      inbus,
    if_wb.master     outbus,
    output 	    vs,
@@ -65,7 +66,8 @@ module vga_master
   logic [BPP-1:0]   gm_13h_r, gm_13h_g, gm_13h_b;
   logic 	    vs_13h, hs_13h;
   logic 	    blank_13h_n;
-
+  logic [1:0] 	    gm_active;
+  
   assign sync_n = 1'b0;
   
   assign inbus.ack = (sstate == SS_DONE);
@@ -80,6 +82,8 @@ module vga_master
   assign gm_13hbus.ack = outbus.ack;
   assign gm_13hbus.stall = outbus.stall;
 
+  assign gm_active = setupreg[1:0];
+  
   // timing changes based on graphics mode
   // we likely will need to gate this so that we don't interrupt
   // a bus cycle
@@ -142,7 +146,7 @@ module vga_master
     begin
       if (rst_i)
 	begin
-	  setupreg <= 32'h02;
+	  setupreg <= 32'h01;
 	  inbus_dat_o <= 32'h0;
 	  cursorpos <= 32'h0;
 	  cursorcolor <= 24'ha0a0a0;
@@ -241,7 +245,7 @@ module vga_master
     end
 
   textdrv #(.BPP(BPP)) textdriver0(.clk_i(clk_i),
-				   .rst_i(rst_i),
+				   .rst_i(rst_i && (gm_active != 2'h2)),
 				   .blank_n(blank28_n),
 				   .red(td_r),
 				   .green(td_g),
@@ -255,7 +259,7 @@ module vga_master
 				   .bus(textbus.master));
   
   gm_mono graphicsdriver0(.clk_i(clk_i),
-			  .rst_i(rst_i),
+			  .rst_i(rst_i && (gm_active != 2'h0)),
 			  .vs(vs25),
 			  .hs(hs25),
 			  .blank_n(blank25_n),
@@ -265,12 +269,13 @@ module vga_master
 			  .blue(gm_mono_b),
 			  .bus(gm_monobus.master));
 
-  gm_13h graphicsdriver1(.clk_i(clk_i),
-			 .rst_i(rst_i),
+  gm_new graphicsdriver1(.clk_i(clk_i),
+			 .rst_i(rst_i && (gm_active != 2'h1)),
 			 .vs(vs_13h),
 			 .hs(hs_13h),
 			 .blank_n(blank_13h_n),
-			 .video_clk(vga_clock25),
+			 .video_clk_i(vga_clock25),
+			 .video_rst_i(vga_rst_i),
 			 .red(gm_13h_r),
 			 .green(gm_13h_g),
 			 .blue(gm_13h_b),
