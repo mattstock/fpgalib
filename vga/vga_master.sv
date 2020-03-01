@@ -146,7 +146,7 @@ module vga_master
     begin
       if (rst_i)
 	begin
-	  setupreg <= 32'h01;
+	  setupreg <= 32'h00;
 	  inbus_dat_o <= 32'h0;
 	  cursorpos <= 32'h0;
 	  cursorcolor <= 24'ha0a0a0;
@@ -245,7 +245,7 @@ module vga_master
     end
 
   textdrv #(.BPP(BPP)) textdriver0(.clk_i(clk_i),
-				   .rst_i(rst_i && (gm_active != 2'h2)),
+				   .rst_i(rst_i | (gm_active != 2'h2)),
 				   .blank_n(blank28_n),
 				   .red(td_r),
 				   .green(td_g),
@@ -259,18 +259,19 @@ module vga_master
 				   .bus(textbus.master));
   
   gm_mono graphicsdriver0(.clk_i(clk_i),
-			  .rst_i(rst_i && (gm_active != 2'h0)),
+			  .rst_i(rst_i | (gm_active != 2'h0)),
 			  .vs(vs25),
 			  .hs(hs25),
 			  .blank_n(blank25_n),
-			  .video_clk(vga_clock25),
+			  .video_clk_i(vga_clock25),
+			  .video_rst_i(vga_rst_i),
 			  .red(gm_mono_r),
 			  .green(gm_mono_g),
 			  .blue(gm_mono_b),
 			  .bus(gm_monobus.master));
 
   gm_new graphicsdriver1(.clk_i(clk_i),
-			 .rst_i(rst_i && (gm_active != 2'h1)),
+			 .rst_i(rst_i | (gm_active != 2'h1)),
 			 .vs(vs_13h),
 			 .hs(hs_13h),
 			 .blank_n(blank_13h_n),
