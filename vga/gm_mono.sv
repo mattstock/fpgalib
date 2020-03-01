@@ -31,16 +31,17 @@ module gm_mono
    * different block below that for the VGA and rendering side.
    */
   
-  typedef enum 	bit [2:0] { S_IDLE, S_BUS, S_STORE, S_ACK_WAIT } state_t;
+  typedef enum 	bit [1:0] { S_IDLE, S_BUS, S_ACK_WAIT } state_t;
   
   state_t      state, state_next;
   logic [4:0]  idx, idx_next;
   logic [31:0] rowval, rowval_next;
   logic [2:0]  cpu_ha_sync, cpu_va_sync;
   logic        cpu_ha_falling, cpu_va_rising;
-  logic [31:0] fifo_in, fifo_in_next, fifo_out;
+  logic [31:0] fifo_out;
   logic        fifo_read;
-
+  logic [4:0]  ack_count, ack_count_next;
+  
   assign cpu_ha_falling = cpu_ha_sync[1:0] == 2'b01;
   assign cpu_va_rising = cpu_va_sync[1:0] == 2'b10;
   assign bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
@@ -59,7 +60,7 @@ module gm_mono
 	  rowval <= 32'h0;
 	  cpu_ha_sync <= 3'h0;
 	  cpu_va_sync <= 3'h0;
-	  fifo_in <= 32'h0;
+	  ack_count <= 5'h0;
 	end
       else
 	begin
@@ -68,7 +69,7 @@ module gm_mono
 	  rowval <= rowval_next;
 	  cpu_ha_sync <= { h_active, cpu_ha_sync[2], cpu_ha_sync[1] };
 	  cpu_va_sync <= { v_active, cpu_va_sync[2], cpu_va_sync[1] };
-	  fifo_in <= fifo_in_next;
+	  ack_count <= ack_count_next;
 	end
     end
 
@@ -77,7 +78,7 @@ module gm_mono
       state_next = state;
       idx_next = idx;
       rowval_next = rowval;
-      fifo_in_next = fifo_in;
+      ack_count_next = ack_count;
       
       if (cpu_va_rising)
 	begin
@@ -90,30 +91,32 @@ module gm_mono
 	    if (cpu_ha_falling && cpu_va_sync[1:0] == 2'b11)
 	      begin
 		state_next = S_BUS;
+		ack_count_next = 5'h0;
 	      end
 	  end
 	S_BUS:
-	  state_next = S_ACK_WAIT;
-	S_ACK_WAIT:
 	  begin
+	    idx_next = idx + 5'd1;
+	    if (idx == 5'd19) // 32 pixels per word, 20 words per line
+	      begin
+		state_next = S_ACK_WAIT;
+	      end
 	    if (bus.ack)
 	      begin
-		state_next = S_STORE;
-		fifo_in_next = bus_dat_i;
+		ack_count_next = ack_count + 5'h1;
 	      end
 	  end
-	S_STORE:
+	S_ACK_WAIT:
 	  begin
-	    if (idx != 5'd19) // 32 pixels per word, 20 words per line
-	      begin
-		state_next = S_BUS;
-		idx_next = idx + 5'd1;
-	      end
-	    else
+	    if (ack_count == 5'd19)
 	      begin
 		idx_next = 5'd0;
 		rowval_next = rowval + 7'h50;
 		state_next = S_IDLE;
+	      end
+	    if (bus.ack)
+	      begin
+		ack_count_next = ack_count + 5'h1;
 	      end
 	  end
       endcase
@@ -149,9 +152,9 @@ module gm_mono
 	  .wrst_i(rst_i),
 	  .rclk_i(video_clk_i),
 	  .rrst_i(video_rst_i),
-	  .write(state == S_STORE),
+	  .write(bus.cyc && bus.ack),
 	  .read(fifo_read),
-	  .in(fifo_in),
+	  .in(bus_dat_i),
 	  .out(fifo_out));
   
   vga_controller25 vga13h(.v_active(v_active),
