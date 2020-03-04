@@ -33,6 +33,7 @@ module vga_master
   if_wb textbus();
   if_wb gm_640x480x1bus();
   if_wb gm_640x480x8bus();
+  if_wb gm_320x200x8bus();
   if_wb palettebus();
   
 `ifdef NO_MODPORT_EXPRESSIONS
@@ -65,8 +66,11 @@ module vga_master
   logic 	    vs25, hs25;
   logic 	    blank25_n;
   logic [BPP-1:0]   gm_640x480x8_r, gm_640x480x8_g, gm_640x480x8_b;
-  logic 	    vs_13h, hs_13h;
-  logic 	    blank_13h_n;
+  logic 	    vs_640x480x8, hs_640x480x8;
+  logic 	    blank_640x480x8_n;
+  logic [BPP-1:0]   gm_320x200x8_r, gm_320x200x8_g, gm_320x200x8_b;
+  logic 	    vs_320x200x8, hs_320x200x8;
+  logic 	    blank_320x200x8_n;
   logic [2:0] 	    gm_active;
   
   assign sync_n = 1'b0;
@@ -82,6 +86,9 @@ module vga_master
   assign gm_640x480x8bus.dat_s = outbus_dat_i;
   assign gm_640x480x8bus.ack = outbus.ack;
   assign gm_640x480x8bus.stall = outbus.stall;
+  assign gm_320x200x8bus.dat_s = outbus_dat_i;
+  assign gm_320x200x8bus.ack = outbus.ack;
+  assign gm_320x200x8bus.stall = outbus.stall;
 
   assign palettebus.adr = inbus.adr;
   assign palettebus.cyc = inbus.cyc;
@@ -119,9 +126,9 @@ module vga_master
 	    g = gm_640x480x8_g;
 	    b = gm_640x480x8_b;
 	    vga_clock = vga_clock25;
-	    vs = vs_13h;
-	    hs = hs_13h;
-	    blank_n = blank_13h_n;
+	    vs = vs_640x480x8;
+	    hs = hs_640x480x8;
+	    blank_n = blank_640x480x8_n;
 	    outbus.cyc = gm_640x480x8bus.cyc;
 	    outbus.adr = gm_640x480x8bus.adr;
 	    outbus.stb = gm_640x480x8bus.stb;
@@ -135,15 +142,47 @@ module vga_master
 	    g = gm_640x480x8_g;
 	    b = gm_640x480x8_b;
 	    vga_clock = vga_clock25;
-	    vs = vs_13h;
-	    hs = hs_13h;
-	    blank_n = blank_13h_n;
+	    vs = vs_640x480x8;
+	    hs = hs_640x480x8;
+	    blank_n = blank_640x480x8_n;
 	    outbus.cyc = gm_640x480x8bus.cyc;
 	    outbus.adr = gm_640x480x8bus.adr;
 	    outbus.stb = gm_640x480x8bus.stb;
 	    outbus.we = gm_640x480x8bus.we;
 	    outbus.sel = gm_640x480x8bus.sel;
 	    outbus_dat_o = gm_640x480x8bus.dat_m;
+	  end
+	3'h3: // 320x200x8 60Hz palette
+	  begin
+	    r = gm_320x200x8_r;
+	    g = gm_320x200x8_g;
+	    b = gm_320x200x8_b;
+	    vga_clock = vga_clock25;
+	    vs = vs_320x200x8;
+	    hs = hs_320x200x8;
+	    blank_n = blank_320x200x8_n;
+	    outbus.cyc = gm_320x200x8bus.cyc;
+	    outbus.adr = gm_320x200x8bus.adr;
+	    outbus.stb = gm_320x200x8bus.stb;
+	    outbus.we = gm_320x200x8bus.we;
+	    outbus.sel = gm_320x200x8bus.sel;
+	    outbus_dat_o = gm_320x200x8bus.dat_m;
+	  end
+	3'h4: // 320x200x8 60Hz grayscale
+	  begin
+	    r = gm_320x200x8_r;
+	    g = gm_320x200x8_g;
+	    b = gm_320x200x8_b;
+	    vga_clock = vga_clock25;
+	    vs = vs_320x200x8;
+	    hs = hs_320x200x8;
+	    blank_n = blank_320x200x8_n;
+	    outbus.cyc = gm_320x200x8bus.cyc;
+	    outbus.adr = gm_320x200x8bus.adr;
+	    outbus.stb = gm_320x200x8bus.stb;
+	    outbus.we = gm_320x200x8bus.we;
+	    outbus.sel = gm_320x200x8bus.sel;
+	    outbus_dat_o = gm_320x200x8bus.dat_m;
 	  end
 	default: // 720x400 text mode
 	  begin
@@ -309,15 +348,30 @@ module vga_master
 			       .rst_i(rst_i | (gm_active != 3'h1 &&
 					       gm_active != 3'h2)),
 			       .color(gm_active == 3'h1),
-			       .vs(vs_13h),
-			       .hs(hs_13h),
-			       .blank_n(blank_13h_n),
+			       .vs(vs_640x480x8),
+			       .hs(hs_640x480x8),
+			       .blank_n(blank_640x480x8_n),
 			       .video_clk_i(vga_clock25),
 			       .video_rst_i(vga_rst_i),
 			       .red(gm_640x480x8_r),
 			       .green(gm_640x480x8_g),
 			       .blue(gm_640x480x8_b),
 			       .bus(gm_640x480x8bus.master),
+			       .palette_bus(palettebus.slave));
+
+  gm_320x200x8 graphicsdriver2(.clk_i(clk_i),
+			       .rst_i(rst_i | (gm_active != 3'h3 &&
+					       gm_active != 3'h4)),
+			       .color(gm_active == 3'h3),
+			       .vs(vs_320x200x8),
+			       .hs(hs_320x200x8),
+			       .blank_n(blank_320x200x8_n),
+			       .video_clk_i(vga_clock25),
+			       .video_rst_i(vga_rst_i),
+			       .red(gm_320x200x8_r),
+			       .green(gm_320x200x8_g),
+			       .blue(gm_320x200x8_b),
+			       .bus(gm_320x200x8bus.master),
 			       .palette_bus(palettebus.slave));
 
 endmodule
