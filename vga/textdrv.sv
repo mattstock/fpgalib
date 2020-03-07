@@ -144,10 +144,11 @@ module textdrv
     end
 
   // Fonts
-  logic [BPP-1:0] r1, g1, b1, r2, g2, b2;
+  logic [7:0]     rgb0, rgb1;
   logic 	  fifo_write, fifo_full;
   logic [63:0] 	  fifo_in;
-
+  logic [127:0]   font0_out, font1_out;
+  
   assign fifo_write = bus.ack && !fifo_full;
 
   dualrom 
@@ -161,22 +162,36 @@ module textdrv
 			    .bus1_data(font1_out));
 
 
+  // select the font line we care about
   // pull the colors out of the fb
   always_comb
     begin
-      r1 = { bus_dat_i[31:30], 6'h0 };
-      g1 = { bus_dat_i[29:27], 5'h0 };
-      b1 = { bus_dat_i[26:24], 5'h0 };
-      r2 = { bus_dat_i[15:14], 6'h0 };
-      g2 = { bus_dat_i[13:11], 5'h0 };
-      b2 = { bus_dat_i[10:8], 5'h0 };
+      rgb0 = bus_dat_i[31:24];
+      rgb1 = bus_dat_i[15:8];
 
-      fifo_in = { r1, g1, b1, ack_count, r2, g2, b2, 8'hff };
+      case (y[3:0])
+	'hf: fifo_in = { rgb0, font0_out[7:0], rgb1, font1_out[7:0] };
+	'he: fifo_in = { rgb0, font0_out[15:8], rgb1, font1_out[15:8] };
+	'hd: fifo_in = { rgb0, font0_out[23:16], rgb1, font1_out[23:16] };
+	'hc: fifo_in = { rgb0, font0_out[31:24], rgb1, font1_out[31:24] };
+	'hb: fifo_in = { rgb0, font0_out[39:32], rgb1, font1_out[39:32] };
+	'ha: fifo_in = { rgb0, font0_out[47:40], rgb1, font1_out[47:40] };
+	'h9: fifo_in = { rgb0, font0_out[55:48], rgb1, font1_out[55:48] };
+	'h8: fifo_in = { rgb0, font0_out[63:56], rgb1, font1_out[63:56] };
+	'h7: fifo_in = { rgb0, font0_out[71:64], rgb1, font1_out[71:64] };
+	'h6: fifo_in = { rgb0, font0_out[79:72], rgb1, font1_out[79:72] };
+	'h5: fifo_in = { rgb0, font0_out[87:80], rgb1, font1_out[87:80] };
+	'h4: fifo_in = { rgb0, font0_out[95:88], rgb1, font1_out[95:88] };
+	'h3: fifo_in = { rgb0, font0_out[103:96], rgb1, font1_out[103:96] };
+	'h2: fifo_in = { rgb0, font0_out[111:104], rgb1, font1_out[111:104] };
+	'h1: fifo_in = { rgb0, font0_out[119:112], rgb1, font1_out[119:112] };
+	'h0: fifo_in = { rgb0, font0_out[127:120], rgb1, font1_out[127:120] };
+      endcase
     end
   
   // The fifo that spans the two clock domains
   dualfifo
-    #(.AWIDTH(6), .DWIDTH(64))
+    #(.AWIDTH(6), .DWIDTH(32))
     fifo0(.wclk_i(clk_i),
 	  .wrst_i(rst_i),
 	  .rclk_i(video_clk_i),
@@ -191,11 +206,22 @@ module textdrv
   // Now the VGA clocked logic
   logic [4:0]  x, x_next;
   logic        v_active, h_active;
-  logic [63:0] fifo_out;
+  logic [31:0] fifo_out;
   logic        fifo_read, fifo_empty;
+  logic [23:0] color0, color1;
+  logic [7:0]  pcolor0, pcolor1;
+  logic [7:0]  char0, char1;
   
+  assign { pcolor0, char0, pcolor1, char1 } = fifo_out;
   assign blank_n = v_active & h_active;
 
+  assign color0 = { pcolor0[7:6], 6'h0, 
+		    pcolor0[5:3], 5'h0,
+		    pcolor0[2:0], 5'h0 };
+  assign color1 = { pcolor1[7:6], 6'h0, 
+		    pcolor1[5:3], 5'h0,
+		    pcolor1[2:0], 5'h0 };
+  
   always_ff @(posedge video_clk_i)
     begin
       x <= (h_active ? x_next : 5'h0);
@@ -210,12 +236,12 @@ module textdrv
       
       if (x < 5'd8)
 	begin
-	  { red, green, blue } = fifo_out[63:40];
+	  { red, green, blue } = (char0[5'd7-x] ? color0 : 24'h0);
 	end
       else
 	begin
 	  if (x > 5'd8 && x < 5'd17)
-	    { red, green, blue } = fifo_out[31:8];
+	    { red, green, blue } = (char1[5'd7-(x-9)] ? color1 : 24'h0);
 	end
 
       if (v_active && x == 5'd17)
