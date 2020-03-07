@@ -38,7 +38,7 @@ module vga_controller28(output        hs,
   assign vs = (v_count >= V_SYNC_INT);
   assign hs = (h_count >= H_SYNC_INT);
   assign x = (h_count < X_START ? 15'h0 : h_count - X_START);
-  assign y = (v_count >= V_SYNC_ACT ? V_SYNC_ACT - 1 : v_count);
+  assign y = (v_count >= V_SYNC_ACT ? V_SYNC_ACT - 16'h1 : v_count);
   
   always_ff @(posedge clock or posedge rst_i)
     begin
