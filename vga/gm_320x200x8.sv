@@ -117,8 +117,8 @@ module gm_320x200x8
 	  end
 	S_BUS:
 	  begin
-	    idx_next = idx + 8'd1;
-	    if (idx == 8'd79)
+	    idx_next = idx + 8'h1;
+	    if (idx == 8'h4f)
 	      begin
 		state_next = S_ACK_WAIT;
 	      end
@@ -129,9 +129,9 @@ module gm_320x200x8
 	  end
 	S_ACK_WAIT:
 	  begin
-	    if (ack_count == 8'd79)
+	    if (ack_count == 8'h4f)
 	      begin
-		idx_next = 8'd0;
+		idx_next = 8'h0;
 		toggle_next = ~toggle;
 		rowval_next = (toggle ? rowval + 10'h140 : rowval);
 		state_next = S_IDLE;

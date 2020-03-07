@@ -199,16 +199,16 @@ module vga_master
 	    outbus.we = textbus.we;
 	    outbus.sel = textbus.sel;
 	    outbus_dat_o = textbus.dat_m;
-	  end // case: 2'h2
-      endcase // case (setupreg[1:0])
-    end // always_comb
+	  end
+      endcase
+    end
   
   // Slave state machine
   always_ff @(posedge clk_i or posedge rst_i)
     begin
       if (rst_i)
 	begin
-	  setupreg <= 32'h01;
+	  setupreg <= 32'h05;
 	  inbus_dat_o <= 32'h0;
 	  cursorpos <= 32'h0;
 	  cursorcolor <= 24'ha0a0a0;
@@ -324,7 +324,9 @@ module vga_master
 				   .red(td_r),
 				   .green(td_g),
 				   .blue(td_b),
-				   .video_clk(vga_clock28),
+				   .video_clk_i(vga_clock28),
+				   .video_rst_i(vga_rst_i | 
+						(gm_active != 3'h5)),
 				   .vs(vs28),
 				   .hs(hs28),
 				   .cursorpos(cursorpos),
@@ -338,21 +340,24 @@ module vga_master
 			  .hs(hs25),
 			  .blank_n(blank25_n),
 			  .video_clk_i(vga_clock25),
-			  .video_rst_i(vga_rst_i),
+			  .video_rst_i(vga_rst_i | (gm_active != 3'h0)),
 			  .red(gm_640x480x1_r),
 			  .green(gm_640x480x1_g),
 			  .blue(gm_640x480x1_b),
 			  .bus(gm_640x480x1bus.master));
 
   gm_640x480x8 graphicsdriver1(.clk_i(clk_i),
-			       .rst_i(rst_i | (gm_active != 3'h1 &&
-					       gm_active != 3'h2)),
+			       .rst_i(rst_i |
+				      (gm_active != 3'h1 &&
+				       gm_active != 3'h2)),
 			       .color(gm_active == 3'h1),
 			       .vs(vs_640x480x8),
 			       .hs(hs_640x480x8),
 			       .blank_n(blank_640x480x8_n),
 			       .video_clk_i(vga_clock25),
-			       .video_rst_i(vga_rst_i),
+			       .video_rst_i(vga_rst_i |
+					    (gm_active != 3'h1 &&
+					     gm_active != 3'h2)),
 			       .red(gm_640x480x8_r),
 			       .green(gm_640x480x8_g),
 			       .blue(gm_640x480x8_b),
@@ -360,14 +365,17 @@ module vga_master
 			       .palette_bus(palettebus.slave));
 
   gm_320x200x8 graphicsdriver2(.clk_i(clk_i),
-			       .rst_i(rst_i | (gm_active != 3'h3 &&
-					       gm_active != 3'h4)),
+			       .rst_i(rst_i |
+				      (gm_active != 3'h3 &&
+				       gm_active != 3'h4)),
 			       .color(gm_active == 3'h3),
 			       .vs(vs_320x200x8),
 			       .hs(hs_320x200x8),
 			       .blank_n(blank_320x200x8_n),
 			       .video_clk_i(vga_clock25),
-			       .video_rst_i(vga_rst_i),
+			       .video_rst_i(vga_rst_i |
+					    (gm_active != 3'h3 &&
+					     gm_active != 3'h4)),
 			       .red(gm_320x200x8_r),
 			       .green(gm_320x200x8_g),
 			       .blue(gm_320x200x8_b),
