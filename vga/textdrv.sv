@@ -46,7 +46,7 @@ module textdrv
    * The fifo is 2(24 bits + 9 pixels) = 66 bits wide.
    */
 
-  typedef enum 	bit [1:0] { S_IDLE, S_BUS, S_ACK_WAIT } state_t;
+  typedef enum 	bit [1:0] { S_IDLE, S_BUS, S_ACK_WAIT, S_FAULT } state_t;
   
   state_t      state, state_next;
   logic [7:0]  idx, idx_next;
@@ -56,6 +56,7 @@ module textdrv
   logic        cpu_ha_falling, cpu_va_rising;
   logic        start_load;
   logic [3:0]  y, y_next;
+  logic [11:0] page_count, page_count_next;
   
   assign start_load = cpu_ha_falling && cpu_va_sync[1:0] == 2'b11;
   assign cpu_ha_falling = cpu_ha_sync[1:0] == 2'b01;
@@ -63,7 +64,7 @@ module textdrv
   assign bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
   assign bus.stb = (state == S_BUS);
   assign bus.adr = rowval + { idx, 2'h0 };
-  assign bus_dat_o = 32'h0;
+  assign bus_dat_o = { 20'h0, page_count };
   assign bus.we = 1'h0;
   assign bus.sel = 4'hf;
 
@@ -78,6 +79,7 @@ module textdrv
 	  cpu_va_sync <= 3'h0;
 	  ack_count <= 8'h0;
 	  y <= 4'h0;
+	  page_count <= 12'h0;
 	end
       else
 	begin
@@ -88,6 +90,7 @@ module textdrv
 	  cpu_va_sync <= { v_active, cpu_va_sync[2], cpu_va_sync[1] };
 	  ack_count <= ack_count_next;
 	  y <= y_next;
+	  page_count <= page_count_next;
 	end
     end
 
@@ -98,11 +101,14 @@ module textdrv
       rowval_next = rowval;
       ack_count_next = ack_count;
       y_next = y;
+      page_count_next = page_count;
       
       if (cpu_va_rising)
 	begin
 	  y_next = 4'h0;
 	  rowval_next = 16'h0;
+	  if (state != S_FAULT)
+	    page_count_next = page_count + 12'h1;
 	end
       
       case (state)
@@ -133,59 +139,77 @@ module textdrv
 		idx_next = 8'd0;
 		y_next = y + 4'h1;
 		rowval_next = (y == 4'hf ? rowval + 10'ha0 : rowval);
-		state_next = S_IDLE;
+		state_next = (fifo_full ? S_FAULT : S_IDLE);
 	      end
 	    if (bus.ack)
 	      begin
 		ack_count_next = ack_count + 8'h1;
 	      end
+	  end // case: S_ACK_WAIT
+	S_FAULT:
+	  begin
 	  end
       endcase
     end
 
   // Fonts
-  logic [7:0]     rgb0, rgb1;
+  logic [7:0]     rgb0, rgb1, rgb0_buf, rgb1_buf;
   logic 	  fifo_write, fifo_full;
-  logic [63:0] 	  fifo_in;
+  logic [63:0] 	  fifo_in, fifo_in_next, fifo_buf;
+  logic [127:0]   font0_out_next, font1_out_next;
   logic [127:0]   font0_out, font1_out;
+  logic [6:0] 	  font0_adr, font1_adr;
   
-  assign fifo_write = bus.ack && !fifo_full;
-
+  logic [3:0]	  ack_delay;
+  
   dualrom 
     #(.AWIDTH(7),
       .INITNAME("../../fpgalib/vga/font9x16.mif"),
       .DWIDTH(128)) fontmem(.clk_i(clk_i),
 			    .rst_i(rst_i),
-			    .bus0_adr(bus_dat_i[22:16]),
+			    .bus0_adr(font0_adr),
 			    .bus0_data(font0_out),
-			    .bus1_adr(bus_dat_i[6:0]),
+			    .bus1_adr(font1_adr),
 			    .bus1_data(font1_out));
 
+
+  always_ff @(posedge clk_i)
+    begin
+      font0_adr <= bus_dat_i[22:16]; // 1
+      font1_adr <= bus_dat_i[6:0];
+      rgb0 <= rgb0_buf; // 2
+      rgb1 <= rgb1_buf;
+      rgb0_buf <= bus_dat_i[31:24]; // 1
+      rgb1_buf <= bus_dat_i[15:8];
+      ack_delay <= { bus.ack, ack_delay[3:1] }; // 1,2,3
+      fifo_buf <= fifo_in_next;
+      fifo_in <= fifo_buf;
+    end
+  
+  assign fifo_write = ack_delay[0] && !fifo_full;
 
   // select the font line we care about
   // pull the colors out of the fb
   always_comb
     begin
-      rgb0 = bus_dat_i[31:24];
-      rgb1 = bus_dat_i[15:8];
 
       case (y[3:0])
-	'hf: fifo_in = { rgb0, font0_out[7:0], rgb1, font1_out[7:0] };
-	'he: fifo_in = { rgb0, font0_out[15:8], rgb1, font1_out[15:8] };
-	'hd: fifo_in = { rgb0, font0_out[23:16], rgb1, font1_out[23:16] };
-	'hc: fifo_in = { rgb0, font0_out[31:24], rgb1, font1_out[31:24] };
-	'hb: fifo_in = { rgb0, font0_out[39:32], rgb1, font1_out[39:32] };
-	'ha: fifo_in = { rgb0, font0_out[47:40], rgb1, font1_out[47:40] };
-	'h9: fifo_in = { rgb0, font0_out[55:48], rgb1, font1_out[55:48] };
-	'h8: fifo_in = { rgb0, font0_out[63:56], rgb1, font1_out[63:56] };
-	'h7: fifo_in = { rgb0, font0_out[71:64], rgb1, font1_out[71:64] };
-	'h6: fifo_in = { rgb0, font0_out[79:72], rgb1, font1_out[79:72] };
-	'h5: fifo_in = { rgb0, font0_out[87:80], rgb1, font1_out[87:80] };
-	'h4: fifo_in = { rgb0, font0_out[95:88], rgb1, font1_out[95:88] };
-	'h3: fifo_in = { rgb0, font0_out[103:96], rgb1, font1_out[103:96] };
-	'h2: fifo_in = { rgb0, font0_out[111:104], rgb1, font1_out[111:104] };
-	'h1: fifo_in = { rgb0, font0_out[119:112], rgb1, font1_out[119:112] };
-	'h0: fifo_in = { rgb0, font0_out[127:120], rgb1, font1_out[127:120] };
+	'hf: fifo_in_next = { rgb0, font0_out[7:0], rgb1, font1_out[7:0] };
+	'he: fifo_in_next = { rgb0, font0_out[15:8], rgb1, font1_out[15:8] };
+	'hd: fifo_in_next = { rgb0, font0_out[23:16], rgb1, font1_out[23:16] };
+	'hc: fifo_in_next = { rgb0, font0_out[31:24], rgb1, font1_out[31:24] };
+	'hb: fifo_in_next = { rgb0, font0_out[39:32], rgb1, font1_out[39:32] };
+	'ha: fifo_in_next = { rgb0, font0_out[47:40], rgb1, font1_out[47:40] };
+	'h9: fifo_in_next = { rgb0, font0_out[55:48], rgb1, font1_out[55:48] };
+	'h8: fifo_in_next = { rgb0, font0_out[63:56], rgb1, font1_out[63:56] };
+	'h7: fifo_in_next = { rgb0, font0_out[71:64], rgb1, font1_out[71:64] };
+	'h6: fifo_in_next = { rgb0, font0_out[79:72], rgb1, font1_out[79:72] };
+	'h5: fifo_in_next = { rgb0, font0_out[87:80], rgb1, font1_out[87:80] };
+	'h4: fifo_in_next = { rgb0, font0_out[95:88], rgb1, font1_out[95:88] };
+	'h3: fifo_in_next = { rgb0, font0_out[103:96], rgb1, font1_out[103:96] };
+	'h2: fifo_in_next = { rgb0, font0_out[111:104], rgb1, font1_out[111:104] };
+	'h1: fifo_in_next = { rgb0, font0_out[119:112], rgb1, font1_out[119:112] };
+	'h0: fifo_in_next = { rgb0, font0_out[127:120], rgb1, font1_out[127:120] };
       endcase
     end
   
