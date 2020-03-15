@@ -1,6 +1,6 @@
 `include "../wb.vh"
 
-`define CACHE_DISABLE
+//`define CACHE_DISABLE
 
 module sdram16_controller_cache
   #(AWIDTH=26,
