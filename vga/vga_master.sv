@@ -317,16 +317,38 @@ module vga_master
 	SS_DONE: sstate_next = SS_IDLE;
       endcase
     end
+
+  logic m5_cpu_active, m5_active, m5_sync;
+  logic m34_cpu_active, m34_active, m34_sync;
+  logic m12_cpu_active, m12_active, m12_sync;
+  logic m0_cpu_active, m0_active, m0_sync;
+
+  assign m5_cpu_active = (gm_active == 3'h5);
+  assign m34_cpu_active = (gm_active == 3'h3 || gm_active == 3'h4);
+  assign m12_cpu_active = (gm_active == 3'h1 || gm_active == 3'h2);
+  assign m0_cpu_active = (gm_active == 3'h0);
+  
+  always_ff @(posedge vga_clock28)
+    begin
+      { m5_active, m5_sync } <= { m5_sync, m5_cpu_active };
+    end
+
+  always_ff @(posedge vga_clock25)
+    begin
+      { m34_active, m34_sync } <= { m34_sync, m34_cpu_active };
+      { m12_active, m12_sync } <= { m12_sync, m12_cpu_active };
+      { m0_active, m0_sync } <= { m0_sync, m0_cpu_active };
+    end
+      
   
   textdrv #(.BPP(BPP)) textdriver0(.clk_i(clk_i),
-				   .rst_i(rst_i | (gm_active != 3'h5)),
+				   .rst_i(rst_i | ~m5_cpu_active),
 				   .blank_n(blank28_n),
 				   .red(td_r),
 				   .green(td_g),
 				   .blue(td_b),
 				   .video_clk_i(vga_clock28),
-				   .video_rst_i(vga_rst_i | 
-						(gm_active != 3'h5)),
+				   .video_rst_i(vga_rst_i | ~m5_active),
 				   .vs(vs28),
 				   .hs(hs28),
 				   .cursorpos(cursorpos),
@@ -335,29 +357,25 @@ module vga_master
 				   .bus(textbus.master));
   
   gm_640x480x1 graphicsdriver0(.clk_i(clk_i),
-			  .rst_i(rst_i | (gm_active != 3'h0)),
+			  .rst_i(rst_i | ~m0_cpu_active),
 			  .vs(vs25),
 			  .hs(hs25),
 			  .blank_n(blank25_n),
 			  .video_clk_i(vga_clock25),
-			  .video_rst_i(vga_rst_i | (gm_active != 3'h0)),
+			  .video_rst_i(vga_rst_i | ~m0_active),
 			  .red(gm_640x480x1_r),
 			  .green(gm_640x480x1_g),
 			  .blue(gm_640x480x1_b),
 			  .bus(gm_640x480x1bus.master));
 
   gm_640x480x8 graphicsdriver1(.clk_i(clk_i),
-			       .rst_i(rst_i |
-				      (gm_active != 3'h1 &&
-				       gm_active != 3'h2)),
+			       .rst_i(rst_i | ~m12_cpu_active),
 			       .color(gm_active == 3'h1),
 			       .vs(vs_640x480x8),
 			       .hs(hs_640x480x8),
 			       .blank_n(blank_640x480x8_n),
 			       .video_clk_i(vga_clock25),
-			       .video_rst_i(vga_rst_i |
-					    (gm_active != 3'h1 &&
-					     gm_active != 3'h2)),
+			       .video_rst_i(vga_rst_i | ~m12_active),
 			       .red(gm_640x480x8_r),
 			       .green(gm_640x480x8_g),
 			       .blue(gm_640x480x8_b),
@@ -365,17 +383,13 @@ module vga_master
 			       .palette_bus(palettebus.slave));
 
   gm_320x200x8 graphicsdriver2(.clk_i(clk_i),
-			       .rst_i(rst_i |
-				      (gm_active != 3'h3 &&
-				       gm_active != 3'h4)),
+			       .rst_i(rst_i | ~m34_cpu_active),
 			       .color(gm_active == 3'h3),
 			       .vs(vs_320x200x8),
 			       .hs(hs_320x200x8),
 			       .blank_n(blank_320x200x8_n),
 			       .video_clk_i(vga_clock25),
-			       .video_rst_i(vga_rst_i |
-					    (gm_active != 3'h3 &&
-					     gm_active != 3'h4)),
+			       .video_rst_i(vga_rst_i | ~m34_active),
 			       .red(gm_320x200x8_r),
 			       .green(gm_320x200x8_g),
 			       .blue(gm_320x200x8_b),
