@@ -102,7 +102,7 @@ module paneldisp
 	  adr <= adr_next;
 	  disp <= disp_next;
 	  regval <= regval_next;
-	  ticks <= (ticks == CLKFREQ/30 ? 32'h0 : ticks + 32'h1);
+	  ticks <= (ticks == CLKFREQ/10 ? 32'h0 : ticks + 32'h1);
 	end
     end
 
@@ -126,15 +126,17 @@ module paneldisp
       4'h7: panel_in = regval[3:0];
     endcase
 
-  assign special = { 7'h0, cpu_ins.cyc,
-		     7'h0, cpu_ins.stb,
-		     7'h0, cpu_ins.ack,
-		     7'h0, cpu_ins.stall,
-		     7'h0, cpu_dat.cyc,
-		     7'h0, cpu_dat.stb,
-		     7'h0, cpu_dat.we,
-		     7'h0, cpu_dat.ack,
-		     7'h0, cpu_dat.stall };
+  assign special = { cpu_ins.cyc,
+		     cpu_ins.stb,
+		     cpu_ins.ack,
+		     cpu_ins.stall,
+		     cpu_dat.cyc,
+		     cpu_dat.stb,
+		     cpu_dat.ack,
+		     cpu_dat.stall,
+		     cpu_dat.sel, // 4
+		     3'h0, cpu_dat.we,
+		     16'h0 };
       
   always_comb
     begin
