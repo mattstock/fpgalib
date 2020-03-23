@@ -55,13 +55,13 @@ module gm_320x200x8
   logic [7:0]  idx, idx_next;
   logic [7:0]  ack_count, ack_count_next;
   logic [31:0] rowval, rowval_next;
-  logic [2:0]  cpu_ha_sync, cpu_va_sync;
+  logic [4:0]  cpu_ha_sync, cpu_va_sync;
   logic        cpu_ha_falling, cpu_va_rising;
   logic        start_load, toggle, toggle_next;
   
-  assign start_load = cpu_ha_falling && cpu_va_sync[1:0] == 2'b11;
-  assign cpu_ha_falling = cpu_ha_sync[1:0] == 2'b01;
-  assign cpu_va_rising = cpu_va_sync[1:0] == 2'b10;
+  assign start_load = cpu_ha_falling && cpu_va_sync[3:0] == 4'b1111;
+  assign cpu_ha_falling = cpu_ha_sync[3:0] == 4'b0011;
+  assign cpu_va_rising = cpu_va_sync[3:0] == 4'b1100;
   assign bus.cyc = (state == S_BUS || state == S_ACK_WAIT);
   assign bus.stb = (state == S_BUS);
   assign bus.adr = rowval + { idx, 2'h0 };
@@ -69,15 +69,15 @@ module gm_320x200x8
   assign bus.we = 1'h0;
   assign bus.sel = 4'hf;
 
-  always_ff @(posedge clk_i or posedge rst_i)
+  always_ff @(posedge clk_i)
     begin
       if (rst_i)
 	begin
 	  state <= S_IDLE;
 	  idx <= 8'h0;
 	  rowval <= 32'h0;
-	  cpu_ha_sync <= 3'h0;
-	  cpu_va_sync <= 3'h0;
+	  cpu_ha_sync <= 5'h0;
+	  cpu_va_sync <= 5'h0;
 	  ack_count <= 8'h0;
 	  toggle <= 1'h0;
 	end
@@ -86,8 +86,8 @@ module gm_320x200x8
 	  idx <= idx_next;
 	  state <= state_next;
 	  rowval <= rowval_next;
-	  cpu_ha_sync <= { h_active, cpu_ha_sync[2], cpu_ha_sync[1] };
-	  cpu_va_sync <= { v_active, cpu_va_sync[2], cpu_va_sync[1] };
+	  cpu_ha_sync <= { h_active, cpu_ha_sync[4:1] };
+	  cpu_va_sync <= { v_active, cpu_va_sync[4:1] };
 	  ack_count <= ack_count_next;
 	  toggle <= toggle_next;
 	end

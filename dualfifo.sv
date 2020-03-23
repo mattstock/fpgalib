@@ -29,7 +29,7 @@ module dualfifo
   assign wfull_next = (wgray_next == { ~wq2_rgray[AWIDTH:AWIDTH-1],
 				       wq2_rgray[AWIDTH-2:0] });
   
-  always_ff @(posedge wclk_i or posedge wrst_i)
+  always_ff @(posedge wclk_i)
     if (wrst_i)
       begin
 	{ wq2_rgray, wq1_rgray } <= 2'h0;
@@ -54,7 +54,7 @@ module dualfifo
   assign rempty_next = (rgray_next == rq2_wgray);
   assign out = values[ridx];
   
-  always_ff @(posedge rclk_i or posedge rrst_i)
+  always_ff @(posedge rclk_i)
     if (rrst_i)
       begin
 	{ rq2_wgray, rq1_wgray } <= 2'h0;
