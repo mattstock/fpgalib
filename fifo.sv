@@ -28,7 +28,7 @@ module fifo
 	ridx <= 0;
 	cidx <= 0;
 	for (int i=0; i < DEPTH; i=i+1)
-	  values[i] = 0;
+	  values[i] <= 0;
       end
     else
       begin
@@ -36,7 +36,7 @@ module fifo
 	ridx <= ridx_next;
 	cidx <= cidx_next;
 	for (int i=0; i < DEPTH; i=i+1)
-	  values[i] = values_next[i];
+	  values[i] <= values_next[i];
       end // else: !if(rst_i)
 
   always_comb
