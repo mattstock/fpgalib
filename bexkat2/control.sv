@@ -4,7 +4,7 @@
 
 //`define CCR_ON_STACK
   
-module control(input clk_i,
+module control(input              clk_i,
 	       input 		  rst_i,
 	       input [31:0] 	  ir,
 	       output logic	  ir_write,
@@ -49,25 +49,31 @@ module control(input clk_i,
   assign superintr = (state == S_EXC5 || state == S_EXC7);
   
   // IR helpers
-  wire [3:0] 			ir_type  = ir[31:28];
-  wire [3:0] 			ir_op    = ir[27:24];
-  wire [3:0] 			ir_ra    = ir[23:20];
-  wire [3:0] 			ir_rb    = ir[19:16];
-  wire [3:0] 			ir_rc    = ir[15:12];
-  wire [31:0] 			ir_uval  = { 17'h0000, ir[15:1] };
-  wire 				ir_size         = ir[0];
+  logic [3:0] 			  ir_type;
+  logic [3:0] 			  ir_op, ir_ra, ir_rb, ir_rc;
+  logic [31:0] 			  ir_uval;
+  logic 			  ir_size;
   
-  logic 			ccr_ltu, ccr_lt, ccr_eq;
+  logic 			  ccr_ltu, ccr_lt, ccr_eq;
+
+  assign ir_type = ir[31:28];
+  assign ir_op = ir[27:24];
+  assign ir_ra = ir[23:20];
+  assign ir_rb = ir[19:16];
+  assign ir_rc = ir[15:12];
+  assign ir_uval = { 17'h0, ir[15:1] };
+  assign ir_size = ir[0];
+  
   assign { ccr_ltu, ccr_lt, ccr_eq } = ccr;
   
-  state_t 			state, state_next;
-  logic 			interrupts_enabled, interrupts_enabled_next;
-  logic [3:0] 			exception_next;
-  logic [7:0] 			delay, delay_next;
-  logic 			datbus_cyc_next, datbus_write_next;
-  logic [3:0] 			byteenable_next;
-  logic 			datbus_stb_next;
-  logic 			insbus_cyc_next, insbus_stb_next;
+  state_t 			  state, state_next;
+  logic 			  interrupts_enabled, interrupts_enabled_next;
+  logic [3:0] 			  exception_next;
+  logic [7:0] 			  delay, delay_next;
+  logic 			  datbus_cyc_next, datbus_write_next;
+  logic [3:0] 			  byteenable_next;
+  logic 			  datbus_stb_next;
+  logic 			  insbus_cyc_next, insbus_stb_next;
 
   always_ff @(posedge clk_i or posedge rst_i)
     if (rst_i)
