@@ -80,7 +80,7 @@ package bexkat1Def;
 			  S_STORED, S_STORED2, S_HALT, S_RTI,
 			  S_RTI2, S_RTI3, S_RTI4, S_RTI5,
 			  S_PUSH6, S_POP5, S_RTI6, S_RTS4, S_LOADD3,
-			  S_STORE5, S_ARG3 } state_t;
+			  S_STORE5, S_ARG3, S_POPCC } state_t;
   
 endpackage // bexkat1_pkg
   

@@ -2,7 +2,7 @@
 `include "bexkat2.vh"
 `include "../bexkat1/exceptions.vh"
 
-`define CCR_ON_STACK
+//`define CCR_ON_STACK
   
 module control(input clk_i,
 	       input 		  rst_i,
@@ -179,7 +179,7 @@ module control(input clk_i,
 		state_next = S_EXC9;
 `endif
 	      end
-	  end
+	  end // case: S_EXC12
 `ifdef CCR_ON_STACK
 	S_EXC5: // predecrement SSP
 	  begin // forced to use SSP
@@ -396,7 +396,7 @@ module control(input clk_i,
 	    state_next = S_PUSH2;
 	  end
 	S_PUSH:
-	  begin // push, bsr, jsr
+	  begin // push, pushcc, bsr, jsr
 	    b_write = 1'b1; // B <= rA
 	    reg_read_addr2 = ir_ra;
 	    state_next = S_PUSH2;
@@ -418,6 +418,10 @@ module control(input clk_i,
 		begin
 		  mdrsel = MDR_PC;
 		  pcsel = PC_REL;
+		end
+	      5'h03: // pushcc
+		begin
+		  mdrsel = MDR_CCR;
 		end
               default:
 		mdrsel = MDR_B;
@@ -489,6 +493,7 @@ module control(input clk_i,
 		      state_next = S_EXC;
 		    end
 		end
+	      4'h3: state_next = S_POP4;
               default: state_next = S_RTS;
 	    endcase // case (ir_op)
 	  end
@@ -510,8 +515,14 @@ module control(input clk_i,
 	    if (datbus_ack)
 	      begin
 		datbus_cyc_next = 1'b0;
-		state_next = S_MDR2RA;
+		state_next = (ir_op == 4'h3 ? S_POPCC : S_MDR2RA);
 	      end
+	  end
+	S_POPCC: // popcc
+	  begin
+	    ccrsel = CCR_MDR;
+	    statussel = STATUS_POP; // not sure if this is right
+	    state_next = S_FETCH;
 	  end
 	S_RTI: // rti - pop CCR off of stack
 	  begin

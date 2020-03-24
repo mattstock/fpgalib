@@ -9,10 +9,12 @@ _start:
 	halt
 
 .globl trap1
-trap1:	ldi %1, 0x12345678
+trap1:	pushcc
+	ldi %1, 0x12345678
 	# we need to flush out the stack to the memory dump
 	ldd.l %10, 0x1f0
 	ldd.l %10, 0x2f0
+	popcc
 	rti
 	
 .globl trap0
