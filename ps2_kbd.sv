@@ -10,24 +10,23 @@ module ps2_kbd
   typedef enum bit[3:0] { S_IDLE,
 			  S_BUSY,
 			  S_READ,
-			  S_READ2,
 			  S_DONE
 			  } state_t;
 
-  logic [31:0] dat_i, dat_o;
+  logic [31:0] dat_o;
 
 `ifdef NO_MODPORT_EXPRESSIONS
-  assign dat_i = bus.dat_m;
+//  assign dat_i = bus.dat_m;
   assign bus.dat_s = dat_o;
 `else
-  assign dat_i = bus.dat_i;
+//  assign dat_i = bus.dat_i;
   assign bus.dat_o = dat_o;
 `endif
   
   state_t      bstate, bstate_next;
   state_t      tstate, tstate_next;
   logic [31:0] result, result_next;
-  logic        fifo_read, fifo_write, fifo_empty, fifo_full;
+  logic        fifo_pop, fifo_push, fifo_empty, fifo_full;
   logic [9:0]  fifo_out;
   logic [10:0] eventbuf, eventbuf_next;
   logic [3:0]  count, count_next;
@@ -41,14 +40,14 @@ module ps2_kbd
   assign bus.stall = 1'h0;
   assign bus.ack = (bstate == S_DONE);
 
-  assign fifo_read = (bstate == S_READ);
-  assign fifo_write = (tstate == S_DONE);
+  assign fifo_pop = (bstate == S_READ);
+  assign fifo_push = (tstate == S_DONE);
   assign event_data = eventbuf[8:1]; // STOP, PARITY, 8 x DATA, START
   assign ps2_clock_falling = (clkreg[2:1] == 2'b10);
   assign ps2_clock_rising = (clkreg[2:1] == 2'b01);
   assign event_ready = (count == 4'h0) && ps2_clock_rising;
 
-  always_ff @(posedge clk_i, posedge rst_i)
+  always_ff @(posedge clk_i)
     begin
       if (rst_i)
 	begin
@@ -78,7 +77,15 @@ module ps2_kbd
 	    case (bus.adr[2])
 	      1'h0:
 		begin
-		  bstate_next = (bus.we ? S_DONE : S_READ);
+		  if (fifo_empty || bus.we)
+		    begin
+		      result_next = 32'h0;
+		      bstate_next = S_DONE;
+		    end
+		  else
+		    begin
+		      bstate_next = S_READ;
+		    end
 		end
 	      1'h1:
 		begin
@@ -88,10 +95,6 @@ module ps2_kbd
 	    endcase // case (adr_i[2])
 	  end // case: S_BUSY
 	S_READ:
-	  begin
-	    bstate_next = S_READ2;
-	  end
-	S_READ2:
 	  begin
 	    result_next = { 22'h0, fifo_out };
 	    bstate_next = S_DONE;
@@ -104,7 +107,7 @@ module ps2_kbd
     end
   
   // Bottom half
-  always_ff @(posedge clk_i, posedge rst_i)
+  always_ff @(posedge clk_i)
     begin
       if (rst_i)
 	begin
@@ -183,8 +186,8 @@ module ps2_kbd
 				.full(fifo_full),
 				.empty(fifo_empty),
 				.out(fifo_out),
-				.pop(fifo_read),
-				.push(fifo_write),
+				.pop(fifo_pop),
+				.push(fifo_push),
 				.in(fifo_in));
   
 endmodule
