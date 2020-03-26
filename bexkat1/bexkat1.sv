@@ -4,7 +4,7 @@
 
 import bexkat1Def::*;
 
-module bexkat1p(input 	     clk_i,
+module bexkat1(input 	     clk_i,
 		input 	     rst_i,
 		if_wb.master ins_bus,
 		if_wb.master dat_bus,

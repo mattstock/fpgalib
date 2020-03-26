@@ -1,12 +1,12 @@
 `include "bexkat1/exceptions.vh"
 
-module interrupt_encoder(input        clk_i,
-			 input 	      rst_i,
-			 input [3:0]  timer_in,
-			 input [1:0]  serial0_in,
-			 input 	      enabled,
-			 input 	      mmu,
-			 output [3:0] cpu_exception);
+module interrupt_encoder(input              clk_i,
+			 input 		    rst_i,
+			 input [3:0] 	    timer_in,
+			 input [1:0] 	    serial0_in,
+			 input 		    enabled,
+			 input 		    mmu,
+			 output logic [3:0] cpu_exception);
 
   always_comb
     casez ({ timer_in, serial0_in, mmu })

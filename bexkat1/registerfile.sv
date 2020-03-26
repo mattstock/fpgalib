@@ -1,18 +1,18 @@
 module registerfile
   #(WIDTH=32, COUNTP=4, SPREG=4'd15)
-  (input              clk_i, 
-   input 	      rst_i,
-   input 	      supervisor, 
-   input [COUNTP-1:0] read1,
-   input [COUNTP-1:0] read2,
-   input [COUNTP-1:0] write_addr,
-   input [WIDTH-1:0]  write_data,
-   input [1:0] 	      write_en,
-   input [WIDTH-1:0]  sp_data_i,
-   output [WIDTH-1:0] sp_data_o,
-   input [1:0] 	      sp_en,
-   output [WIDTH-1:0] data1,
-   output [WIDTH-1:0] data2);
+  (input                    clk_i, 
+   input 		    rst_i,
+   input 		    supervisor, 
+   input [COUNTP-1:0] 	    read1,
+   input [COUNTP-1:0] 	    read2,
+   input [COUNTP-1:0] 	    write_addr,
+   input [WIDTH-1:0] 	    write_data,
+   input [1:0] 		    write_en,
+   input [WIDTH-1:0] 	    sp_data_i,
+   output logic [WIDTH-1:0] sp_data_o,
+   input [1:0] 		    sp_en,
+   output logic [WIDTH-1:0] data1,
+   output logic [WIDTH-1:0] data2);
 
   localparam COUNT=2**COUNTP;
 

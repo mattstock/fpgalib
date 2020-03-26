@@ -10,14 +10,14 @@ module ifetch
     START_ADDR=32'h70000000)
   (input               clk_i,
    input 	       rst_i,
-   output [63:0]       ir,
+   output logic [63:0] ir,
    output logic [31:0] pc,
    if_wb.master        bus,
    input 	       pc_set,
    input 	       halt,
    input 	       stall_i,
    input [31:0]        pc_in);
-
+  
   logic [63:0] 	       ir_next, ir_real;
   logic [31:0] 	       pc_next, low_next, low;
   logic [31:0] 	       bus_adr_next, val;
