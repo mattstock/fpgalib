@@ -259,88 +259,109 @@ module mem(input               clk_i,
 	      endcase // case (ir_type)
 	S_EXC:
 	  begin
-	    bus_stb_next = 1'b0;
-	    if (bus.ack)
+	    if (!bus.stall)
 	      begin
-		pc_set_next = 1'h1;
-		sp_write_next = 2'h3;
-		state_next = S_IDLE;
-		bus_we_next = 1'b0;
-		bus_cyc_next = 1'b0;
-	      end
+		bus_stb_next = 1'b0;
+		if (bus.ack)
+		  begin
+		    pc_set_next = 1'h1;
+		    sp_write_next = 2'h3;
+		    state_next = S_IDLE;
+		    bus_we_next = 1'b0;
+		    bus_cyc_next = 1'b0;
+		  end
+	      end // if (!bus.stall)
 	  end
 	S_PUSH:
 	  begin
-	    bus_stb_next = 1'b0;
-	    if (bus.ack)
+	    if (!bus.stall)
 	      begin
-		bus_cyc_next = 1'b0;
-		bus_we_next = 1'b0;
-		state_next = S_IDLE;
+		bus_stb_next = 1'b0;
+		if (bus.ack)
+		  begin
+		    bus_cyc_next = 1'b0;
+		    bus_we_next = 1'b0;
+		    state_next = S_IDLE;
+		  end
 	      end
 	  end
 	S_JSR:
 	  begin
-	    bus_stb_next = 1'b0;
-	    if (bus.ack)
+	    if (!bus.stall)
 	      begin
-		state_next = S_IDLE;
-		bus_we_next = 1'b0;
-		bus_cyc_next = 1'b0;
-		pc_set_next = 1'h1;
-	      end
+		bus_stb_next = 1'b0;
+		if (bus.ack)
+		  begin
+		    state_next = S_IDLE;
+		    bus_we_next = 1'b0;
+		    bus_cyc_next = 1'b0;
+		    pc_set_next = 1'h1;
+		  end
+	      end // if (!bus.stall)
 	  end
 	S_POP:
 	  begin
-	    bus_stb_next = 1'b0;
-	    if (bus.ack)
+	    if (!bus.stall)
 	      begin
-		state_next = S_IDLE;
-		bus_we_next = 1'b0;
-		bus_cyc_next = 1'b0;
-		result_next = dat_i;
-	      end
+		bus_stb_next = 1'b0;
+		if (bus.ack)
+		  begin
+		    state_next = S_IDLE;
+		    bus_we_next = 1'b0;
+		    bus_cyc_next = 1'b0;
+		    result_next = dat_i;
+		  end
+	      end // if (!bus.stall)
 	  end
 	S_RTS:
 	  begin
-	    bus_stb_next = 1'b0;
-	    if (bus.ack)
+	    if (!bus.stall)
 	      begin
-		state_next = S_IDLE;
-		bus_we_next = 1'b0;
-		bus_cyc_next = 1'b0;
-		pc_next = dat_i;
-		pc_set_next = 1'h1;
-	      end
+		bus_stb_next = 1'b0;
+		if (bus.ack)
+		  begin
+		    state_next = S_IDLE;
+		    bus_we_next = 1'b0;
+		    bus_cyc_next = 1'b0;
+		    pc_next = dat_i;
+		    pc_set_next = 1'h1;
+		  end
+	      end // if (!bus.stall)
 	  end
 	S_LOAD:
 	  begin
-	    bus_stb_next = 1'b0;
-	    if (bus.ack)
+	    if (!bus.stall)
 	      begin
-		state_next = S_IDLE;
-		bus_we_next = 1'b0;
-		bus_cyc_next = 1'b0;
-		case (bus.sel)
-		  4'b1111: result_next = dat_i;
-		  4'b0011: result_next = { 16'h0, dat_i[15:0] };
-		  4'b1100: result_next = { 16'h0, dat_i[31:16] };
-		  4'b0001: result_next = { 24'h0, dat_i[7:0] };
-		  4'b0010: result_next = { 24'h0, dat_i[15:8] };
-		  4'b0100: result_next = { 24'h0, dat_i[23:16] };
-		  4'b1000: result_next = { 24'h0, dat_i[31:24] };
-		  default: result_next = dat_i;
-		endcase
-	      end
+		bus_stb_next = 1'b0;
+		if (bus.ack)
+		  begin
+		    state_next = S_IDLE;
+		    bus_we_next = 1'b0;
+		    bus_cyc_next = 1'b0;
+		    case (bus.sel)
+		      4'b1111: result_next = dat_i;
+		      4'b0011: result_next = { 16'h0, dat_i[15:0] };
+		      4'b1100: result_next = { 16'h0, dat_i[31:16] };
+		      4'b0001: result_next = { 24'h0, dat_i[7:0] };
+		      4'b0010: result_next = { 24'h0, dat_i[15:8] };
+		      4'b0100: result_next = { 24'h0, dat_i[23:16] };
+		      4'b1000: result_next = { 24'h0, dat_i[31:24] };
+		      default: result_next = dat_i;
+		    endcase
+		  end
+	      end // if (!bus.stall)
 	  end
 	S_STORE:
 	  begin
-	    bus_stb_next = 1'b0;
-	    if (bus.ack)
+	    if (!bus.stall)
 	      begin
-		bus_cyc_next = 1'b0;
-		bus_we_next = 1'b0;
-		state_next = S_IDLE;
+		bus_stb_next = 1'b0;
+		if (bus.ack)
+		  begin
+		    bus_cyc_next = 1'b0;
+		    bus_we_next = 1'b0;
+		    state_next = S_IDLE;
+		  end
 	      end
 	  end
 	default:

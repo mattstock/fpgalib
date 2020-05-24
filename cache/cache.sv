@@ -66,6 +66,7 @@ module cache
   bs_state_t    bus_state, bus_state_next;
   
   logic  	              fifo_read, fifo_empty, fifo_full, fifo_write;
+  logic [3:0] 		      fifo_cidx;
   logic [FIFO_DWIDTH-1:0]     fifo_out, fifo_in, fifo_saved, fifo_saved_next;
   logic [DWIDTH-1:0] 	      fifo_dat_i;
   logic [AWIDTH-1-BYTEBITS:0] fifo_adr_i;
@@ -539,6 +540,7 @@ module cache
 				       .pop(fifo_read),
 				       .in(fifo_in),
 				       .out(fifo_out),
+				       .cidx(fifo_cidx),
 				       .full(fifo_full),
 				       .empty(fifo_empty));
 

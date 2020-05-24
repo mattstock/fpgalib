@@ -2,20 +2,21 @@ module fifo
   #(AWIDTH=4,
     DWIDTH=32)
   (input                    clk_i,
-   input 		    rst_i,
-   input 		    push,
-   input 		    pop,
-   input [DWIDTH-1:0] 	    in,
+   input 		     rst_i,
+   input 		     push,
+   input 		     pop,
+   output logic [AWIDTH-1:0] cidx,
+   input [DWIDTH-1:0] 	     in,
    output logic [DWIDTH-1:0] out,
-   output logic 	    full,
-   output logic 	    empty);
+   output logic 	     full,
+   output logic 	     empty);
 
   localparam DEPTH = 2**AWIDTH;
   
   logic [DWIDTH-1:0] 	    values[DEPTH-1:0], values_next[DEPTH-1:0];
 
   logic [AWIDTH-1:0] 	    ridx, ridx_next, widx, widx_next;
-  logic [AWIDTH-1:0] 	    cidx, cidx_next;
+  logic [AWIDTH-1:0] 	    cidx_next;
   
   assign full = (cidx == (DEPTH-1));
   assign empty = (cidx == 0);

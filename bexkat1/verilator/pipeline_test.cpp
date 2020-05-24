@@ -197,7 +197,7 @@ int main(int argc, char **argv, char **env) {
 	   top->ins_stall_i,
 	   ifetchstatestr[top->top__DOT__fetch0__DOT__state]);
       emit(D_DEBUG, "  fifo: cidx: %x ridx: %x widx: %x value[idx]: %08x\n",
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__cidx,
+	   top->top__DOT__fetch0__DOT__cidx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__ridx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__widx,
 	   top->top__DOT__fetch0__DOT__ffifo__DOT__values[top->top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
@@ -211,6 +211,7 @@ int main(int argc, char **argv, char **env) {
       emit(D_DEBUG, "sdram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
 	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
 	   top->ram0_dat_o, top->ram0_we_o, top->ram0_sel_o, top->ram0_stall_i);
+      emit(D_DEBUG, "arb0: state: %d\n", top->top__DOT__arb0__DOT__state);
       cycle++;
     }
 

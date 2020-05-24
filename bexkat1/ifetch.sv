@@ -22,6 +22,7 @@ module ifetch
   logic [31:0] 	       pc_next, low_next, low;
   logic [31:0] 	       bus_adr_next, val;
   logic 	       full, empty;
+  logic [3:0] 	       cidx;
   logic [3:0] 	       req_count, req_count_next;
   logic [3:0] 	       ack_count, ack_count_next;
 
@@ -50,9 +51,10 @@ module ifetch
   fifo #(.AWIDTH(4), .DWIDTH(32)) ffifo(.clk_i(clk_i), .rst_i(rst_i|pc_set),
 					.push(bus.ack&bus.cyc), .in(dat_i),
 					.pop(!(bus.stall|stall_i)), .out(val),
-					.full(full), .empty(empty));
+					.full(full),
+					.cidx(cidx), .empty(empty));
 
-  always_ff @(posedge clk_i or posedge rst_i)
+  always_ff @(posedge clk_i)
     if (rst_i)
       begin
 	pc <= START_ADDR;
@@ -89,7 +91,10 @@ module ifetch
 	  begin
 	    ack_count_next = 4'h0;
 	    req_count_next = 4'h0;
-	    bus_state_next = SB_FETCH;
+	    if (cidx[3] == 1'b0)
+	      begin
+		bus_state_next = SB_FETCH;
+	      end
 	    if (pc_set)
 	      begin
 		bus_adr_next = pc_in;
