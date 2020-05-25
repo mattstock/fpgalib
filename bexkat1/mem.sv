@@ -229,7 +229,7 @@ module mem(input               clk_i,
 		end
 	      T_PUSH:
 		begin
-		  if (ir_op == 4'h0)
+		  if (ir_op == 4'h0 || ir_op == 4'h3)
 		    state_next = S_PUSH;
 		  else
 		    begin
@@ -241,11 +241,15 @@ module mem(input               clk_i,
 		  bus_we_next = 1'b1;
 		  bus_sel_next = 4'hf;
 		  bus_adr_next = sp_data_i; // use decremented value
-		  bus_dat_next = (ir_op == 4'h0 ? reg_data2_i : pc_i);
+		  case (ir_op)
+		    4'h0: bus_dat_next = reg_data2_i;
+		    4'h3: bus_dat_next = result_i;
+		    default: bus_dat_next = pc_i;
+		  endcase // case (ir_op)
 		end
 	      T_POP:
 		begin
-		  state_next = (ir_op == 4'h0 ? S_POP : S_RTS);
+		  state_next = (ir_op == 4'h0 || ir_op == 4'h3 ? S_POP : S_RTS);
 		  bus_cyc_next = 1'b1;
 		  bus_stb_next = 1'b1;
 		  bus_sel_next = 4'hf;

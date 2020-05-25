@@ -195,7 +195,10 @@ module execute(input               clk_i,
 		  case (ir_type)
 		    T_PUSH:
 		      begin
-			result_next = (ir_size ? ir_extaddr : alu_out);
+			if (ir_op == 4'h3)
+			  result_next = { 20'h0, supervisor, 8'h0, ccr_o };
+			else
+			  result_next = (ir_size ? ir_extaddr : alu_out);
 			sp_data_next = sp_data_i - 32'h4;
 		      end
 		    T_ALU:
@@ -419,10 +422,10 @@ module execute(input               clk_i,
 		      endcase // case (ir_op)
 		    end // case: T_BRANCH
 		  T_PUSH:
-		    if (ir_op != 4'h0)
+		    if (ir_op != 4'h0 && ir_op != 4'h3)
 		      pc_set_next = 1'b1;
 		  T_POP:
-		    if (ir_op != 4'h0)
+		    if (ir_op != 4'h0 && ir_op != 4'h3)
 		      pc_set_next = 1'b1;
 		  T_JUMP:
 		    begin

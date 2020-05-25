@@ -147,7 +147,7 @@ int main(int argc, char **argv, char **env) {
       emit(D_DEBUG, "ccr: %*s %*s %*x\n",
 	   16, "",
 	   16, "",
-	   33, top->exe_ccr);
+	   33, (top->supervisor << 8) |top->exe_ccr);
       emit(D_DEBUG, "rwr: %*s %*d %*d %*d\n",
 	   16, "",
 	   16, top->id_reg_write,
