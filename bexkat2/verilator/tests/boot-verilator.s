@@ -1,6 +1,6 @@
 .globl _start
 _start:
-ldi %sp, 0x00010000
+ldi %sp, 0x00002000
 ldi %0, _erodata
 ldi %1, _data
 ldi %2, _edata

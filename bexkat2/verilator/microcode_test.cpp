@@ -45,7 +45,7 @@ static const char *cachebusstatestr[] = {
 using namespace std;
 Vmicrocode_top* cpu;
 VerilatedVcdC* trace;
-ofstream debugfile;
+ofstream debugfile, outputfile;
 
 #define D_DEBUG 0
 #define D_BOTH  1
@@ -69,11 +69,14 @@ int main(int argc, char **argv, char **env) {
   uint8_t str_count = 0;
   vluint64_t tick = 0, cycle = 0;
   char *tracefile;
-  MemoryBlock *ram0, *rom0;
+  MemoryBlock *ram0, *rom0, *output0;
   
   for (int i=1; i < argc; i++) {
     if (!strncmp(argv[i], "--debug=", 8)) {
       debugfile.open(argv[i]+8);
+    }
+    if (!strncmp(argv[i], "--output=", 9)) {
+      outputfile.open(argv[i]+9);
     }
     if (!strncmp(argv[i], "--trace=", 8)) {
       tracefile = argv[i]+8;
@@ -92,6 +95,7 @@ int main(int argc, char **argv, char **env) {
   cpu->interrupts = 0;
   rom0 = new MemoryBlock("rom0", debugfile, 8*1024, "../ram0.srec");  
   ram0 = new MemoryBlock("ram0", debugfile, 8*1024);  
+  output0 = new MemoryBlock("output0", debugfile, 512);  
   
   while (!Verilated::gotFinish() && tick < 5000) {
     // Run the clock
@@ -118,6 +122,16 @@ int main(int argc, char **argv, char **env) {
 	cpu->dat_dat_i = ram0->read1();
 	cpu->dat_ack_i = ram0->ack1();
       }
+      if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
+	ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+	cpu->dat_dat_i = ram0->read1();
+	cpu->dat_ack_i = ram0->ack1();
+      }
+      if (cpu->dat_adr_o >= 0x50000000 && cpu->dat_adr_o < 0x60000000) {
+	output0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+	cpu->dat_dat_i = output0->read1();
+	cpu->dat_ack_i = output0->ack1();
+      }
       if (cpu->dat_adr_o >= 0x70000000 && cpu->dat_adr_o < 0x80000000) {
 	rom0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
 	cpu->dat_dat_i = rom0->read1();
@@ -128,6 +142,7 @@ int main(int argc, char **argv, char **env) {
     cpu->eval();
     rom0->eval();
     ram0->eval();
+    output0->eval();
     
     trace->dump(tick);
     trace->flush();
@@ -191,12 +206,17 @@ int main(int argc, char **argv, char **env) {
 	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       emit(D_BOTH, "Memory:\n");
-      ram0->dump();
+      ram0->dump(debugfile);
+      ram0->dump(cout);
       break;
     }
     
     tick++;
   }
+
+  // emit the output memory to a file
+  output0->dump(outputfile);
+  outputfile.close();
   debugfile.close();
   trace->close();
   cpu->final();

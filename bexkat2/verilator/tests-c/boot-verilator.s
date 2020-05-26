@@ -1,0 +1,1 @@
+../tests/boot-verilator.s

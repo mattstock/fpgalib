@@ -1,7 +1,6 @@
 OBJCOPY = bexkat1-elf-objcopy
 OBJDUMP = bexkat1-elf-objdump
 CFLAGS = -T profile-verilator.ld
-ASFLAGS = -nostartfiles
 LDFLAGS = -T profile-verilator.ld
 LDLIBS = -Lout -lvectors
 AS = bexkat1-elf-as
@@ -9,7 +8,7 @@ LD = bexkat1-elf-ld
 CC = bexkat1-elf-gcc
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions branch branch2 jump sub cache
+TESTS = simple
 
 
 TESTPROGS = $(addsuffix .srec, $(addprefix out/, $(TESTS)))
@@ -27,7 +26,7 @@ clean:
 rebase:
 	@for t in $(TESTS); do \
 		echo $$t ; \
-		cp out/$$t.output ref/$$t ; \
+		cp out/$$t.memout ref/$$t ; \
 	done
 
 tests: $(TESTPROGS)
@@ -35,7 +34,7 @@ tests: $(TESTPROGS)
 		echo -n $$t ; \
 		cp out/$$t.srec ../ram0.srec ; \
 		../obj_dir/Vmicrocode_top --debug=out/$$t.debug --output=out/$$t.memout --trace=out/$$t.vcd > out/$$t.output ; \
-		diff -u0 ref/$$t out/$$t.output > out/$$t.diff ; \
+		diff -u0 ref/$$t out/$$t.memout > out/$$t.diff ; \
 		if [ -s out/$$t.diff ] ; \
 		then \
 			echo " FAIL" ; \
@@ -124,3 +123,4 @@ out/cache: out/cache.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 out/simple: out/simple.o
+	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< $(LDLIBS)

@@ -16,6 +16,7 @@ all: obj_dir/Vmicrocode_top tests
 
 tests:
 	cd tests; make
+	cd tests-c; make
 
 obj_dir/Vmicrocode_top.cpp: ${CPUDEPS} microcode_top.sv
 	verilator --trace -I.. -I../.. -I../../cache --unroll-count 256 --unroll-stmts 10000 -cc microcode_top.sv
@@ -45,6 +46,7 @@ clean:
 	rm -f *.o ram0.srec *.bin *.mif *.gkd *.expand *~ *.bak *.d
 	rm -rf obj_dir
 	cd tests; make clean
+	cd tests-c; make clean
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $^

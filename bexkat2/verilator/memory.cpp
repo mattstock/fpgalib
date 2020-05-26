@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cstring>
+#include <sstream>
 
 /*
  * This is a little more that a fancy memory array, simply because we want to
@@ -254,22 +255,19 @@ unsigned int MemoryBlock::read1() {
   return rdata1;
 }
 
-void MemoryBlock::dump() {
+void MemoryBlock::dump(std::ostream& ofile) {
   char buf[200];
 
   for (int i=0; i < len; i++) {
     if (i % 16 == 0) {
       if (i != 0) {
-	std::cout << "\n";
-	debugfile << "\n";
+	ofile << std::endl;
       }
       sprintf(buf, "%04x: ", i);
-      std::cout << buf;
-      debugfile << buf;
+      ofile << buf;
     }
     sprintf(buf, "%02x ", block[i]);
-    std::cout << buf;
-    debugfile << buf;
+    ofile << buf;
   }
 }
 
