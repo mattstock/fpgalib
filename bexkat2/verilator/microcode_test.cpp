@@ -97,7 +97,7 @@ int main(int argc, char **argv, char **env) {
   ram0 = new MemoryBlock("ram0", debugfile, 8*1024);  
   output0 = new MemoryBlock("output0", debugfile, 512);  
   
-  while (!Verilated::gotFinish() && tick < 5000) {
+  while (!Verilated::gotFinish() && tick < 20000) {
     // Run the clock
     cpu->clk_i = ~cpu->clk_i;
     
