@@ -8,7 +8,7 @@ LD = bexkat1-elf-ld
 CC = bexkat1-elf-gcc
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = simple
+TESTS = simple fib frames
 
 
 TESTPROGS = $(addsuffix .srec, $(addprefix out/, $(TESTS)))
@@ -69,4 +69,10 @@ ram0: %.o
 	$(LD) -nostartfiles $< -o $@
 
 out/simple: out/simple.o out/memout.o
+	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS)
+
+out/fib: out/fib.o out/memout.o
+	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS
+
+out/frames: out/frames.o out/memout.o
 	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS)
