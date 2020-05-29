@@ -15,7 +15,7 @@ TESTPROGS = $(addsuffix .srec, $(addprefix out/, $(TESTS)))
 
 .PHONY: all clean tests rebase directories
 
-all: directories out/boot-verilator.o out/libvectors.a tests
+all: directories out/boot-verilator.o out/libvectors.a out/memout.o tests
 
 directories:
 	@mkdir -p out
@@ -68,59 +68,5 @@ out/%.bin: out/%.o
 ram0: %.o
 	$(LD) -nostartfiles $< -o $@
 
-out/load: out/load.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/load2: out/load2.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/memops: out/memops.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/regrel: out/regrel.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/regrel2: out/regrel2.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/regrel3: out/regrel3.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/mov: out/mov.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/alu: out/alu.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/alu2: out/alu2.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/pushpop: out/pushpop.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/misc: out/misc.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/math: out/math.o
-	$(LD) -nostartfiles -o $@ $^
-
-out/exceptions: out/exceptions.o
-	$(LD) $(LDFLAGS) -o $@ $^
-
-out/branch: out/branch.o
-	$(LD) $(LDFLAGS) -o $@ $^
-
-out/branch2: out/branch2.o
-	$(LD) $(LDFLAGS) -o $@ $^
-
-out/jump: out/jump.o
-	$(LD) $(LDFLAGS) -o $@ $^
-
-out/sub: out/sub.o
-	$(LD) $(LDFLAGS) -o $@ $^
-
-out/cache: out/cache.o
-	$(LD) $(LDFLAGS) -o $@ $^
-
-out/simple: out/simple.o
-	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< $(LDLIBS)
+out/simple: out/simple.o out/memout.o
+	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS)

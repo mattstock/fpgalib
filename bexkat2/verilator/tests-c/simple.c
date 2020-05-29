@@ -1,4 +1,4 @@
-volatile unsigned int * const memout = (unsigned int *)0x50000000;
+#include "memout.h"
 
 unsigned int foo(unsigned n) {
   return n+6;
@@ -11,8 +11,8 @@ int main() {
   
   c = foo(a);
   c++;
-  memout[0] = 0xdeadbeef;
-  memout[1] = a;
-  memout[2] = b;
-  memout[3] = c;
+  emit(0xdeadbeef);
+  emit(a);
+  emit(b);
+  emit(c);
 }
