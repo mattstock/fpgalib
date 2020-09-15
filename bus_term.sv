@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 `include "wb.vh"
 
 module bus_term(if_wb.slave bus);

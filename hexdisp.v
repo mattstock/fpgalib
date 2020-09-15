@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module hexdisp
   (input [4:0]            in,
    output logic [7:0] out);

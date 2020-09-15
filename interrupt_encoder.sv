@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 `include "bexkat1/exceptions.vh"
 
 module interrupt_encoder(input              clk_i,

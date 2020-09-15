@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module registerfile
   #(WIDTH=32, COUNTP=4, SPREG=4'd15)
   (input                    clk_i, 

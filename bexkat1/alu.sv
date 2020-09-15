@@ -1,6 +1,8 @@
 // A simple ALU design
 // Matt Stock 11/16/14
 
+`timescale 1ns / 1ns
+
 `include "bexkat1.vh"
 import bexkat1Def::*;
 

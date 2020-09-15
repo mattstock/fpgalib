@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module fifo
   #(AWIDTH=4,
     DWIDTH=32)

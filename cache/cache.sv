@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 `include "../wb.vh"
 
 // Assume that the busses are all byte-based.

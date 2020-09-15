@@ -4,6 +4,8 @@
 `ifndef _BEXKAT1_VH
 `define _BEXKAT1_VH
 
+`timescale 1ns / 1ns
+
 // verilator lint_off DECLFILENAME
 package bexkat1Def;
 //  verilator lint_on DECLFILENAME

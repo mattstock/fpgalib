@@ -1,3 +1,5 @@
+`timescale 1ns / 1ns
+
 module cachemem
   #(AWIDTH=10,
     DWIDTH=32)
