@@ -15,7 +15,8 @@ tests:
 	cd tests; make
 
 obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.sv ram2.sv
-	verilator --trace -I.. -I../.. -I../../cache --unroll-count 256 --unroll-stmts 10000 -cc pipeline_top.sv -exe pipeline_test.cpp
+	verilator --trace -I.. -I../.. -I../../cache -cc pipeline_top.sv -exe pipeline_test.cpp
+#	verilator --trace -I.. -I../.. -I../../cache --unroll-count 256 --unroll-stmts 5000 -cc pipeline_top.sv -exe pipeline_test.cpp
 
 obj_dir/Vpipeline: obj_dir/Vpipeline_top.cpp pipeline_test.cpp
 	cd obj_dir; make -f Vpipeline_top.mk
