@@ -72,7 +72,7 @@ out/simple: out/simple.o out/memout.o
 	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS)
 
 out/fib: out/fib.o out/memout.o
-	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS
+	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS)
 
 out/frames: out/frames.o out/memout.o
 	$(LD) $(LDFLAGS) -nostartfiles -o $@ $< out/memout.o $(LDLIBS)
