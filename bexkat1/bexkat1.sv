@@ -42,7 +42,7 @@ module bexkat1(input 	     clk_i,
   always_ff @(posedge clk_i)
     mem_pc_set_last <= mem_pc_set;
   
-  ifetch #(.REQ_MAX(8)) fetch0(.clk_i(clk_i), .rst_i(rst_i),
+  ifetch #(.REQ_MAX(4)) fetch0(.clk_i(clk_i), .rst_i(rst_i),
 			       .ir(if_ir),
 			       .pc(if_pc),
 			       .halt(exe_halt|mem_halt),

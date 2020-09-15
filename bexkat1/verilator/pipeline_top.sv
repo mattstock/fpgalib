@@ -142,7 +142,7 @@ module top(input         clk_i,
   assign ram0_sel_o = sdram0.sel;
   assign ram0_dat_o = sdram0.dat_m;
   
-  ifetch #(.REQ_MAX(8)) fetch0(.clk_i(clk_i), .rst_i(rst_i),
+  ifetch #(.REQ_MAX(4)) fetch0(.clk_i(clk_i), .rst_i(rst_i),
 			       .ir(if_ir),
 			       .pc(if_pc),
 			       .halt(exe_halt|mem_halt),
