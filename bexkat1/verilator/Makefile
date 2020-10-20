@@ -13,19 +13,13 @@ all: obj_dir/Vpipeline tests
 
 tests:
 	cd tests; make
+	cd tests-c; make
 
 obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.sv ram2.sv
-	verilator --trace -I.. -I../.. -I../../cache -cc pipeline_top.sv -exe pipeline_test.cpp
-#	verilator --trace -I.. -I../.. -I../../cache --unroll-count 256 --unroll-stmts 5000 -cc pipeline_top.sv -exe pipeline_test.cpp
+	verilator --trace -I.. -I../.. -I../../cache -cc pipeline_top.sv -exe pipeline_test.cpp ../../bexkat2/verilator/memory.cpp
 
 obj_dir/Vpipeline: obj_dir/Vpipeline_top.cpp pipeline_test.cpp
 	cd obj_dir; make -f Vpipeline_top.mk
-
-obj_dir/Vifetch.cpp: ../ifetch.sv
-	verilator -I.. -cc ../ifetch.sv -exe ifetch_test.cpp
-
-obj_dir/Vifetch: obj_dir/Vifetch.cpp ifetch_test.cpp
-	cd obj_dir; make -f Vifetch.mk
 
 clean:
 	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
@@ -48,3 +42,5 @@ ram0: ram0.o
 	$(LD) -nostartfiles $< -o $@
 ram0.o: ram0.s
 	$(AS) -o $@ $^
+
+memory.o: ../../bexkat2/verilator/memory.cpp ../../bexkat2/verilator/memory.h

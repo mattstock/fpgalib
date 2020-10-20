@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <cstdarg>
 #include "Vmicrocode_top.h"
-#include "Vcache_top.h"
 #include "verilated.h"
 #include <verilated_vcd_c.h>
 #include "memory.h"
