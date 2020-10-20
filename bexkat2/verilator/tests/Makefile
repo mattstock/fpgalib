@@ -9,7 +9,7 @@ LD = bexkat1-elf-ld
 CC = bexkat1-elf-gcc
 RANLIB = bexkat1-elf-ranlib
 
-TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions branch branch2 jump sub cache
+TESTS = load load2 memops regrel regrel2 regrel3 mov alu alu2 pushpop misc math exceptions branch branch2 jump sub cache memmove
 
 
 TESTPROGS = $(addsuffix .srec, $(addprefix out/, $(TESTS)))
@@ -118,6 +118,9 @@ out/jump: out/jump.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 out/sub: out/sub.o
+	$(LD) $(LDFLAGS) -o $@ $^
+
+out/memmove: out/memmove.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 out/cache: out/cache.o
