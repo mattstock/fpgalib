@@ -13,7 +13,7 @@
 
 // We disable this by default because it messes up the slignment of the
 // debug frames.
-#define DEBUG_ON false
+#define MEMORY_DEBUG false
 
 MemoryBlock::MemoryBlock(const char n[], std::ostream& df, int s)
   : debugfile(df) {

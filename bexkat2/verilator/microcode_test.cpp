@@ -133,7 +133,7 @@ int main(int argc, char **argv, char **env) {
 	cpu->dat_ack_i = output0->ack1();
       }
       if (cpu->dat_adr_o >= 0x70000000 && cpu->dat_adr_o < 0x80000000) {
-	rom0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+	rom0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, 0, cpu->dat_sel_o, cpu->dat_dat_o);
 	cpu->dat_dat_i = rom0->read1();
 	cpu->dat_ack_i = rom0->ack1();
       }
@@ -214,6 +214,13 @@ int main(int argc, char **argv, char **env) {
     tick++;
   }
 
+  if (!Verilated::gotFinish()) {
+    emit(D_DEBUG, "FAIL RAM:\n");
+    ram0->dump(debugfile);
+    emit(D_DEBUG, "\nFAIL ROM:\n");
+    rom0->dump(debugfile);
+  }
+    
   // emit the output memory to a file
   output0->dump(outputfile);
   outputfile.close();
