@@ -6,8 +6,10 @@
  `define _BEXKAT2_VH
 
 // verilator lint_off DECLFILENAME
+// verilator lint_off TIMESCALEMOD
 package bexkat1Def;
-//  verilator lint_on DECLFILENAME
+// verilator lint_on DECLFILENAME
+// verialtor lint_on TIMESCALEMOD
 
   const bit [3:0] REG_SP = 4'hf;
   
