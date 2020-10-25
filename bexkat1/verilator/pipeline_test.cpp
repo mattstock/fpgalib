@@ -2,9 +2,11 @@
 #include <fstream>
 #include <stdio.h>
 #include <cstdarg>
+#include "Vcache_top.h"
 #include "Vpipeline_top.h"
 #include "verilated.h"
 #include <verilated_vcd_c.h>
+#include "memory.h"
 
 #define INS_RA(x) (0xf & (x >> 20))
 #define INS_RB(x) (0xf & (x >> 16))
@@ -25,9 +27,11 @@ static const char *cachebusstatestr[] = {
   "IDLE", "ACK", "READ_WAIT", "WAIT" };
 
 using namespace std;
-Vpipeline_top* top;
-VerilatedVcdC* trace;
-ofstream debugfile;
+Vpipeline_top* cpu;
+Vcache_top* cache;
+VerilatedVcdC* cputrace;
+VerilatedVcdC* cachetrace;
+ofstream debugfile, outputfile;
 
 #define D_DEBUG 0
 #define D_BOTH  1
@@ -51,41 +55,104 @@ int main(int argc, char **argv, char **env) {
   uint8_t str_count = 0;
   vluint64_t tick = 0, cycle = 0;
   char *tracefile;
+  char cachetracefile[40]; 
+  MemoryBlock *ram0, *rom0, *output0;
   
   for (int i=1; i < argc; i++) {
     if (!strncmp(argv[i], "--debug=", 8)) {
       debugfile.open(argv[i]+8);
     }
-    if (!strncmp(argv[i], "--trace=", 8)) {
+    if (!strncmp(argv[i], "--output=", 9)) {
+      outputfile.open(argv[i]+9);
+    }
+   if (!strncmp(argv[i], "--trace=", 8)) {
       tracefile = argv[i]+8;
+      strncpy(cachetracefile, tracefile, 40);
+      strncat(cachetracefile, "_cache", 40);
     }
   }
     
   Verilated::commandArgs(argc, argv);
-  top = new Vpipeline_top;
+  cpu = new Vpipeline_top;
+  cache = new Vcache_top;
   Verilated::traceEverOn(true);
-  trace = new VerilatedVcdC;
-  top->trace(trace, 99);
-  trace->open(tracefile);
+  cputrace = new VerilatedVcdC;
+  cachetrace = new VerilatedVcdC;
+  cpu->trace(cputrace, 99);
+  cache->trace(cachetrace, 99);
+  cputrace->open(tracefile);
+  cachetrace->open(cachetracefile);
   
-  top->rst_i = 1;
-  top->clk_i = 0;
-  top->interrupts = 0;
+  cpu->rst_i = 1;
+  cpu->clk_i = 0;
+  cache->rst_i = 1;
+  cache->clk_i = 0;
+  cpu->interrupts = 0;
+  rom0 = new MemoryBlock("rom0", debugfile, 8*1024, "../ram0.srec");  
+  ram0 = new MemoryBlock("ram0", debugfile, 8*1024);  
+  output0 = new MemoryBlock("output0", debugfile, 512);  
   
-  while (!Verilated::gotFinish() && tick < 5000) {
+  while (!Verilated::gotFinish() && tick < 200000) {
     // Run the clock
-    top->clk_i = ~top->clk_i;
+    cpu->clk_i ^= 0x1;
+    cache->clk_i ^= 0x1;
     
     // Drop reset
-    if (tick == 4)
-      top->rst_i = 0;
+    if (tick == 4) {
+      cpu->rst_i = 0;
+      cache->rst_i = 0;
+    }
 
-    top->eval();
+    // Wire CPU to cache controller
+    cache->cache0_adr_i = cpu->ins_adr_o;
+    cache->cache0_cyc_i = cpu->ins_cyc_o;
+    cache->cache0_stb_i = cpu->ins_stb_o;
+    cache->cache0_sel_i = 0xf;
+    cache->cache0_dat_i = 0;
+    cache->cache0_we_i = 0;
+    cpu->ins_ack_i = cache->cache0_ack_o;
+    cpu->ins_stall_i = cache->cache0_stall_o;
+    cpu->ins_dat_i = cache->cache0_dat_o;
 
-    trace->dump(tick);
-    trace->flush();
+    cache->cache1_adr_i = cpu->dat_adr_o;
+    cache->cache1_cyc_i = cpu->dat_cyc_o;
+    cache->cache1_stb_i = cpu->dat_stb_o;
+    cache->cache1_sel_i = cpu->dat_sel_o;
+    cache->cache1_dat_i = cpu->dat_dat_o;
+    cache->cache1_we_i = cpu->dat_we_o;
+    cpu->dat_ack_i = cache->cache1_ack_o;
+    cpu->dat_stall_i = cache->cache1_stall_o;
+    cpu->dat_dat_i = cache->cache1_dat_o;
+
+    if (cpu->clk_i) {
+      // Memory in wiring
+      if (cache->arb_adr_o >= 0x00000000 && cache->arb_adr_o < 0x10000000) {
+	ram0->bus1(cache->dat_cyc_o, cache->dat_stb_o, cache->dat_adr_o, cache->dat_we_o, cache->dat_sel_o, cache->dat_dat_o);
+	cache->dat_dat_i = ram0->read1();
+	cache->dat_ack_i = ram0->ack1();
+      }
+      if (cache->arb_adr_o >= 0x50000000 && cache->arb_adr_o < 0x60000000) {
+	output0->bus1(cache->dat_cyc_o, cache->dat_stb_o, cache->dat_adr_o, cache->dat_we_o, cache->dat_sel_o, cache->dat_dat_o);
+	cache->dat_dat_i = output0->read1();
+	cache->dat_ack_i = output0->ack1();
+      }
+      if (cache->arb_adr_o >= 0x70000000 && cache->arb_adr_o < 0x80000000) {
+ 	rom0->bus1(cache->dat_cyc_o, cache->dat_stb_o, cache->dat_adr_o, 0, cache->dat_sel_o, cache->dat_dat_o);
+	cache->dat_dat_i = rom0->read1();
+	cache->dat_ack_i = rom0->ack1();
+      }
+    }
+
+    cpu->eval();
+    cache->eval();
+    rom0->eval();
+    ram0->eval();
+    output0->eval();
     
-    if (top->clk_i) {
+    cputrace->dump(tick);
+    cachetrace->dump(tick);
+
+    if (cpu->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
       emit(D_DEBUG, "--- PIPELINE STATE ---\n");
       emit(D_DEBUG, "     %*s %*s %*s %*s\n",
@@ -94,156 +161,157 @@ int main(int argc, char **argv, char **env) {
 	   33, "exec",
 	   16, "mem");
       emit(D_DEBUG, "pc:  %*x %*x %*x %*x\n",
-	   16, top->if_pc,
-	   16, top->id_pc,
-	   33, top->exe_pc,
-	   16, top->mem_pc);
+	   16, cpu->if_pc,
+	   16, cpu->id_pc,
+	   33, cpu->exe_pc,
+	   16, cpu->mem_pc);
       emit(D_DEBUG, "ir:  %*lx %*lx %*lx %*lx\n",
-	   16, top->if_ir,
-	   16, top->id_ir,
-	   33, top->exe_ir,
-	   16, top->mem_ir);
+	   16, cpu->if_ir,
+	   16, cpu->id_ir,
+	   33, cpu->exe_ir,
+	   16, cpu->mem_ir);
       emit(D_DEBUG, "ra:  %*lx %*lx %*lx %*lx\n",
-	   16, INS_RA(top->if_ir),
-	   16, INS_RA(top->id_ir),
-	   33, INS_RA(top->exe_ir),
-	   16, INS_RA(top->mem_ir));
+	   16, INS_RA(cpu->if_ir),
+	   16, INS_RA(cpu->id_ir),
+	   33, INS_RA(cpu->exe_ir),
+	   16, INS_RA(cpu->mem_ir));
       emit(D_DEBUG, "rb:  %*lx %*lx %*lx %*lx\n",
-	   16, INS_RB(top->if_ir),
-	   16, INS_RB(top->id_ir),
-	   33, INS_RB(top->exe_ir),
-	   16, INS_RB(top->mem_ir));
+	   16, INS_RB(cpu->if_ir),
+	   16, INS_RB(cpu->id_ir),
+	   33, INS_RB(cpu->exe_ir),
+	   16, INS_RB(cpu->mem_ir));
       emit(D_DEBUG, "rc:  %*lx %*lx %*lx %*lx\n",
-	   16, INS_RC(top->if_ir),
-	   16, INS_RC(top->id_ir),
-	   33, INS_RC(top->exe_ir),
-	   16, INS_RC(top->mem_ir));
+	   16, INS_RC(cpu->if_ir),
+	   16, INS_RC(cpu->id_ir),
+	   33, INS_RC(cpu->exe_ir),
+	   16, INS_RC(cpu->mem_ir));
       emit(D_DEBUG, "spd: %*s %*x/%*x %*x %*x\n",
 	   16, "",
-	   16, top->id_sp_data,
-	   16, top->exe_sp_in,
-	   16, top->exe_sp_data,
-	   16, top->mem_sp_data);
+	   16, cpu->id_sp_data,
+	   16, cpu->exe_sp_in,
+	   16, cpu->exe_sp_data,
+	   16, cpu->mem_sp_data);
       emit(D_DEBUG, "spw: %*s %*x %*x %*x\n",
 	   16, "",
-	   16, top->id_sp_write,
-	   33, top->exe_sp_write,
-	   16, top->mem_sp_write);
+	   16, cpu->id_sp_write,
+	   33, cpu->exe_sp_write,
+	   16, cpu->mem_sp_write);
       emit(D_DEBUG, "rd1: %*s %*x/%*x %*x\n",
 	   16, "",
-	   16, top->id_reg_data_out1,
-	   16, top->exe_data1,
-	   16, top->exe_reg_data_out1);
+	   16, cpu->id_reg_data_out1,
+	   16, cpu->exe_data1,
+	   16, cpu->exe_reg_data_out1);
       emit(D_DEBUG, "rd2: %*s %*x/%*x %*x\n",
 	   16, "",
-	   16, top->id_reg_data_out2,
-	   16, top->exe_data2,
-	   16, top->exe_reg_data_out2);
+	   16, cpu->id_reg_data_out2,
+	   16, cpu->exe_data2,
+	   16, cpu->exe_reg_data_out2);
       emit(D_DEBUG, "res: %*s %*s %*x %*x\n",
 	   16, "",
 	   16, "",
-	   33, top->exe_result,
-	   16, top->mem_result);
+	   33, cpu->exe_result,
+	   16, cpu->mem_result);
       emit(D_DEBUG, "ccr: %*s %*s %*x\n",
 	   16, "",
 	   16, "",
-	   33, (top->supervisor << 8) |top->exe_ccr);
+	   33, (cpu->supervisor << 8) |cpu->exe_ccr);
       emit(D_DEBUG, "rwr: %*s %*d %*d %*d\n",
 	   16, "",
-	   16, top->id_reg_write,
-	   33, top->exe_reg_write,
-	   16, top->mem_reg_write);
+	   16, cpu->id_reg_write,
+	   33, cpu->exe_reg_write,
+	   16, cpu->mem_reg_write);
       emit(D_DEBUG, "pcs: %*s %*s %*d %*d\n",
 	   16, "",
 	   16, "",
-	   33, top->exe_pc_set,
-	   16, top->mem_pc_set);
+	   33, cpu->exe_pc_set,
+	   16, cpu->mem_pc_set);
       emit(D_DEBUG, "exc: %*s %*s %*d %*d\n",
 	   16, "",
 	   16, "",
-	   33, top->exe_exc,
-	   16, top->mem_exc);
+	   33, cpu->exe_exc,
+	   16, cpu->mem_exc);
       emit(D_DEBUG, "h1: %02x h2: %02x hsp: %02x hs: % 2d es: % 2d ms: % 2d wad: %02d\n",
-	   top->hazard1, top->hazard2, top->sp_hazard,
-	   top->hazard_stall,
-	   top->exe_stall, top->mem_stall,
-	   top->mem_reg_write_addr);
+	   cpu->hazard1, cpu->hazard2, cpu->sp_hazard,
+	   cpu->hazard_stall,
+	   cpu->exe_stall, cpu->mem_stall,
+	   cpu->mem_reg_write_addr);
       emit(D_DEBUG, "alu_func: %d alu1: %08x alu2: %08x alu_out: %08x int_func: %d int_out: %08x\n",
-	   top->top__DOT__exe0__DOT__alu_func,
-	   top->top__DOT__exe0__DOT__alu_in1,
-	   top->top__DOT__exe0__DOT__alu_in2,
-	   top->top__DOT__exe0__DOT__alu_out,
-	   top->top__DOT__exe0__DOT__int_func,
-	   top->top__DOT__exe0__DOT__int_out);
+	   cpu->pipeline_top__DOT__exe0__DOT__alu_func,
+	   cpu->pipeline_top__DOT__exe0__DOT__alu_in1,
+	   cpu->pipeline_top__DOT__exe0__DOT__alu_in2,
+	   cpu->pipeline_top__DOT__exe0__DOT__alu_out,
+	   cpu->pipeline_top__DOT__exe0__DOT__int_func,
+	   cpu->pipeline_top__DOT__exe0__DOT__int_out);
       for (int i=0; i < 8; i++)
 	emit(D_DEBUG, "%*d: %08x",
-	     3, i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	     3, i, cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       emit(D_DEBUG, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_DEBUG, "%*d: %08x",
-	     3, i+4*top->id_bank,
-	     top->top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*top->id_bank]);
+	     3, i+4*cpu->id_bank,
+	     cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*cpu->id_bank]);
       emit(D_DEBUG, "\n");
       emit(D_DEBUG, "vectoff: %08x inten: %*d interrupts: %*x\n",
-	   top->top__DOT__exe0__DOT__vectoff,
-	   2, top->cpu_inter_en,
-	   2, top->interrupts);
+	   cpu->pipeline_top__DOT__exe0__DOT__vectoff,
+	   2, cpu->cpu_inter_en,
+	   2, cpu->interrupts);
       emit(D_DEBUG, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %s\n",
-	   top->ins_adr_o,
-	   top->ins_cyc_o,
-	   top->ins_stb_o,
-	   top->ins_ack_i,
-	   top->ins_dat_i,
-	   top->ins_stall_i,
-	   ifetchstatestr[top->top__DOT__fetch0__DOT__state]);
+	   cpu->ins_adr_o,
+	   cpu->ins_cyc_o,
+	   cpu->ins_stb_o,
+	   cpu->ins_ack_i,
+	   cpu->ins_dat_i,
+	   cpu->ins_stall_i,
+	   ifetchstatestr[cpu->pipeline_top__DOT__fetch0__DOT__state]);
       emit(D_DEBUG, "  fifo: cidx: %x ridx: %x widx: %x value[idx]: %08x\n",
-	   top->top__DOT__fetch0__DOT__cidx,
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__ridx,
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__widx,
-	   top->top__DOT__fetch0__DOT__ffifo__DOT__values[top->top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
+	   cpu->pipeline_top__DOT__fetch0__DOT__cidx,
+	   cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__ridx,
+	   cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__widx,
+	   cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__values[cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
       emit(D_DEBUG, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %s\n",
-	   top->dat_adr_o, top->dat_cyc_o, top->dat_stb_o, top->dat_ack_i, top->dat_dat_i,
-	   top->dat_dat_o, top->dat_we_o, top->dat_sel_o, top->dat_stall_i,
-	   memstatestr[top->top__DOT__mem0__DOT__state]);
-      emit(D_DEBUG, "Cache: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state: %d active: %02x\n",
-	   top->cache0_adr_o, top->cache0_cyc_o, top->cache0_stb_o, top->cache0_ack_i, top->cache0_dat_i,
-	   top->cache0_dat_o, top->cache0_we_o, top->cache0_sel_o, top->cache0_stall_i, top->top__DOT__mmu_bus0__DOT__state, top->top__DOT__mmu_bus0__DOT__active);
-      emit(D_DEBUG, "sdram0: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d\n",
-	   top->ram0_adr_o, top->ram0_cyc_o, top->ram0_stb_o, top->ram0_ack_i, top->ram0_dat_i,
-	   top->ram0_dat_o, top->ram0_we_o, top->ram0_sel_o, top->ram0_stall_i);
-      emit(D_DEBUG, "arb0: state: %d\n", top->top__DOT__arb0__DOT__state);
+	   cpu->dat_adr_o, cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_ack_i, cpu->dat_dat_i,
+	   cpu->dat_dat_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_stall_i,
+	   memstatestr[cpu->pipeline_top__DOT__mem0__DOT__state]);
       cycle++;
     }
 
-    if (top->mem_halt) {
+    if (cpu->mem_halt) {
       emit(D_DEBUG, "HALT\n");
       emit(D_BOTH, "Registers:\n");
       for (int i=0; i < 8; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	     3, i, cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, top->top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	     3, i, cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       emit(D_BOTH, "Memory:\n");
-      for (int i=0; i < 8*1024; i++) {
-	if (i%16==0) {
-	  if (i != 0)
-	    emit(D_BOTH, "\n");
-	  emit(D_BOTH, "%04x: ", i);
-	}
-	emit(D_BOTH, "%02x ", top->top__DOT__ram0__DOT__mem[i]);
-      }
-      
+      ram0->dump(debugfile);
+      ram0->dump(cout);
       break;
     }
     
     tick++;
   }
+
+  if (!Verilated::gotFinish()) {
+    emit(D_DEBUG, "FAIL RAM:\n");
+    ram0->dump(debugfile);
+    emit(D_DEBUG, "\nFAIL ROM:\n");
+    rom0->dump(debugfile);
+  } 
+
+  output0->dump(outputfile);
+  outputfile.close();
   debugfile.close();
-  trace->close();
-  top->final();
-  delete top;
+  cputrace->close();
+  cachetrace->close();
+  delete cputrace;
+  delete cachetrace;
+  cpu->final();
+  cache->final();
+  delete cpu;
+  delete cache;
   exit(0);
 }

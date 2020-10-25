@@ -6,6 +6,7 @@ RANLIB = bexkat1-elf-ranlib
 
 TEMP := $(shell mktemp)
 CPUDEPS = ../bexkat1.sv ../alu.sv ../intcalc.sv ../mem.sv ../execute.sv ../idecode.sv ../ifetch.sv  ../hazard.sv ../registerfile.sv ../../fifo.sv ../memwb.sv ../../interrupt_encoder.sv ../../timerint.sv ../../uart/uart.sv ../../cache/arbiter.sv ../../cache/cache.sv
+CACHEDEPS = ../../cache/cache.sv ../../cache/cachemem.sv ../../cache/arbiter.sv
 
 .PHONY: all clean tests
 
@@ -16,10 +17,16 @@ tests:
 	cd tests-c; make
 
 obj_dir/Vpipeline_top.cpp: ${CPUDEPS} pipeline_top.sv ram2.sv
-	verilator --trace -I.. -I../.. -I../../cache -cc pipeline_top.sv -exe pipeline_test.cpp ../../bexkat2/verilator/memory.cpp
+	verilator --trace -I.. -I../.. -I../../cache -cc pipeline_top.sv ../../cache/cache.sv -exe --top-module pipeline_top pipeline_test.cpp ../../bexkat2/verilator/memory.cpp Vcache_top__ALL.a
 
-obj_dir/Vpipeline: obj_dir/Vpipeline_top.cpp pipeline_test.cpp
+obj_dir/Vpipeline: obj_dir/Vpipeline_top.cpp obj_dir/Vcache_top__ALL.a pipeline_test.cpp
 	cd obj_dir; make -f Vpipeline_top.mk
+
+obj_dir/Vcache_top.cpp: ${CACHEDEPS} cache_top.sv
+	verilator --trace -I.. -I../.. -I../../cache --unroll-count 256 --unroll-stmts 10000 -cc cache_top.sv bus_term.sv --top-module cache_top
+
+obj_dir/Vcache_top__ALL.a: obj_dir/Vcache_top.cpp
+	cd obj_dir; make -f Vcache_top.mk
 
 clean:
 	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
