@@ -21,21 +21,7 @@ MemoryBlock::MemoryBlock(const char n[], std::ostream& df, int s)
   strcpy(name, n);
   len = s;
   block = new unsigned char[len];
-  state0 = IDLE;
-  state1 = IDLE;
-  cyc0 = 0;
-  cyc1 = 0;
-  addr0 = 0;
-  addr1 = 0;
-  stb0 = 0;
-  stb1 = 0;
-  we1 = 0;
-  sel1 = 0xf;
-  rdata0 = 0;
-  rdata1 = 0;
-  back0 = 0;
-  back1 = 0;
-
+  reset();
   for (int i=0; i < len; i++)
     block[i] = 0;
 }
@@ -46,6 +32,13 @@ MemoryBlock::MemoryBlock(const char n[], std::ostream& df, int s, const char fil
   strcpy(name, n);
   len = s;
   block = new unsigned char[len];
+  reset();
+  loadBlock(filename);
+
+  debugfile << name << " initialized from " << filename << std::endl;
+}
+
+void MemoryBlock::reset(void) {
   state0 = IDLE;
   state1 = IDLE;
   cyc0 = 0;
@@ -60,9 +53,6 @@ MemoryBlock::MemoryBlock(const char n[], std::ostream& df, int s, const char fil
   rdata1 = 0;
   back0 = 0;
   back1 = 0;
-  loadBlock(filename);
-
-  debugfile << name << " initialized from " << filename << std::endl;
 }
 
 void MemoryBlock::bus0(bool cyc, bool stb, unsigned int addr) {
@@ -82,6 +72,7 @@ void MemoryBlock::bus1(bool cyc, bool stb, unsigned int addr, bool we, unsigned 
 
 void MemoryBlock::eval() {
   char buf[200];
+
   switch (state0) {
   case IDLE:
     if (cyc0 && stb0) {
