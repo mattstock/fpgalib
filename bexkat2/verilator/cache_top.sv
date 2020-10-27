@@ -1,4 +1,4 @@
-`include "timescale.vh"
+`timescale 1ns / 1ns
 `define NO_MODPORT_EXPRESSIONS
 `include "wb.vh"
 
