@@ -103,43 +103,22 @@ int main(int argc, char **argv, char **env) {
       cache->rst_i = 0;
     }
 
-    // Wire CPU to cache controller
-    cache->cache0_adr_i = cpu->ins_adr_o;
-    cache->cache0_cyc_i = cpu->ins_cyc_o;
-    cache->cache0_stb_i = cpu->ins_stb_o;
-    cache->cache0_sel_i = 0xf;
-    cache->cache0_dat_i = 0;
-    cache->cache0_we_i = 0;
-    cpu->ins_ack_i = cache->cache0_ack_o;
-    cpu->ins_stall_i = cache->cache0_stall_o;
-    cpu->ins_dat_i = cache->cache0_dat_o;
-
-    cache->cache1_adr_i = cpu->dat_adr_o;
-    cache->cache1_cyc_i = cpu->dat_cyc_o;
-    cache->cache1_stb_i = cpu->dat_stb_o;
-    cache->cache1_sel_i = cpu->dat_sel_o;
-    cache->cache1_dat_i = cpu->dat_dat_o;
-    cache->cache1_we_i = cpu->dat_we_o;
-    cpu->dat_ack_i = cache->cache1_ack_o;
-    cpu->dat_stall_i = cache->cache1_stall_o;
-    cpu->dat_dat_i = cache->cache1_dat_o;
-
     if (cpu->clk_i) {
       // Memory in wiring
-      if (cache->arb_adr_o >= 0x00000000 && cache->arb_adr_o < 0x10000000) {
-	ram0->bus1(cache->dat_cyc_o, cache->dat_stb_o, cache->dat_adr_o, cache->dat_we_o, cache->dat_sel_o, cache->dat_dat_o);
-	cache->dat_dat_i = ram0->read1();
-	cache->dat_ack_i = ram0->ack1();
+      if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
+	ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+	cpu->dat_dat_i = ram0->read1();
+	cpu->dat_ack_i = ram0->ack1();
       }
-      if (cache->arb_adr_o >= 0x50000000 && cache->arb_adr_o < 0x60000000) {
-	output0->bus1(cache->dat_cyc_o, cache->dat_stb_o, cache->dat_adr_o, cache->dat_we_o, cache->dat_sel_o, cache->dat_dat_o);
-	cache->dat_dat_i = output0->read1();
-	cache->dat_ack_i = output0->ack1();
+      if (cpu->dat_adr_o >= 0x50000000 && cpu->dat_adr_o < 0x60000000) {
+	output0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+	cpu->dat_dat_i = output0->read1();
+	cpu->dat_ack_i = output0->ack1();
       }
-      if (cache->arb_adr_o >= 0x70000000 && cache->arb_adr_o < 0x80000000) {
- 	rom0->bus1(cache->dat_cyc_o, cache->dat_stb_o, cache->dat_adr_o, 0, cache->dat_sel_o, cache->dat_dat_o);
-	cache->dat_dat_i = rom0->read1();
-	cache->dat_ack_i = rom0->ack1();
+      if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
+ 	rom0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
+	cpu->ins_dat_i = rom0->read0();
+	cpu->ins_ack_i = rom0->ack0();
       }
     }
 

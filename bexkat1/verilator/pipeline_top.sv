@@ -52,17 +52,17 @@ module pipeline_top(input         clk_i,
 		    output [3:0] 	mem_bank,
 		    output 		supervisor,
 		    output [31:0] 	ins_adr_o,
-		    output 		ins_stall_i,
-		    output 		ins_ack_i,
+		    input 		ins_stall_i,
+		    input 		ins_ack_i,
 		    output 		ins_cyc_o,
 		    output 		ins_stb_o,
-		    output [31:0] 	ins_dat_i,
+		    input [31:0] 	ins_dat_i,
 		    output [31:0] 	dat_adr_o,
 		    output 		dat_cyc_o,
-		    output 		dat_ack_i,
+		    input 		dat_ack_i,
 		    output 		dat_stb_o,
-		    output 		dat_stall_i,
-		    output [31:0] 	dat_dat_i,
+		    input 		dat_stall_i,
+		    input [31:0] 	dat_dat_i,
 		    output 		dat_we_o,
 		    output [3:0] 	dat_sel_o,
 		    output [31:0] 	dat_dat_o);
@@ -70,18 +70,18 @@ module pipeline_top(input         clk_i,
   if_wb ins_bus(), dat_bus();
   
   assign ins_adr_o = ins_bus.adr;
-  assign ins_ack_i = ins_bus.ack;
+  assign ins_bus.ack = ins_ack_i;
   assign ins_cyc_o = ins_bus.cyc;
-  assign ins_stall_i = ins_bus.stall;
+  assign ins_bus.stall = ins_stall_i;
   assign ins_stb_o = ins_bus.stb;
-  assign ins_dat_i = ins_bus.dat_s;
+  assign ins_bus.dat_s = ins_dat_i;
   assign dat_adr_o = dat_bus.adr;
   assign dat_cyc_o = dat_bus.cyc;
-  assign dat_ack_i = dat_bus.ack;
+  assign dat_bus.ack = dat_ack_i;
   assign dat_stb_o = dat_bus.stb;
-  assign dat_dat_i = dat_bus.dat_s;
+  assign dat_bus.dat_s = dat_dat_i;
   assign dat_we_o = dat_bus.we;
-  assign dat_stall_i = dat_bus.stall;
+  assign dat_bus.stall = dat_stall_i;
   assign dat_sel_o = dat_bus.sel;
   assign dat_dat_o = dat_bus.dat_m;
    
