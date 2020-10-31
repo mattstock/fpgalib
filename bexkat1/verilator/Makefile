@@ -29,7 +29,7 @@ obj_dir/Vcache_top__ALL.a: obj_dir/Vcache_top.cpp
 	cd obj_dir; make -f Vcache_top.mk
 
 clean:
-	rm -f *.o ram0.hex *.bin *.mif *.gkd *.expand ram0 *~ *.bak
+	rm -f *.o ram0.srec *.bin *.mif *.gkd *.expand ram0 *~ *.bak
 	rm -rf obj_dir
 	cd tests; make clean
 
