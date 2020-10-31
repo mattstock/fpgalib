@@ -251,6 +251,8 @@ int main(int argc, char **argv, char **env) {
 	   cpu->dat_adr_o, cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_ack_i, cpu->dat_dat_i,
 	   cpu->dat_dat_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_stall_i,
 	   memstatestr[cpu->pipeline_top__DOT__mem0__DOT__state]);
+      ram0->debug();
+      rom0->debug();
       cycle++;
     }
 

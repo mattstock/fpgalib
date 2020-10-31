@@ -11,10 +11,6 @@
  * allow for pipelining.
  */
 
-// We disable this by default because it messes up the slignment of the
-// debug frames.
-#define MEMORY_DEBUG false
-
 MemoryBlock::MemoryBlock(const char n[], std::ostream& df, int s)
   : debugfile(df) {
   name = new char[strlen(n)];
@@ -45,6 +41,8 @@ void MemoryBlock::reset(void) {
   cyc1 = 0;
   addr0 = 0;
   addr1 = 0;
+  back0 = 0;
+  back1 = 0;
   stb0 = 0;
   stb1 = 0;
   we1 = 0;
@@ -70,6 +68,19 @@ void MemoryBlock::bus1(bool cyc, bool stb, unsigned int addr, bool we, unsigned 
   sel1 = sel;
 }
 
+void MemoryBlock::debug() {
+  char buf[200];
+  char s0, s1;
+
+  s0 = (state0 == IDLE ? 'i' : 'b');
+  s1 = (state1 == IDLE ? 'i' : 'b');
+  
+  sprintf(buf, "%s bus0: state: %c cyc: %d  stb %d ack %d\n", name, s0, cyc0, stb0, back0);
+  debugfile << buf;
+  sprintf(buf, "%s bus1: state: %c cyc: %d  stb %d ack %d\n", name, s1, cyc1, stb1, back1);
+  debugfile << buf;
+}
+
 void MemoryBlock::eval() {
   char buf[200];
 
@@ -77,26 +88,21 @@ void MemoryBlock::eval() {
   case IDLE:
     if (cyc0 && stb0) {
       state0 = BUSY;
-#if MEMORY_DEBUG
-      sprintf(buf, "%s bus0(i) %08x: %02x%02x%02x%02x\n", name, addr0,
-	      read(addr0), read(addr0+1),
-	      read(addr0+2), read(addr0+3));
-      debugfile << buf;
-#endif
+      back0++;
       rdata0 = (read2(addr0) << 16) + read2(addr0+2);
     }
     break;
   case BUSY:
-    if (!(cyc0 && stb0)) {
+    if (!cyc0) {
       state0 = IDLE;
+      back0 = 0;
     } else {
-#if MEMORY_DEBUG
-      sprintf(buf, "%s bus0(b) %08x: %02x%02x%02x%02x\n", name, addr0,
-	      read(addr0), read(addr0+1),
-	      read(addr0+2), read(addr0+3));
-      debugfile << buf;
-#endif
-      rdata0 = (read2(addr0) << 16) + read2(addr0+2);
+      if (back0 > 0)
+	back0--;
+      if (stb0) {
+	back0++;
+	rdata0 = (read2(addr0) << 16) + read2(addr0+2);
+      }
     }
     break;
   }
@@ -104,6 +110,7 @@ void MemoryBlock::eval() {
   case IDLE:
     if (cyc1 && stb1) {
       state1 = BUSY;
+      back1++;
       if (we1) {
 	if (sel1 & 0x8)
 	  block[addr1] = wdata1 >> 24;
@@ -114,43 +121,35 @@ void MemoryBlock::eval() {
 	if (sel1 & 0x1)
 	  block[addr1+3] = wdata1 & 0xff; 
       } else {
-#if MEMORY_DEBUG
-	sprintf(buf, "%s bus1(i) %08x: %02x%02x%02x%02x\n", name, addr1,
-		read(addr1), read(addr1+1),
-		read(addr1+2), read(addr1+3));
-	debugfile << buf;
-#endif
 	rdata1 = (read2(addr1) << 16) + read2(addr1+2);
       } 
     }
     break;
   case BUSY:
-    if (!(cyc1 && stb1)) {
+    if (!cyc1) {
       state1 = IDLE;
+      back1 = 0;
     } else {
-      if (we1) {
-	if (sel1 & 0x8)
-	  block[addr1] = wdata1 >> 24;
-	if (sel1 & 0x4)
-	  block[addr1+1] = (wdata1 >> 16) & 0xff;
-	if (sel1 & 0x2)
-	  block[addr1+2] = (wdata1 >> 8) & 0xff;
-	if (sel1 & 0x1)
-	  block[addr1+3] = wdata1 & 0xff;
-      } else {
-#if MEMORY_DEBUG
-	sprintf(buf, "%s bus1(b) %08x: %02x%02x%02x%02x\n", name, addr1,
-		read(addr1), read(addr1+1),
-		read(addr1+2), read(addr1+3));
-	debugfile << buf;
-#endif
-	rdata1 = (read2(addr1) << 16) + read2(addr1+2);
+      if (back1 > 0)
+	back1--;
+      if (stb1) {
+	back1++;
+	if (we1) {
+	  if (sel1 & 0x8)
+	    block[addr1] = wdata1 >> 24;
+	  if (sel1 & 0x4)
+	    block[addr1+1] = (wdata1 >> 16) & 0xff;
+	  if (sel1 & 0x2)
+	    block[addr1+2] = (wdata1 >> 8) & 0xff;
+	  if (sel1 & 0x1)
+	    block[addr1+3] = wdata1 & 0xff;
+	} else {
+	  rdata1 = (read2(addr1) << 16) + read2(addr1+2);
+	}
       }
     }
     break;
   }
-  back0 = (state0 == BUSY);
-  back1 = (state1 == BUSY);
 }
 
 bool MemoryBlock::ack0() {

@@ -27,6 +27,7 @@ public:
   MemoryBlock(const char name[], std::ostream& df, int s, const char filename[]);
   void eval();
   void reset();
+  void debug();
   void dump(std::ostream& outfile);
   void bus0(bool cyc, bool stb, unsigned int addr);
   void bus1(bool cyc, bool stb, unsigned int addr, bool we, unsigned short sel, unsigned int data);
