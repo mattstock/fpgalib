@@ -86,7 +86,7 @@ module bexkat1(input 	     clk_i,
 		 .id_sp_write(id_sp_write),
 		 .exe_sp_write(exe_sp_write),
 		 .mem_sp_write(mem_sp_write),
-		 .stall(hazard_stall),
+		 .stall_o(hazard_stall),
 		 .hazard1(hazard1),
 		 .hazard2(hazard2),
 		 .sp_hazard(sp_hazard));
