@@ -32,6 +32,7 @@ clean:
 	rm -f *.o ram0.srec *.bin *.mif *.gkd *.expand ram0 *~ *.bak
 	rm -rf obj_dir
 	cd tests; make clean
+	cd tests-c; make clean
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $^
