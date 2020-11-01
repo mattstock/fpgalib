@@ -103,29 +103,36 @@ int main(int argc, char **argv, char **env) {
       cache->rst_i = 0;
     }
 
-    if (cpu->clk_i) {
-      // Memory in wiring
-      if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
-	ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
-	cpu->dat_dat_i = ram0->read1();
-	cpu->dat_ack_i = ram0->ack1();
-      }
-      if (cpu->dat_adr_o >= 0x50000000 && cpu->dat_adr_o < 0x60000000) {
-	output0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
-	cpu->dat_dat_i = output0->read1();
-	cpu->dat_ack_i = output0->ack1();
-      }
-      if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
- 	rom0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
-	cpu->ins_dat_i = rom0->read0();
-	cpu->ins_ack_i = rom0->ack0();
-      }
+    // Memory in wiring
+    if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
+      ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+      cpu->dat_dat_i = ram0->read1();
+      cpu->dat_ack_i = ram0->ack1();
     }
-
-    cpu->eval();
-    cache->eval();
+    if (cpu->dat_adr_o >= 0x50000000 && cpu->dat_adr_o < 0x60000000) {
+      output0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+      cpu->dat_dat_i = output0->read1();
+      cpu->dat_ack_i = output0->ack1();
+    }
+    if (cpu->dat_adr_o >= 0x70000000 && cpu->dat_adr_o < 0x80000000) {
+      rom0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, 0, cpu->dat_sel_o, cpu->dat_dat_o);
+      cpu->dat_dat_i = rom0->read1();
+      cpu->dat_ack_i = rom0->ack1();
+    }
+    if (cpu->ins_adr_o >= 0x00000000 && cpu->ins_adr_o < 0x10000000) {
+      ram0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
+      cpu->ins_dat_i = ram0->read0();
+      cpu->ins_ack_i = ram0->ack0();
+    }
+    if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
+      rom0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
+      cpu->ins_dat_i = rom0->read0();
+      cpu->ins_ack_i = rom0->ack0();
+    }
     rom0->eval();
     ram0->eval();
+    cpu->eval();
+    cache->eval();
     output0->eval();
     
     cputrace->dump(tick);
@@ -188,7 +195,7 @@ int main(int argc, char **argv, char **env) {
       emit(D_DEBUG, "res: %*s %*s %*x %*x\n",
 	   16, "",
 	   16, "",
-	   33, cpu->exe_result,
+ 	   33, cpu->exe_result,
 	   16, cpu->mem_result);
       emit(D_DEBUG, "ccr: %*s %*s %*x\n",
 	   16, "",
@@ -253,6 +260,7 @@ int main(int argc, char **argv, char **env) {
 	   memstatestr[cpu->pipeline_top__DOT__mem0__DOT__state]);
       ram0->debug();
       rom0->debug();
+      output0->debug();
       cycle++;
     }
 

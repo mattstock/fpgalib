@@ -104,43 +104,35 @@ int main(int argc, char **argv, char **env) {
     if (tick == 4)
       cpu->rst_i = 0;
     
-    if (cpu->clk_i) {
-      // Memory in wiring
-      if (cpu->ins_adr_o >= 0x00000000 && cpu->ins_adr_o < 0x10000000) {
-	ram0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
-	cpu->ins_dat_i = ram0->read0();
-	cpu->ins_ack_i = ram0->ack0();
-      }
-      if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
-	rom0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
-	cpu->ins_dat_i = rom0->read0();
-	cpu->ins_ack_i = rom0->ack0();
-      }
-      if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
-	ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
-	cpu->dat_dat_i = ram0->read1();
-	cpu->dat_ack_i = ram0->ack1();
-      }
-      if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
-	ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
-	cpu->dat_dat_i = ram0->read1();
-	cpu->dat_ack_i = ram0->ack1();
-      }
-      if (cpu->dat_adr_o >= 0x50000000 && cpu->dat_adr_o < 0x60000000) {
-	output0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
-	cpu->dat_dat_i = output0->read1();
-	cpu->dat_ack_i = output0->ack1();
-      }
-      if (cpu->dat_adr_o >= 0x70000000 && cpu->dat_adr_o < 0x80000000) {
-	rom0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, 0, cpu->dat_sel_o, cpu->dat_dat_o);
-	cpu->dat_dat_i = rom0->read1();
-	cpu->dat_ack_i = rom0->ack1();
-      }
+    // Memory in wiring
+    if (cpu->ins_adr_o >= 0x00000000 && cpu->ins_adr_o < 0x10000000) {
+      ram0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
+      cpu->ins_dat_i = ram0->read0();
+      cpu->ins_ack_i = ram0->ack0();
     }
-
-    cpu->eval();
+    if (cpu->ins_adr_o >= 0x70000000 && cpu->ins_adr_o < 0x80000000) {
+      rom0->bus0(cpu->ins_cyc_o, cpu->ins_stb_o, cpu->ins_adr_o);
+      cpu->ins_dat_i = rom0->read0();
+      cpu->ins_ack_i = rom0->ack0();
+    }
+    if (cpu->dat_adr_o >= 0x00000000 && cpu->dat_adr_o < 0x10000000) {
+      ram0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+      cpu->dat_dat_i = ram0->read1();
+      cpu->dat_ack_i = ram0->ack1();
+    }
+    if (cpu->dat_adr_o >= 0x50000000 && cpu->dat_adr_o < 0x60000000) {
+      output0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_dat_o);
+      cpu->dat_dat_i = output0->read1();
+      cpu->dat_ack_i = output0->ack1();
+    }
+    if (cpu->dat_adr_o >= 0x70000000 && cpu->dat_adr_o < 0x80000000) {
+      rom0->bus1(cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_adr_o, 0, cpu->dat_sel_o, cpu->dat_dat_o);
+      cpu->dat_dat_i = rom0->read1();
+      cpu->dat_ack_i = rom0->ack1();
+    }
     rom0->eval();
     ram0->eval();
+    cpu->eval();
     output0->eval();
     
     trace->dump(tick);

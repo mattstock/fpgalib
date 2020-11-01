@@ -75,10 +75,12 @@ void MemoryBlock::debug() {
   s0 = (state0 == IDLE ? 'i' : 'b');
   s1 = (state1 == IDLE ? 'i' : 'b');
   
-  sprintf(buf, "%s bus0: state: %c cyc: %d  stb %d ack %d\n", name, s0, cyc0, stb0, back0);
+  sprintf(buf, "%s bus0: %08x %08x state: %c cyc: %d  stb %d ack %d\n", name, addr0, rdata0, s0, cyc0, stb0, back0);
   debugfile << buf;
-  sprintf(buf, "%s bus1: state: %c cyc: %d  stb %d ack %d\n", name, s1, cyc1, stb1, back1);
+  sprintf(buf, "%s bus1: %08x %08x state: %c cyc: %d  we %d stb %d ack %d\n", name, addr1, (we1 ? wdata1 : rdata1), s1, cyc1, we1, stb1, back1);
   debugfile << buf;
+  sprintf(buf, "%08x %08x %08x\n", read4(addr1-4), read4(addr1), read4(addr1+4));
+  debugfile << buf;  
 }
 
 void MemoryBlock::eval() {
@@ -89,7 +91,7 @@ void MemoryBlock::eval() {
     if (cyc0 && stb0) {
       state0 = BUSY;
       back0++;
-      rdata0 = (read2(addr0) << 16) + read2(addr0+2);
+      rdata0 = read4(addr0);
     }
     break;
   case BUSY:
@@ -101,7 +103,7 @@ void MemoryBlock::eval() {
 	back0--;
       if (stb0) {
 	back0++;
-	rdata0 = (read2(addr0) << 16) + read2(addr0+2);
+	rdata0 = read4(addr0);
       }
     }
     break;
@@ -113,15 +115,15 @@ void MemoryBlock::eval() {
       back1++;
       if (we1) {
 	if (sel1 & 0x8)
-	  block[addr1] = wdata1 >> 24;
+	  block[addr1 & (len-1)] = wdata1 >> 24;
 	if (sel1 & 0x4)
-	  block[addr1+1] = (wdata1 >> 16) & 0xff;
+	  block[(addr1+1) & (len-1)] = (wdata1 >> 16) & 0xff;
 	if (sel1 & 0x2)
-	  block[addr1+2] = (wdata1 >> 8) & 0xff;
+	  block[(addr1+2) & (len-1)] = (wdata1 >> 8) & 0xff;
 	if (sel1 & 0x1)
-	  block[addr1+3] = wdata1 & 0xff; 
+	  block[(addr1+3) & (len-1)] = wdata1 & 0xff; 
       } else {
-	rdata1 = (read2(addr1) << 16) + read2(addr1+2);
+	rdata1 = read4(addr1);
       } 
     }
     break;
@@ -136,15 +138,15 @@ void MemoryBlock::eval() {
 	back1++;
 	if (we1) {
 	  if (sel1 & 0x8)
-	    block[addr1] = wdata1 >> 24;
+	    block[addr1 & (len-1)] = wdata1 >> 24;
 	  if (sel1 & 0x4)
-	    block[addr1+1] = (wdata1 >> 16) & 0xff;
+	    block[(addr1+1) & (len-1)] = (wdata1 >> 16) & 0xff;
 	  if (sel1 & 0x2)
-	    block[addr1+2] = (wdata1 >> 8) & 0xff;
+	    block[(addr1+2) & (len-1)] = (wdata1 >> 8) & 0xff;
 	  if (sel1 & 0x1)
-	    block[addr1+3] = wdata1 & 0xff;
+	    block[(addr1+3) & (len-1)] = wdata1 & 0xff;
 	} else {
-	  rdata1 = (read2(addr1) << 16) + read2(addr1+2);
+	  rdata1 = read4(addr1);
 	}
       }
     }
@@ -235,6 +237,10 @@ unsigned short MemoryBlock::read2(unsigned int addr) {
   temp = read(addr) << 8;
   temp += read(addr+1);
   return temp;
+}
+
+unsigned int MemoryBlock::read4(unsigned int addr) {
+  return (read2(addr) << 16) + read2(addr+2);
 }
 
 unsigned int MemoryBlock::read0() {
