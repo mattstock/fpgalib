@@ -16,11 +16,13 @@ module hazard(input              clk_i,
 	      input [1:0] 	 id_sp_write,
 	      input [1:0] 	 exe_sp_write,
 	      input [1:0] 	 mem_sp_write,
-	      output logic 	 stall,
+	      output logic 	 stall_o,
 	      output logic [2:0] hazard1,
 	      output logic [2:0] hazard2,
 	      output logic [1:0] sp_hazard);
 
+  wire [3:0] 			 if_type = if_ir[31:28];
+  wire [3:0] 			 if_ra = if_ir[23:20];
   wire [3:0] 			 if_rb = if_ir[19:16];
   wire [3:0] 			 if_rc = if_ir[15:12];
   wire [3:0] 			 id_type = id_ir[31:28];
@@ -31,26 +33,42 @@ module hazard(input              clk_i,
   wire 				 id_size = id_ir[0];
   wire [3:0] 			 mem_ra = mem_ir[23:20];
   wire [3:0] 			 exe_ra = exe_ir[23:20];
-  
-  assign stall = (id_type == T_LOAD && if_ir != 64'h0 &&
-		  (id_ra == if_rb || id_ra == if_rc));
 
-  function [2:0] hazard;
+  always_comb
+    begin // 'ware if vs ir prefix here!
+      if (id_type == T_LOAD && if_ir != 64'h0)
+	begin
+	  if (if_type == T_STORE)
+	    begin
+	      stall_o = (id_ra == if_ra);
+	    end
+	  else
+	    begin
+	      stall_o = id_ra == if_rb || id_ra == if_rc;
+	    end
+	end
+      else
+	begin
+	  stall_o = 1'h0;
+	end
+    end
+  
+  function [2:0] haz;
     input [3:0] 		 regaddr;
     
-    hazard = 3'h0;
+    haz = 3'h0;
     if (id_ir != 64'h0)
       if (|exe_sp_write && regaddr == 4'd15)
-	hazard = 3'h4;
+	haz = 3'h4;
       else
 	if (|exe_reg_write && regaddr == exe_ra)
-	  hazard = 3'h2;
+	  haz = 3'h2;
 	else
 	  if (|mem_sp_write && regaddr == 4'd15)
-	    hazard = 3'h3;
+	    haz = 3'h3;
 	  else 
 	    if (|mem_reg_write && regaddr == mem_ra)
-	      hazard = 3'h1;
+	      haz = 3'h1;
   endfunction
 
   function [1:0] sphazard;
@@ -69,53 +87,53 @@ module hazard(input              clk_i,
       case (id_type)
 	T_POP:
 	  begin
-	    hazard1 = hazard(4'd15);
+	    hazard1 = haz(4'd15);
 	    hazard2 = 3'h0;
 	  end
 	T_PUSH:
 	  begin
-	    hazard1 = hazard(4'd15);
-	    hazard2 = hazard(id_ra);
+	    hazard1 = haz(4'd15);
+	    hazard2 = haz(id_ra);
 	  end
 	T_CMP:
 	  begin
-	    hazard1 = hazard(id_ra);
-	    hazard2 = hazard(id_rb);
+	    hazard1 = haz(id_ra);
+	    hazard2 = haz(id_rb);
 	  end
 	T_MOV:
 	  begin
-	    hazard1 = hazard(id_rb);
+	    hazard1 = haz(id_rb);
 	    hazard2 = 3'h0;
 	  end
 	T_INTU:
 	  begin
-	    hazard1 = hazard(id_rb);
+	    hazard1 = haz(id_rb);
 	    hazard2 = 3'h0;
 	  end
 	T_ALU:
 	  begin
-	    hazard1 = hazard(id_rb);
-	    hazard2 = (id_op[3] ? 3'h0 : hazard(id_rc));
+	    hazard1 = haz(id_rb);
+	    hazard2 = (id_op[3] ? 3'h0 : haz(id_rc));
 	  end
 	T_INT:
 	  begin
-	    hazard1 = hazard(id_rb);
-	    hazard2 = (id_op[3] ? 3'h0 : hazard(id_rc));
+	    hazard1 = haz(id_rb);
+	    hazard2 = (id_op[3] ? 3'h0 : haz(id_rc));
 	  end
 	T_STORE:
 	  begin
-	    hazard1 = hazard(id_ra);
-	    hazard2 = (id_size ? 3'h0 : hazard(id_rb));
+	    hazard1 = haz(id_ra);
+	    hazard2 = (id_size ? 3'h0 : haz(id_rb));
 	  end
 	T_LOAD:
 	  begin
 	    hazard1 = 3'h0;
-	    hazard2 = (id_size ? 3'h0 : hazard(id_rb));
+	    hazard2 = (id_size ? 3'h0 : haz(id_rb));
 	  end
 	T_JUMP:
 	  begin
 	    hazard1 = 3'h0;
-	    hazard2 = (id_size ? 3'h0 : hazard(id_rb));
+	    hazard2 = (id_size ? 3'h0 : haz(id_rb));
 	  end
 	default:
 	  begin
