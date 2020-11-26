@@ -19,8 +19,8 @@ tests:
 	cd tests; make
 	cd tests-c; make
 
-obj_dir/Vmicrocode_top.cpp: ${CPUDEPS} microcode_top.sv
-	verilator --trace -I.. -I../.. --unroll-count 256 --unroll-stmts 10000 -cc microcode_top.sv -exe microcode_test.cpp memory.cpp Vcache_top__ALL.a
+obj_dir/Vmicrocode_top.cpp: ${CPUDEPS} microcode_test.cpp microcode_top.sv memory.cpp io.cpp obj_dir/Vcache_top__ALL.a
+	verilator --trace -I.. -I../.. --unroll-count 256 --unroll-stmts 10000 -cc microcode_top.sv -exe microcode_test.cpp memory.cpp io.cpp Vcache_top__ALL.a
 
 obj_dir/Vmicrocode_top: obj_dir/Vmicrocode_top.cpp obj_dir/Vcache_top__ALL.a microcode_test.cpp
 	cd obj_dir; make -f Vmicrocode_top.mk
@@ -48,3 +48,7 @@ clean:
 
 %.bin: %.o
 	$(OBJCOPY) -O binary $< $@
+
+memory.cpp: memory.h
+
+io.cpp: io.h
