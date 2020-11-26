@@ -98,7 +98,7 @@ int main(int argc, char **argv, char **env) {
   
   while (!Verilated::gotFinish() && tick < 2000000) {
     // Run the clock
-    cpu->clk_i = ~cpu->clk_i;
+    cpu->clk_i ^= 0x1;
     
     // Drop reset
     if (tick == 4)
