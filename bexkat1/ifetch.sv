@@ -22,9 +22,9 @@ module ifetch
   logic [31:0] 	       pc_next, low_next, low;
   logic [31:0] 	       bus_adr_next, val;
   logic 	       full, empty;
-  logic [3:0] 	       cidx;
-  logic [3:0] 	       req_count, req_count_next;
-  logic [3:0] 	       ack_count, ack_count_next;
+  logic [4:0] 	       cidx;
+  logic [4:0] 	       req_count, req_count_next;
+  logic [4:0] 	       ack_count, ack_count_next;
 
   typedef enum bit [1:0] { S_RESET, S_FETCH, S_FETCH2 } state_t;
   typedef enum bit [1:0] { SB_IDLE, SB_FETCH, SB_END, SB_HALT } bus_state_t;
@@ -48,7 +48,7 @@ module ifetch
   assign bus.we = 1'b0;
   assign dat_o = 32'h0;
   
-  fifo #(.AWIDTH(4), .DWIDTH(32)) ffifo(.clk_i(clk_i), .rst_i(rst_i|pc_set),
+  fifo #(.AWIDTH(5), .DWIDTH(32)) ffifo(.clk_i(clk_i), .rst_i(rst_i|pc_set),
 					.push(bus.ack&bus.cyc), .in(dat_i),
 					.pop(!(bus.stall|stall_i)), .out(val),
 					.full(full),
@@ -58,8 +58,8 @@ module ifetch
     if (rst_i)
       begin
 	pc <= START_ADDR;
-	req_count <= 4'h0;
-	ack_count <= 4'h0;
+	req_count <= 5'h0;
+	ack_count <= 5'h0;
 	ir <= 64'h0;
 	low <= 32'h0;
 	bus.adr <= START_ADDR;
@@ -89,9 +89,9 @@ module ifetch
       case (bus_state)
 	SB_IDLE:
 	  begin
-	    ack_count_next = 4'h0;
-	    req_count_next = 4'h0;
-	    if (cidx[3] == 1'b0)
+	    ack_count_next = 5'h0;
+	    req_count_next = 5'h0;
+	    if (cidx[4] == 1'b0)
 	      begin
 		bus_state_next = SB_FETCH;
 	      end
@@ -104,12 +104,12 @@ module ifetch
 	SB_FETCH:
 	  begin
 	    if (bus.ack)
-	      ack_count_next = ack_count + 4'h1;
+	      ack_count_next = ack_count + 5'h1;
 	    if (!bus.stall)
 	      begin
 		bus_adr_next = bus.adr + 32'h4;
-		req_count_next = req_count + 4'h1;
-		if (req_count == (REQ_MAX-4'h1))
+		req_count_next = req_count + 5'h1;
+		if (req_count == (REQ_MAX-5'h1))
 		  bus_state_next = SB_END;
 	      end
 	    if (pc_set)
@@ -121,7 +121,7 @@ module ifetch
 	SB_END:
 	  begin
 	    if (bus.ack)
-	      ack_count_next = ack_count + 4'h1;
+	      ack_count_next = ack_count + 5'h1;
 	    if (req_count == ack_count)
 	      bus_state_next = SB_IDLE;
 	    if (pc_set)
