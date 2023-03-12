@@ -2,6 +2,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <cstdarg>
+#include "Vmicrocode_top___024root.h"
 #include "Vmicrocode_top.h"
 #include "verilated.h"
 #include <verilated_vcd_c.h>
@@ -141,27 +142,27 @@ int main(int argc, char **argv, char **env) {
     if (cpu->clk_i) {
       emit(D_DEBUG, "-------------------- %03ld --------------------\n", cycle);
       emit(D_DEBUG, "state: %*s  ", 8,
-	   statestr[cpu->top__DOT__cpu0__DOT__con0__DOT__state]);
+	   statestr[cpu->rootp->top__DOT__cpu0__DOT__con0__DOT__state]);
       emit(D_DEBUG, "pc: %08x  ir: %08x  mdr: %08x  mar: %08x  a: %08x  b: %08x\n",
-	   cpu->top__DOT__cpu0__DOT__pc,
-	   cpu->top__DOT__cpu0__DOT__ir,
-	   cpu->top__DOT__cpu0__DOT__mdr,
-	   cpu->top__DOT__cpu0__DOT__mar,
-	   cpu->top__DOT__cpu0__DOT__a,
-	   cpu->top__DOT__cpu0__DOT__b);
+	   cpu->rootp->top__DOT__cpu0__DOT__pc,
+	   cpu->rootp->top__DOT__cpu0__DOT__ir,
+	   cpu->rootp->top__DOT__cpu0__DOT__mdr,
+	   cpu->rootp->top__DOT__cpu0__DOT__mar,
+	   cpu->rootp->top__DOT__cpu0__DOT__a,
+	   cpu->rootp->top__DOT__cpu0__DOT__b);
       emit(D_DEBUG, "ccr: %02x  status: %02x  ssp: %08x  vectoff: %08x\n",
-	   cpu->top__DOT__cpu0__DOT__ccr,
-	   cpu->top__DOT__cpu0__DOT__status,
-	   cpu->top__DOT__cpu0__DOT__intreg__DOT__ssp,
-	   cpu->top__DOT__cpu0__DOT__vectoff);
+	   cpu->rootp->top__DOT__cpu0__DOT__ccr,
+	   cpu->rootp->top__DOT__cpu0__DOT__status,
+	   cpu->rootp->top__DOT__cpu0__DOT__intreg__DOT__ssp,
+	   cpu->rootp->top__DOT__cpu0__DOT__vectoff);
 	   
       for (int i=0; i < 8; i++)
 	emit(D_DEBUG, "%*d: %08x",
-	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->rootp->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_DEBUG, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_DEBUG, "%*d: %08x",
-	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->rootp->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_DEBUG, "\n");
       emit(D_DEBUG, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d\n",
 	   cpu->ins_adr_o,
@@ -190,11 +191,11 @@ int main(int argc, char **argv, char **env) {
       emit(D_BOTH, "Registers:\n");
       for (int i=0; i < 8; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->rootp->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, cpu->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
+	     3, i, cpu->rootp->top__DOT__cpu0__DOT__intreg__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       emit(D_BOTH, "Memory:\n");
       ram0->dump(debugfile);
