@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <cstdarg>
 #include "Vcache_top.h"
+#include "Vpipeline_top___024root.h"
 #include "Vpipeline_top.h"
 #include "verilated.h"
 #include <verilated_vcd_c.h>
@@ -222,23 +223,23 @@ int main(int argc, char **argv, char **env) {
 	   cpu->exe_stall, cpu->mem_stall,
 	   cpu->mem_reg_write_addr);
       emit(D_DEBUG, "alu_func: %d alu1: %08x alu2: %08x alu_out: %08x int_func: %d int_out: %08x\n",
-	   cpu->pipeline_top__DOT__exe0__DOT__alu_func,
-	   cpu->pipeline_top__DOT__exe0__DOT__alu_in1,
-	   cpu->pipeline_top__DOT__exe0__DOT__alu_in2,
-	   cpu->pipeline_top__DOT__exe0__DOT__alu_out,
-	   cpu->pipeline_top__DOT__exe0__DOT__int_func,
-	   cpu->pipeline_top__DOT__exe0__DOT__int_out);
+	   cpu->rootp->pipeline_top__DOT__exe0__DOT__alu_func,
+	   cpu->rootp->pipeline_top__DOT__exe0__DOT__alu_in1,
+	   cpu->rootp->pipeline_top__DOT__exe0__DOT__alu_in2,
+	   cpu->rootp->pipeline_top__DOT__exe0__DOT__alu_out,
+	   cpu->rootp->pipeline_top__DOT__exe0__DOT__int_func,
+	   cpu->rootp->pipeline_top__DOT__exe0__DOT__int_out);
       for (int i=0; i < 8; i++)
 	emit(D_DEBUG, "%*d: %08x",
-	     3, i, cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	     3, i, cpu->rootp->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       emit(D_DEBUG, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_DEBUG, "%*d: %08x",
 	     3, i+4*cpu->id_bank,
-	     cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*cpu->id_bank]);
+	     cpu->rootp->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i+4*cpu->id_bank]);
       emit(D_DEBUG, "\n");
       emit(D_DEBUG, "vectoff: %08x inten: %*d interrupts: %*x\n",
-	   cpu->pipeline_top__DOT__exe0__DOT__vectoff,
+	   cpu->rootp->pipeline_top__DOT__exe0__DOT__vectoff,
 	   2, cpu->cpu_inter_en,
 	   2, cpu->interrupts);
       emit(D_DEBUG, "Ins: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x stall: %d state: %s\n",
@@ -248,16 +249,16 @@ int main(int argc, char **argv, char **env) {
 	   cpu->ins_ack_i,
 	   cpu->ins_dat_i,
 	   cpu->ins_stall_i,
-	   ifetchstatestr[cpu->pipeline_top__DOT__fetch0__DOT__state]);
+	   ifetchstatestr[cpu->rootp->pipeline_top__DOT__fetch0__DOT__state]);
       emit(D_DEBUG, "  fifo: cidx: %x ridx: %x widx: %x value[idx]: %08x\n",
-	   cpu->pipeline_top__DOT__fetch0__DOT__cidx,
-	   cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__ridx,
-	   cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__widx,
-	   cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__values[cpu->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
+	   cpu->rootp->pipeline_top__DOT__fetch0__DOT__cidx,
+	   cpu->rootp->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__ridx,
+	   cpu->rootp->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__widx,
+	   cpu->rootp->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__values[cpu->rootp->pipeline_top__DOT__fetch0__DOT__ffifo__DOT__ridx]);
       emit(D_DEBUG, "Mem: adr: %08x cyc: %d stb: %d ack: %d dat_i: %08x dat_o: %08x we: %d sel: %1x stall: %d state %s\n",
 	   cpu->dat_adr_o, cpu->dat_cyc_o, cpu->dat_stb_o, cpu->dat_ack_i, cpu->dat_dat_i,
 	   cpu->dat_dat_o, cpu->dat_we_o, cpu->dat_sel_o, cpu->dat_stall_i,
-	   memstatestr[cpu->pipeline_top__DOT__mem0__DOT__state]);
+	   memstatestr[cpu->rootp->pipeline_top__DOT__mem0__DOT__state]);
       ram0->debug();
       rom0->debug();
       output0->debug();
@@ -269,11 +270,11 @@ int main(int argc, char **argv, char **env) {
       emit(D_BOTH, "Registers:\n");
       for (int i=0; i < 8; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	     3, i, cpu->rootp->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       for (int i=8; i < 16; i++)
 	emit(D_BOTH, "%*d: %08x",
-	     3, i, cpu->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
+	     3, i, cpu->rootp->pipeline_top__DOT__decode0__DOT__reg0__DOT__regfile[i]);
       emit(D_BOTH, "\n");
       emit(D_BOTH, "Memory:\n");
       ram0->dump(debugfile);
