@@ -1,7 +1,7 @@
 OBJCOPY = bexkat1-elf-objcopy
 OBJDUMP = bexkat1-elf-objdump
 CFLAGS = -T profile-verilator.ld
-ASFLAGS = -nostartfiles
+ASFLAGS = 
 LDFLAGS = -T profile-verilator.ld
 LDLIBS = -Lout -lvectors
 AS = bexkat1-elf-as
@@ -67,43 +67,43 @@ out/%.bin: out/%.o
 	$(OBJCOPY) -O binary $< $@
 
 ram0: %.o
-	$(LD) -nostartfiles $< -o $@
+	$(LD)  $< -o $@
 
 out/load: out/load.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/load2: out/load2.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/memops: out/memops.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/regrel: out/regrel.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/regrel2: out/regrel2.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/regrel3: out/regrel3.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/mov: out/mov.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/alu: out/alu.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/alu2: out/alu2.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/pushpop: out/pushpop.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/misc: out/misc.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/math: out/math.o
-	$(LD) -nostartfiles -o $@ $^
+	$(LD)  -o $@ $^
 
 out/exceptions: out/exceptions.o
 	$(LD) $(LDFLAGS) -o $@ $^
