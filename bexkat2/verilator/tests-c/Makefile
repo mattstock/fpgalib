@@ -1,7 +1,7 @@
 OBJCOPY = bexkat1-elf-objcopy
 OBJDUMP = bexkat1-elf-objdump
-CFLAGS = -T profile-verilator.ld
-LDFLAGS = -T profile-verilator.ld
+CFLAGS = -T verilator.ld
+LDFLAGS = -T verilator.ld
 LDLIBS = -Lout -lvectors
 AS = bexkat1-elf-as
 LD = bexkat1-elf-ld
